@@ -1,0 +1,786 @@
+/* ====================================================================
+   SAFPEDIA — COURSE VIEWER STYLES
+   Tokens match the logged-in dashboard/affiliate area for consistency.
+   ==================================================================== */
+
+:root {
+  --blue: #2954FF;
+  --blue-dark: #1E3FCC;
+  --blue-tint: #EEF2FF;
+  --red: #FF3B5C;
+  --red-tint: #FFF0F3;
+  --ink: #0B1120;
+  --ink-soft: #5B6472;
+  --white: #FFFFFF;
+  --surface: #F6F8FC;
+  --border: #E7EAF2;
+}
+
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+body {
+  font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+  background: var(--surface);
+  color: var(--ink);
+  overflow-x: hidden;
+}
+
+.is-hidden { display: none; }
+
+/* Header */
+.viewer-header {
+  background: var(--white);
+  border-bottom: 1px solid var(--border);
+  position: sticky;
+  top: 0;
+  z-index: 100;
+  box-shadow: 0 2px 8px rgba(11, 17, 32, 0.05);
+}
+
+.header-content {
+  max-width: 1800px;
+  margin: 0 auto;
+  padding: 15px 30px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 20px;
+}
+
+.logo a {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  color: var(--blue);
+  text-decoration: none;
+  font-weight: 600;
+  transition: color 0.3s;
+}
+
+.logo a:hover {
+  color: var(--blue-dark);
+}
+
+.logo ion-icon {
+  font-size: 20px;
+}
+
+.course-title {
+  font-family: 'Space Grotesk', sans-serif;
+  font-size: 20px;
+  color: var(--ink);
+  flex: 1;
+  text-align: center;
+}
+
+.progress-badge {
+  background: var(--blue);
+  color: white;
+  padding: 8px 16px;
+  border-radius: 20px;
+  font-size: 14px;
+  font-weight: 600;
+}
+
+/* Main Container */
+.viewer-container {
+  display: grid;
+  grid-template-columns: 1fr 380px;
+  gap: 0;
+  max-width: 1800px;
+  margin: 0 auto;
+  height: calc(100vh - 70px);
+}
+
+/* Video Section — canvas stays black; this is the actual video/media
+   surface, not dashboard chrome, so it keeps the industry-standard
+   dark backdrop every video player uses for contrast. */
+.video-section {
+  background: #000;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+}
+
+.video-container {
+  flex: 1;
+  position: relative;
+  background: #000;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.video-placeholder {
+  text-align: center;
+  color: #9ca3af;
+}
+
+.video-placeholder ion-icon {
+  font-size: 80px;
+  color: #6b7280;
+  margin-bottom: 15px;
+}
+
+.video-placeholder p {
+  font-size: 18px;
+}
+
+.video-container iframe,
+.video-container video {
+  width: 100%;
+  height: 100%;
+  border: none;
+}
+video {
+  background: #000;
+}
+
+/* Audio lesson */
+.audio-player-wrapper {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 20px;
+  width: 100%;
+  height: 100%;
+  color: #9ca3af;
+}
+
+.audio-icon {
+  font-size: 64px;
+  color: var(--blue);
+}
+
+/* PDF lesson — neutral gray canvas, matching standard PDF viewer chrome */
+.pdf-viewer-wrapper {
+  position: relative;
+  width: 100%;
+  height: 100%;
+  background: #525659;
+}
+
+.pdf-open-tab-btn {
+  position: absolute;
+  top: 15px;
+  right: 15px;
+  z-index: 5;
+}
+
+/* Live / Zoom lesson */
+.live-session-wrapper {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 12px;
+  width: 100%;
+  height: 100%;
+  color: white;
+  text-align: center;
+  padding: 20px;
+}
+
+.live-icon {
+  font-size: 64px;
+  color: var(--red);
+  animation: pulse 2s infinite;
+}
+
+.live-session-wrapper h3 {
+  font-size: 22px;
+  margin: 0;
+}
+
+.live-session-time {
+  color: #d1d5db;
+  font-size: 15px;
+}
+
+.live-join-btn {
+  margin-top: 10px;
+}
+
+.live-session-note {
+  font-size: 12px;
+  color: #9ca3af;
+  margin-top: 5px;
+}
+
+@keyframes pulse {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.6; }
+}
+
+/* Video Info — this is chrome (title/description/actions), not the video
+   canvas itself, so it stays light per the no-dark-theme preference. */
+.video-info {
+  background: var(--white);
+  border-top: 1px solid var(--border);
+  padding: 25px 30px;
+  color: var(--ink);
+}
+
+.video-info h2 {
+  font-family: 'Space Grotesk', sans-serif;
+  font-size: 22px;
+  margin-bottom: 10px;
+  color: var(--ink);
+}
+
+.video-info p {
+  color: var(--ink-soft);
+  line-height: 1.6;
+  margin-bottom: 20px;
+}
+
+.lesson-actions {
+  display: flex;
+  gap: 15px;
+  flex-wrap: wrap;
+}
+
+.btn {
+  padding: 12px 24px;
+  border: none;
+  border-radius: 8px;
+  font-size: 15px;
+  font-weight: 600;
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  transition: all 0.3s;
+}
+
+.btn ion-icon {
+  font-size: 20px;
+}
+
+.btn-primary {
+  background: var(--blue);
+  color: white;
+}
+
+.btn-primary:hover {
+  background: var(--blue-dark);
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(41, 84, 255, 0.3);
+}
+
+.btn-secondary {
+  background: transparent;
+  color: var(--blue);
+  border: 1.5px solid var(--blue);
+}
+
+.btn-secondary:hover {
+  background: var(--blue-tint);
+}
+
+.btn-success {
+  background: #10b981;
+  color: white;
+  width: 100%;
+  justify-content: center;
+}
+
+.btn-success:hover {
+  background: #059669;
+}
+
+/* Lessons Sidebar */
+.lessons-sidebar {
+  background: var(--white);
+  border-left: 1px solid var(--border);
+  overflow-y: auto;
+  display: flex;
+  flex-direction: column;
+}
+
+.sidebar-header {
+  padding: 20px;
+  border-bottom: 1px solid var(--border);
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  background: var(--surface);
+}
+
+.sidebar-header h3 {
+  font-family: 'Space Grotesk', sans-serif;
+  font-size: 18px;
+  color: var(--ink);
+}
+
+.lesson-count {
+  background: var(--blue);
+  color: white;
+  padding: 4px 12px;
+  border-radius: 12px;
+  font-size: 13px;
+  font-weight: 600;
+}
+
+.lessons-list {
+  flex: 1;
+  overflow-y: auto;
+}
+
+.loading-state {
+  padding: 60px 20px;
+  text-align: center;
+  color: #9ca3af;
+}
+
+.loading-state ion-icon {
+  font-size: 48px;
+  margin-bottom: 15px;
+}
+
+/* Lesson Item */
+.lesson-item {
+  padding: 16px 20px;
+  border-bottom: 1px solid var(--border);
+  cursor: pointer;
+  transition: all 0.3s;
+  display: flex;
+  align-items: flex-start;
+  gap: 12px;
+}
+
+.lesson-item:hover {
+  background: var(--surface);
+}
+
+.lesson-item.active {
+  background: var(--blue-tint);
+  border-left: 4px solid var(--blue);
+}
+
+.lesson-item.locked {
+  cursor: not-allowed;
+  opacity: 0.6;
+  background: var(--surface);
+}
+
+.lesson-item.locked:hover {
+  background: var(--surface);
+}
+
+.lesson-number {
+  background: #e5e7eb;
+  color: #6b7280;
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: 700;
+  font-size: 14px;
+  flex-shrink: 0;
+}
+
+.lesson-item.active .lesson-number {
+  background: var(--blue);
+  color: white;
+}
+
+.lesson-item.completed .lesson-number {
+  background: #10b981;
+  color: white;
+}
+
+.lesson-details {
+  flex: 1;
+}
+
+.lesson-details h4 {
+  font-size: 15px;
+  color: var(--ink);
+  margin-bottom: 4px;
+  line-height: 1.4;
+}
+
+.lesson-meta {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  font-size: 13px;
+  color: var(--ink-soft);
+}
+
+.lesson-status {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.lesson-status ion-icon {
+  font-size: 18px;
+}
+
+.lesson-item.completed .lesson-status {
+  color: #10b981;
+}
+
+.lesson-item.locked .lesson-status {
+  color: var(--red);
+}
+
+/* Certificate Section */
+.certificate-section {
+  padding: 20px;
+  border-top: 1px solid var(--border);
+  background: linear-gradient(135deg, var(--blue) 0%, var(--blue-dark) 100%);
+}
+
+.certificate-banner {
+  text-align: center;
+  color: white;
+}
+
+.certificate-banner ion-icon {
+  font-size: 48px;
+  color: #fbbf24;
+  margin-bottom: 10px;
+}
+
+.certificate-banner h4 {
+  font-family: 'Space Grotesk', sans-serif;
+  font-size: 20px;
+  margin-bottom: 5px;
+}
+
+.certificate-banner p {
+  font-size: 14px;
+  margin-bottom: 15px;
+  opacity: 0.9;
+}
+
+/* Certificate Modal */
+.certificate-modal {
+  display: none;
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  z-index: 9999;
+}
+
+.certificate-modal.active {
+  display: block;
+}
+
+.certificate-overlay {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: rgba(11, 17, 32, 0.85);
+}
+
+.certificate-content {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  background: white;
+  border-radius: 15px;
+  padding: 30px;
+  max-width: 900px;
+  width: 90%;
+  max-height: 90vh;
+  overflow-y: auto;
+}
+
+.close-btn {
+  position: absolute;
+  top: 15px;
+  right: 15px;
+  background: none;
+  border: none;
+  font-size: 30px;
+  cursor: pointer;
+  color: var(--ink-soft);
+  z-index: 10;
+}
+
+.close-btn:hover {
+  color: var(--ink);
+}
+
+/* Certificate Card */
+.certificate-card {
+  background: linear-gradient(135deg, var(--blue) 0%, var(--blue-dark) 100%);
+  border: 15px solid var(--surface);
+  border-radius: 15px;
+  padding: 60px 40px;
+  text-align: center;
+  box-shadow: 0 20px 40px rgba(11, 17, 32, 0.15);
+  position: relative;
+  overflow: hidden;
+}
+
+.certificate-card::before {
+  content: '';
+  position: absolute;
+  top: -50%;
+  left: -50%;
+  width: 200%;
+  height: 200%;
+  background: radial-gradient(circle, rgba(255,255,255,0.1) 0%, transparent 70%);
+  animation: certificateShine 3s infinite;
+}
+
+@keyframes certificateShine {
+  0%, 100% { transform: translate(0, 0); }
+  50% { transform: translate(10%, 10%); }
+}
+
+.certificate-header {
+  margin-bottom: 30px;
+}
+
+.certificate-logo {
+  font-size: 60px;
+  color: #fbbf24;
+  margin-bottom: 15px;
+}
+
+.certificate-title {
+  font-family: 'Space Grotesk', sans-serif;
+  font-size: 36px;
+  color: white;
+  font-weight: 700;
+  margin-bottom: 10px;
+  text-transform: uppercase;
+  letter-spacing: 2px;
+}
+
+.certificate-subtitle {
+  font-size: 16px;
+  color: rgba(255,255,255,0.9);
+  text-transform: uppercase;
+  letter-spacing: 3px;
+}
+
+.certificate-body {
+  background: white;
+  border-radius: 10px;
+  padding: 40px;
+  margin: 30px 0;
+  position: relative;
+  z-index: 1;
+}
+
+.certificate-text {
+  font-size: 16px;
+  color: var(--ink-soft);
+  margin-bottom: 20px;
+  line-height: 1.8;
+}
+
+.certificate-name {
+  font-family: 'Space Grotesk', sans-serif;
+  font-size: 42px;
+  color: var(--ink);
+  font-weight: 700;
+  margin: 20px 0;
+}
+
+.certificate-course {
+  font-size: 24px;
+  color: var(--red);
+  font-weight: 600;
+  margin: 20px 0;
+}
+
+.certificate-date {
+  font-size: 14px;
+  color: #9ca3af;
+  margin-top: 15px;
+}
+
+.certificate-footer {
+  display: flex;
+  justify-content: space-around;
+  margin-top: 40px;
+  padding-top: 30px;
+  border-top: 2px solid rgba(255,255,255,0.3);
+}
+
+.certificate-signature {
+  text-align: center;
+}
+
+.signature-line {
+  width: 200px;
+  height: 2px;
+  background: rgba(255,255,255,0.5);
+  margin: 0 auto 10px;
+}
+
+.signature-name {
+  font-size: 16px;
+  color: white;
+  font-weight: 600;
+}
+
+.signature-title {
+  font-size: 12px;
+  color: rgba(255,255,255,0.8);
+  text-transform: uppercase;
+  letter-spacing: 1px;
+}
+
+.certificate-actions {
+  display: flex;
+  gap: 15px;
+  margin-top: 25px;
+  justify-content: center;
+}
+
+/* Loading Overlay */
+.loading-overlay {
+  display: none;
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: rgba(11, 17, 32, 0.7);
+  z-index: 10000;
+  align-items: center;
+  justify-content: center;
+  flex-direction: column;
+  gap: 20px;
+}
+
+.loading-overlay.active {
+  display: flex;
+}
+
+.spinner {
+  width: 50px;
+  height: 50px;
+  border: 4px solid rgba(255,255,255,0.3);
+  border-top-color: var(--blue);
+  border-radius: 50%;
+  animation: spin 0.8s linear infinite;
+}
+
+@keyframes spin {
+  to { transform: rotate(360deg); }
+}
+
+.loading-overlay p {
+  color: white;
+  font-size: 16px;
+}
+
+/* Responsive Design */
+@media (max-width: 1024px) {
+  .viewer-container {
+    grid-template-columns: 1fr;
+    height: auto;
+  }
+
+  .lessons-sidebar {
+    border-left: none;
+    border-top: 1px solid var(--border);
+    max-height: 400px;
+  }
+
+  .video-container {
+    aspect-ratio: 16 / 9;
+  }
+
+  .video-section {
+    height: auto;
+  }
+}
+
+@media (max-width: 768px) {
+  .header-content {
+    padding: 12px 15px;
+    flex-wrap: wrap;
+  }
+
+  .course-title {
+    font-size: 16px;
+    order: 3;
+    width: 100%;
+    text-align: left;
+    margin-top: 10px;
+  }
+
+  .video-info {
+    padding: 20px 15px;
+  }
+
+  .video-info h2 {
+    font-size: 18px;
+  }
+
+  .lesson-actions {
+    flex-direction: column;
+  }
+
+  .btn {
+    width: 100%;
+    justify-content: center;
+  }
+
+  .certificate-content {
+    width: 95%;
+    padding: 20px;
+  }
+
+  .certificate-card {
+    padding: 40px 20px;
+  }
+
+  .certificate-name {
+    font-size: 32px;
+  }
+
+  .certificate-course {
+    font-size: 20px;
+  }
+
+  .certificate-footer {
+    flex-direction: column;
+    gap: 30px;
+  }
+}
+
+/* Scrollbar Styling */
+.lessons-sidebar::-webkit-scrollbar,
+.certificate-content::-webkit-scrollbar {
+  width: 8px;
+}
+
+.lessons-sidebar::-webkit-scrollbar-track,
+.certificate-content::-webkit-scrollbar-track {
+  background: #f1f1f1;
+}
+
+.lessons-sidebar::-webkit-scrollbar-thumb,
+.certificate-content::-webkit-scrollbar-thumb {
+  background: #cbd5e1;
+  border-radius: 4px;
+}
+
+.lessons-sidebar::-webkit-scrollbar-thumb:hover,
+.certificate-content::-webkit-scrollbar-thumb:hover {
+  background: #94a3b8;
+}

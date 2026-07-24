@@ -1,0 +1,262 @@
+/* ============================================
+   SAFPEDIA — AFFILIATE PAGE CONTENT STYLES
+   Loads alongside student-dashboard.css (shared dashboard shell).
+   Reuses that file's tokens (--blue, --red, --ink, etc.) rather than
+   redefining its own, so colors stay in sync with the rest of the portal.
+   ============================================ */
+
+.affiliate-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  flex-wrap: wrap;
+  gap: 16px;
+  margin-bottom: 28px;
+}
+
+.affiliate-header h2 {
+  font-family: 'Space Grotesk', sans-serif;
+  font-size: 26px;
+  font-weight: 700;
+  color: var(--ink);
+  margin-bottom: 6px;
+}
+
+.affiliate-header p {
+  color: var(--ink-soft);
+  font-size: 14px;
+}
+
+/* ============================================
+   BUTTONS
+   ============================================ */
+.btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 11px 20px;
+  font-size: 14px;
+  font-weight: 700;
+  border-radius: var(--radius-sm);
+  border: none;
+  cursor: pointer;
+  text-decoration: none;
+  transition: transform 0.15s ease, background 0.15s ease;
+  font-family: 'Inter', sans-serif;
+}
+
+.btn-primary { background: var(--blue); color: var(--white); }
+.btn-primary:hover { background: var(--blue-dark); }
+
+.btn-secondary {
+  background: transparent;
+  color: var(--blue);
+  border: 1.5px solid var(--blue);
+}
+.btn-secondary:hover { background: var(--blue-tint); }
+
+/* ============================================
+   SECTIONS / CARDS
+   ============================================ */
+.courses-section {
+  background: var(--white);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-lg);
+  padding: 28px;
+  margin-bottom: 24px;
+  box-shadow: var(--shadow-card);
+}
+
+.courses-section h2 {
+  font-family: 'Space Grotesk', sans-serif;
+  font-size: 20px;
+  font-weight: 700;
+  color: var(--ink);
+  margin-bottom: 6px;
+}
+
+.courses-section > p {
+  color: var(--ink-soft);
+  margin: 10px 0 20px;
+  font-size: 14px;
+}
+
+.section-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 12px;
+}
+
+.section-header h2 { margin-bottom: 0; }
+
+.is-hidden { display: none; }
+
+/* ============================================
+   EMPTY STATES
+   ============================================ */
+.empty-state { text-align: center; padding: 48px 20px; }
+.empty-state h3 { margin: 16px 0 8px; color: var(--ink); font-size: 17px; font-family: 'Space Grotesk', sans-serif; }
+.empty-state p { color: var(--ink-soft); font-size: 14px; }
+
+.empty-icon { font-size: 48px; display: block; margin: 0 auto; }
+.empty-icon.icon-amber { color: #F59E0B; }
+.empty-icon.icon-danger { color: var(--red); }
+
+/* ============================================
+   APPLICATION FORM
+   ============================================ */
+.field-label {
+  display: block;
+  margin-bottom: 8px;
+  font-weight: 600;
+  font-size: 13px;
+  color: var(--ink-soft);
+}
+
+.form-field {
+  width: 100%;
+  padding: 10px 12px;
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  margin-bottom: 15px;
+  font-size: 14px;
+  font-family: inherit;
+}
+
+/* ============================================
+   REFERRAL BOX
+   ============================================ */
+.referral-box {
+  background: var(--blue-tint);
+  border: 1px dashed var(--blue);
+  border-radius: var(--radius-sm);
+  padding: 20px;
+  margin-bottom: 25px;
+}
+
+.referral-box code {
+  display: block;
+  background: var(--white);
+  padding: 10px 14px;
+  border-radius: 6px;
+  margin-top: 8px;
+  word-break: break-all;
+  font-size: 14px;
+  color: var(--ink);
+}
+
+.referral-box > p {
+  margin-top: 10px;
+  font-size: 13px;
+  color: var(--ink-soft);
+}
+
+/* ============================================
+   STATS GRID
+   ============================================ */
+.stats-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+  gap: 20px;
+  margin-bottom: 28px;
+}
+
+.stat-card {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  background: var(--white);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-md);
+  padding: 20px;
+  box-shadow: var(--shadow-card);
+}
+
+.stat-icon {
+  width: 48px;
+  height: 48px;
+  border-radius: 12px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 22px;
+  flex-shrink: 0;
+}
+
+.stat-icon--earned { background: #D1FAE5; color: #065F46; }
+.stat-icon--payout { background: var(--blue-tint); color: var(--blue); }
+.stat-icon--processing { background: #FEF3C7; color: #92400E; }
+.stat-icon--paid { background: #E0E7FF; color: #3730A3; }
+
+.stat-info h3 { font-family: 'Space Grotesk', sans-serif; font-size: 22px; font-weight: 800; color: var(--ink); margin-bottom: 2px; }
+.stat-info p { font-size: 13px; color: var(--ink-soft); }
+
+/* ============================================
+   BANK ACCOUNT FORM (JS-injected content)
+   ============================================ */
+#bank-account-section { margin-top: 15px; }
+
+#bank-account-section label {
+  display: block;
+  margin: 12px 0 6px;
+  font-size: 13px;
+  color: var(--ink-soft);
+  font-weight: 600;
+}
+
+#bank-account-section select,
+#bank-account-section input {
+  width: 100%;
+  padding: 10px 12px;
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  font-size: 14px;
+  font-family: inherit;
+}
+
+#bank-account-section button { margin-top: 15px; }
+
+/* ============================================
+   COMMISSIONS / PAYOUTS LISTS (JS-injected content)
+   ============================================ */
+#commissions-list,
+#payouts-list { margin-top: 15px; }
+
+.commission-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 12px 0;
+  border-bottom: 1px solid var(--border);
+  font-size: 14px;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.commission-row:last-child { border-bottom: none; }
+
+.status-processing,
+.status-paid,
+.status-failed {
+  display: inline-block;
+  padding: 4px 10px;
+  border-radius: 999px;
+  font-size: 12px;
+  font-weight: 700;
+}
+
+.status-processing { background: #FEF3C7; color: #92400E; }
+.status-paid { background: #D1FAE5; color: #065F46; }
+.status-failed { background: var(--red-tint); color: var(--red); }
+
+/* ============================================
+   RESPONSIVE
+   ============================================ */
+@media (max-width: 640px) {
+  .affiliate-header { flex-direction: column; align-items: flex-start; }
+  .courses-section { padding: 20px; }
+  .section-header { flex-direction: column; align-items: flex-start; }
+  .commission-row { flex-direction: column; align-items: flex-start; }
+}

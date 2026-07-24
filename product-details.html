@@ -1,0 +1,196 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="description" content="Course details on Safpedia.">
+  <title>Course Details | Safpedia</title>
+<script>
+    // ====================================================================
+// AFFILIATE REFERRAL TRAFFIC CAPTURE
+// ====================================================================
+(function captureAffiliateReferral() {
+  const urlParams = new URLSearchParams(window.location.search);
+  const referralCode = urlParams.get('ref');
+
+  if (referralCode) {
+    localStorage.setItem('active_referral_token', referralCode);
+    console.log(`📌 Referral token locked into storage: ${referralCode}`);
+  }
+})();
+</script>
+  <!-- Favicon -->
+  <link rel="apple-touch-icon" sizes="180x180" href="favicon/apple-touch-icon.png">
+  <link rel="icon" type="image/png" sizes="32x32" href="favicon/favicon-32x32.png">
+  <link rel="icon" type="image/png" sizes="16x16" href="favicon/favicon-16x16.png">
+  <link rel="manifest" href="favicon/site.webmanifest">
+
+  <!-- Fonts -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@500;600;700;800&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+
+  <!-- Ionicons -->
+  <script type="module" src="https://unpkg.com/ionicons@7.1.0/dist/ionicons/ionicons.esm.js"></script>
+  <link rel="stylesheet" href="css/course-details.css">
+</head>
+<body>
+
+  <!-- SITE HEADER -->
+  <header class="site-header">
+    <div class="header-container">
+      <a href="index.html" class="brand-logo">Safpedia</a>
+
+      <nav class="main-nav">
+        <a href="index.html" class="nav-link">Home</a>
+        <a href="about-us.html" class="nav-link">About</a>
+        <a href="all-courses.html" class="nav-link active">Browse Marketplace</a>
+        <a href="sell.html" class="nav-link">Sell on Safpedia</a>
+        <a href="dashboard.html" class="nav-link">My Library</a>
+      </nav>
+
+      <div class="header-actions">
+        <a href="sign-in.html" class="btn btn-secondary">Sign In</a>
+
+        <button class="mobile-menu-btn" id="mobile-menu-btn">
+          <ion-icon name="menu-outline" class="menu-icon"></ion-icon>
+          <ion-icon name="close-outline" class="close-icon"></ion-icon>
+        </button>
+      </div>
+    </div>
+
+    <!-- Mobile menu overlay -->
+    <div class="mobile-menu" id="mobile-menu">
+      <a href="index.html" class="mobile-nav-link">Home</a>
+      <a href="about-us.html" class="mobile-nav-link">About</a>
+      <a href="all-courses.html" class="mobile-nav-link">Browse Marketplace</a>
+      <a href="sell.html" class="mobile-nav-link">Sell on Safpedia</a>
+      <a href="dashboard.html" class="mobile-nav-link">My Library</a>
+    </div>
+  </header>
+
+  <!-- Loading Indicator -->
+  <div id="page-loading">
+    <div>
+      <div class="spinner"></div>
+      <p class="loading-text">Loading course...</p>
+    </div>
+  </div>
+
+  <!-- Error Container -->
+  <div id="error-container"></div>
+
+  <!-- Hero Section -->
+  <section class="hero is-hidden" id="hero-section">
+    <div class="hero-content">
+      <h1 id="course-title-hero">Course Title</h1>
+      <p class="subtitle" id="course-subtitle">Course description</p>
+      
+      <div class="stats">
+        <div class="stat-item">
+          <span class="number" id="total-lessons">0</span>
+          <span class="label">Video Lessons</span>
+        </div>
+        <div class="stat-item">
+          <span class="number" id="enrolled-count">0</span>
+          <span class="label">Students Enrolled</span>
+        </div>
+        <div class="stat-item">
+          <span class="number" id="course-level">Beginner</span>
+          <span class="label">Level</span>
+        </div>
+      </div>
+
+      <button class="btn btn-primary enroll-btn">
+        <ion-icon name="rocket-outline"></ion-icon>
+        Enroll Now - <span class="course-price">₦0</span>
+      </button>
+    </div>
+  </section>
+
+  <!-- Course Meta Info -->
+  <section class="is-hidden" id="meta-section">
+    <h2>Course Information</h2>
+    <div class="course-meta">
+      <div class="meta-card">
+        <h3>Price</h3>
+        <p class="course-price">₦0</p>
+      </div>
+      <div class="meta-card">
+        <h3>Category</h3>
+        <p id="course-category">General</p>
+      </div>
+      <div class="meta-card">
+        <h3>Instructor</h3>
+        <p id="course-instructor">Safpedia</p>
+      </div>
+      <div class="meta-card">
+        <h3>Duration</h3>
+        <p id="course-duration">Self-paced</p>
+      </div>
+    </div>
+
+    <div class="about-course-panel">
+      <h3>About This Course</h3>
+      <p id="course-description">
+        Loading description...
+      </p>
+    </div>
+  </section>
+
+  <!-- Course Curriculum -->
+  <section class="curriculum is-hidden" id="curriculum-section">
+    <h2>What You'll Learn</h2>
+    <div id="curriculum-list">
+      <!-- Will be populated by JavaScript -->
+    </div>
+    
+    <div class="curriculum-cta">
+      <button class="btn btn-primary enroll-btn">
+        <ion-icon name="school-outline"></ion-icon>
+        Enroll Now - <span class="course-price">₦0</span>
+      </button>
+    </div>
+  </section>
+
+  <!-- Scripts -->
+  <script src="js/mobile-menu.js"></script>
+  <script type="module">
+    import { initCoursePage } from '/js/single-course-handler.js';
+    
+    // Get course ID from URL parameter
+    const urlParams = new URLSearchParams(window.location.search);
+    const courseId = urlParams.get('id');
+    
+    if (!courseId) {
+      // No course ID provided, redirect to courses page
+      console.error('❌ No course ID in URL');
+      document.getElementById('page-loading').style.display = 'none';
+      document.getElementById('error-container').innerHTML = `
+        <div class="no-course-error">
+          <ion-icon name="alert-circle-outline" class="no-course-error-icon"></ion-icon>
+          <h2>No Course Selected</h2>
+          <p>Please select a course from the catalog</p>
+          <a href="/all-courses.html" class="btn btn-primary">
+            View All Courses
+          </a>
+        </div>
+      `;
+      document.getElementById('error-container').style.display = 'block';
+    } else {
+      // Initialize course page with the ID
+      console.log('🚀 Loading course:', courseId);
+      
+      // Show sections after loading
+      setTimeout(() => {
+        document.getElementById('hero-section').style.display = 'block';
+        document.getElementById('meta-section').style.display = 'block';
+        document.getElementById('curriculum-section').style.display = 'block';
+      }, 100);
+      
+      initCoursePage(courseId);
+    }
+  </script>
+
+</body>
+</html>

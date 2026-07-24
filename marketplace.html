@@ -1,0 +1,99 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Browse the Marketplace - Safpedia</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@500;600;700;800&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="css/marketplace.css">
+    <script type="module" src="https://unpkg.com/ionicons@7.1.0/dist/ionicons/ionicons.esm.js"></script>
+    <script nomodule src="https://unpkg.com/ionicons@7.1.0/dist/ionicons/ionicons.js"></script>
+</head>
+<body>
+
+    <!-- MARKETPLACE HEADER -->
+    <header class="marketplace-header">
+        <div class="header-container">
+            <a href="index.html" class="brand-logo">Safpedia</a>
+
+            <nav class="main-nav">
+                <a href="index.html" class="nav-link">Home</a>
+                <a href="about-us.html" class="nav-link">About Safpedia</a>
+                <a href="all-courses.html" class="nav-link">Digital libriary</a>
+                <a href="marketplace.html" class="nav-link active">MarketPlace</a>
+            </nav>
+
+            <div class="header-actions">
+                <div class="user-action-area" id="auth-status-container">
+                    <!-- Injected dynamically by Auth listener (Login Button / Avatar Button) -->
+                    <a href="sign-in.html" class="btn btn-primary">Sign In</a>
+                </div>
+
+                <button class="mobile-menu-btn" id="mobile-menu-btn">
+                    <ion-icon name="menu-outline" class="menu-icon"></ion-icon>
+                    <ion-icon name="close-outline" class="close-icon"></ion-icon>
+                </button>
+            </div>
+        </div>
+
+        <!-- Mobile menu overlay -->
+        <div class="mobile-menu" id="mobile-menu">
+            <a href="index.html" class="mobile-nav-link">Home </a>
+            <a href="about-us.html" class="mobile-nav-link">About Safpedia</a>
+            <a href="all-courses.html" class="mobile-nav-link active">Digital libriary</a>
+            <a href="marketplace.html" class="mobile-nav-link">MarketPlace</a>
+        </div>
+    </header>
+
+    <!-- HUB HERO SEARCH & FILTERS SECTION -->
+    <main class="catalog-wrapper">
+        <section class="filter-hero">
+            <span class="section-badge">Safpedia Digital Libriary</span>
+            <h1>Discover Premium <span class="accent-highlight">Digital Courses</span></h1>
+            <p>Access high-tier engineering bootcamps,Human mind architectural blueprints, audio deep-dives, and live Interactive sessions.</p>
+            
+            <div class="search-filter-bar">
+                <div class="search-input-group">
+                    <ion-icon name="search-outline"></ion-icon>
+                    <input type="text" id="catalog-search" placeholder="Search">
+                </div>
+                <div class="select-group">
+                    <select id="filter-format">
+                        <option value="all">All Formats</option>
+                        <option value="video">Video Masterclasses</option>
+                        <option value="audio">Audio Deep Dives</option>
+                        <option value="pdf">E-Books & Handouts</option>
+                        <option value="live">Zoom Live Events</option>
+                    </select>
+                </div>
+                <div class="select-group" style="display: none;">
+                    <select id="filter-category">
+                        <option value="all">All Specialties</option>
+                        <option value="web-development">Web Development</option>
+                        <option value="mobile-development">Mobile Development</option>
+                        <option value="data-analysis">Data Analysis</option>
+                        <option value="graphic-design">Graphic Design</option>
+                        <option value="digital-marketing">Digital Marketing</option>
+                        <option value="video-editing">Video Editing</option>
+                        <option value="cybersecurity">Cybersecurity</option>
+                    </select>
+                </div>
+            </div>
+        </section>
+
+        <!-- DYNAMIC MARKETPLACE GRID -->
+        <section class="products-grid-container">
+            <div id="catalog-grid" class="products-grid">
+                <!-- Dynamic Content Render Target for Catalog Items -->
+                <div class="loading-placeholder">Fetching premium catalog files...</div>
+            </div>
+        </section>
+    </main>
+    <script type="module" src="js/course.js"></script>
+    <script src="js/mobile-nav.js"></script>
+    <script type="module" src="https://unpkg.com/ionicons@8.0.13/dist/ionicons/ionicons.esm.js"></script>
+<script nomodule src="https://unpkg.com/ionicons@8.0.13/dist/ionicons/ionicons.js"></script>
+</body>
+</html>

@@ -1,0 +1,175 @@
+<!-- students/seller-dashboard.html -->
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Seller Dashboard | Safpedia</title>
+    <link rel="stylesheet" href="./css/student-dashboard.css">
+    <link rel="stylesheet" href="./css/seller-dashboard.css">
+    <script type="module" src="https://unpkg.com/ionicons@7.1.0/dist/ionicons/ionicons.esm.js"></script>
+    <script nomodule src="https://unpkg.com/ionicons@7.1.0/dist/ionicons/ionicons.js"></script>
+</head>
+<body>
+
+    <!-- MOBILE TOP BAR -->
+    <div class="mobile-topbar">
+        <button class="sidebar-toggle-btn" id="sidebar-toggle-btn">
+            <ion-icon name="menu-outline" class="menu-icon"></ion-icon>
+            <ion-icon name="close-outline" class="close-icon"></ion-icon>
+        </button>
+        <div class="brand-logo">Safpedia</div>
+    </div>
+
+    <div class="sidebar-overlay" id="sidebar-overlay"></div>
+
+    <div class="dashboard-layout">
+        <!-- SIDEBAR NAVIGATION -->
+        <aside class="sidebar-panel">
+            <div class="brand-logo">Safpedia</div>
+            <ul class="nav-group">
+
+  <li><a href="dashboard.html"><div class="nav-item-btn"><ion-icon name="grid-outline"></ion-icon><span class="nav-label">My Courses</span></div></a></li>
+                <li><a href="affiliate.html"><div class="nav-item-btn"><ion-icon name="cash-outline"></ion-icon><span class="nav-label">Referral Earnings</span></div></a></li>
+                <li><a href="sellers-page.html"><div class="nav-item-btn active"><ion-icon name="book-outline"></ion-icon><span class="nav-label">Publish your products</span></div></a></li>
+                
+                
+                <li><div class="nav-item-btn" data-tab="products-pane"><ion-icon name="cube-outline"></ion-icon><span class="nav-label">My Products</span></div></li>
+                <li><div class="nav-item-btn" data-tab="add-product-pane"><ion-icon name="add-circle-outline"></ion-icon><span class="nav-label">Add Product</span></div></li>
+                <li><div class="nav-item-btn" data-tab="orders-pane"><ion-icon name="receipt-outline"></ion-icon><span class="nav-label">Orders</span></div></li>
+                <li><div class="nav-item-btn" data-tab="payouts-pane"><ion-icon name="cash-outline"></ion-icon><span class="nav-label">Balance &amp; Payouts</span></div></li>
+                <li><a href="dashboard.html"><div class="nav-item-btn"><ion-icon name="arrow-back-outline"></ion-icon><span class="nav-label">Back to My Courses</span></div></a></li>
+                <li><a href="dashboard.html"><div class="nav-item-btn"><ion-icon name="receipt-outline"></ion-icon><span class="nav-label">Purchase History</span></div></a></li>
+                <li><a href="../all-courses.html"><div class="nav-item-btn"><ion-icon name="book-outline"></ion-icon><span class="nav-label">Digital Libriary</span></div></a></li>
+            </ul>
+            <div class="sidebar-footer">
+                <div class="student-profile-avatar" id="seller-avatar-slot">S</div>
+                <div>
+                    <div id="seller-display-email">Seller Account</div>
+                    <a href="#" id="seller-logout-trigger">Sign Out</a>
+                </div>
+            </div>
+        </aside>
+
+        <main class="main-workspace-view">
+
+            <!-- TAB 1: MY PRODUCTS -->
+            <section id="products-pane" class="dashboard-section-card active-tab">
+                <h2>My Products</h2>
+                <p>Everything you've listed for sale on Safpedia's marketplace.</p>
+                <div id="products-grid" class="products-grid">
+                    <div class="loading-placeholder">Loading your products...</div>
+                </div>
+            </section>
+
+            <!-- TAB 2: ADD PRODUCT -->
+            <section id="add-product-pane" class="dashboard-section-card">
+                <h2>Add a Product</h2>
+                <p>List a physical or digital product. No approval needed — it goes live immediately.</p>
+
+                <form id="add-product-form" class="seller-form">
+                    <div class="form-row">
+                        <label for="product-title">Title</label>
+                        <input type="text" id="product-title" maxlength="120" required>
+                    </div>
+
+                    <div class="form-row">
+                        <label for="product-description">Description</label>
+                        <textarea id="product-description" rows="4" maxlength="5000"></textarea>
+                    </div>
+
+                    <div class="form-row">
+                        <label for="product-category">Category</label>
+                        <input type="text" id="product-category" placeholder="e.g. Fashion, Home & Living, E-books" required>
+                    </div>
+
+                    <div class="form-row">
+                        <label for="product-price">Price (₦)</label>
+                        <input type="number" id="product-price" min="1" step="1" required>
+                    </div>
+
+                    <div class="form-row">
+                        <label>Product Type</label>
+                        <div class="radio-group">
+                            <label><input type="radio" name="product-type" value="physical" checked> Physical (shipped to buyer)</label>
+                            <label><input type="radio" name="product-type" value="digital"> Digital (downloadable file)</label>
+                        </div>
+                    </div>
+
+                    <div class="form-row" id="stock-field-wrapper">
+                        <label for="product-stock">Stock Quantity</label>
+                        <input type="number" id="product-stock" min="0" step="1">
+                    </div>
+
+                    <div class="form-row hidden" id="digital-file-wrapper">
+                        <label for="product-digital-file">Product File (buyer downloads this after purchase)</label>
+                        <input type="file" id="product-digital-file" accept=".pdf,.zip,.epub,.mp3,.wav,.mp4,.doc,.docx,.xls,.xlsx">
+                    </div>
+
+                    <div class="form-row">
+                        <label for="product-images">Product Photos (up to 6)</label>
+                        <input type="file" id="product-images" accept="image/png,image/jpeg,image/webp,image/gif" multiple>
+                    </div>
+
+                    <div id="upload-progress" class="upload-progress hidden"></div>
+
+                    <button type="submit" id="submit-product-btn" class="btn btn-primary">Publish Product</button>
+                </form>
+            </section>
+
+            <!-- TAB 3: ORDERS -->
+            <section id="orders-pane" class="dashboard-section-card">
+                <h2>Orders</h2>
+                <p>Track sales of your products, and mark physical orders as shipped.</p>
+                <div id="orders-list" class="data-table-frame">
+                    <div class="empty-state">Order tracking is coming soon.</div>
+                </div>
+            </section>
+
+            <!-- TAB 4: BALANCE & PAYOUTS -->
+            <section id="payouts-pane" class="dashboard-section-card">
+                <h2>Balance &amp; Payouts</h2>
+
+                <div class="balance-summary" id="balance-summary">
+                    <div class="balance-card">
+                        <span class="balance-label">Available Balance</span>
+                        <span class="balance-value" id="pending-payout-value">₦0</span>
+                    </div>
+                    <div class="balance-card">
+                        <span class="balance-label">Processing</span>
+                        <span class="balance-value" id="awaiting-payout-value">₦0</span>
+                    </div>
+                    <div class="balance-card">
+                        <span class="balance-label">Total Paid Out</span>
+                        <span class="balance-value" id="total-paid-value">₦0</span>
+                    </div>
+                </div>
+
+                <button type="button" id="request-payout-btn" class="btn btn-primary">Request Payout</button>
+
+                <hr>
+
+                <h3>Bank Account</h3>
+                <div id="bank-account-display" class="bank-account-display"></div>
+
+                <form id="bank-account-form" class="seller-form">
+                    <div class="form-row">
+                        <label for="bank-select">Bank</label>
+                        <select id="bank-select" required>
+                            <option value="">Loading banks...</option>
+                        </select>
+                    </div>
+                    <div class="form-row">
+                        <label for="account-number">Account Number</label>
+                        <input type="text" id="account-number" maxlength="10" required>
+                    </div>
+                    <button type="submit" id="save-bank-btn" class="btn btn-secondary">Save Bank Account</button>
+                </form>
+            </section>
+
+        </main>
+    </div>
+
+    <script type="module" src="./js/seller-dashboard.js"></script>
+</body>
+</html>

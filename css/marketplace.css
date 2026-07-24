@@ -1,0 +1,798 @@
+/* ====================================================================
+   1. GLOBAL VARIABLES & SYSTEM RESETS
+   SAFPEDIA MARKETPLACE — brand-aligned with home.css
+   ==================================================================== */
+:root {
+    --bg-dark-workspace: #0f172a;
+    --bg-dark-card: #1e293b;
+    --bg-light-market: #F6F8FB;
+    --bg-white: #ffffff;
+    
+    --text-primary-dark: #f1f5f9;
+    --text-secondary-dark: #94a3b8;
+    --text-primary-light: #10141C;
+    --text-secondary-light: #58626E;
+    
+    --brand-primary: blue;
+    --brand-primary-dark: #0B2A54;
+    --brand-primary-light: #E8EFFA;
+    --brand-accent: #B4232C;
+    --brand-hover: #0B2A54;
+
+    /* Supporting hues for format badges only — nav, buttons, and headings stay blue/red */
+    --format-audio: #0E8A82;
+    --format-live: #C6790C;
+
+    --border-light: #e2e8f0;
+    --border-dark: #334155;
+    
+    --radius-sm: 6px;
+    --radius-md: 10px;
+    --radius-lg: 16px;
+    --shadow-card: 0 10px 15px -3px rgba(0, 0, 0, 0.05), 0 4px 6px -2px rgba(0, 0, 0, 0.03);
+    --shadow-card-hover: 0 20px 40px -8px rgba(11, 42, 84, 0.16);
+
+    --font-display: 'Plus Jakarta Sans', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+    --font-body: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+}
+
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+    font-family: var(--font-body);
+}
+
+h1, h2, h3, .brand-logo, .product-title {
+    font-family: var(--font-display);
+}
+
+/* ====================================================================
+   2. MARKETPLACE BROWSING CATALOG LAYOUT (`all-courses.html`)
+   ==================================================================== */
+body {
+    background-color: var(--bg-light-market);
+    color: var(--text-primary-light);
+    min-height: 100vh;
+}
+
+.marketplace-header {
+    background-color: var(--bg-white);
+    border-bottom: 1px solid var(--border-light);
+    position: sticky;
+    top: 0;
+    z-index: 50;
+}
+
+.header-container {
+    max-width: 1200px;
+    margin: 0 auto;
+    padding: 16px 24px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.brand-logo {
+  font-family: 'Space Grotesk', sans-serif;
+  font-weight: 700;
+  font-size: 20px;
+  color: blue !important;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding-left: 4px;
+  z-index:999;
+}
+.brand-logo::before {
+  content: "";
+  width: 10px; height: 10px;
+  background: red;
+  border-radius: 3px;
+  flex-shrink: 0;
+}
+.main-nav {
+    display: flex;
+    gap: 24px;
+}
+
+.header-actions {
+    display: flex;
+    align-items: center;
+    gap: 1.25rem;
+}
+
+.mobile-menu-btn {
+    display: none;
+    font-size: 1.6rem;
+    color: var(--text-primary-light);
+    background: none;
+    border: none;
+    cursor: pointer;
+}
+
+.mobile-menu-btn .close-icon { display: none; }
+.mobile-menu-btn.active .menu-icon { display: none; }
+.mobile-menu-btn.active .close-icon { display: block; }
+
+.mobile-menu {
+    position: fixed;
+    top: 70px;
+    left: 0;
+    width: 100%;
+    height: calc(100vh - 70px);
+    background: rgba(255, 255, 255, 0.98);
+    backdrop-filter: blur(10px);
+    transform: translateX(-100%);
+    transition: transform 220ms ease;
+    z-index: 1000;
+    padding: 2rem;
+    display: flex;
+    flex-direction: column;
+    gap: 1.1rem;
+}
+
+.mobile-menu.active { transform: translateX(0); }
+
+.mobile-nav-link {
+    font-size: 1.05rem;
+    font-weight: 600;
+    color: var(--text-primary-light);
+    padding: 0.85rem 1rem;
+    border-radius: var(--radius-sm);
+    text-decoration: none;
+    display: block;
+}
+
+.mobile-nav-link:hover { background: var(--bg-light-market); color: var(--brand-primary); }
+
+@media (max-width: 860px) {
+    .main-nav { display: none; }
+    .mobile-menu-btn { display: block; }
+}
+
+.main-nav .nav-link {
+    text-decoration: none;
+    color: var(--text-secondary-light);
+    font-weight: 600;
+    font-size: 14px;
+    transition: color 0.15s ease;
+}
+
+.main-nav .nav-link:hover, .main-nav .nav-link.active {
+    color: var(--brand-primary);
+}
+
+.student-profile-avatar {
+    width: 38px;
+    height: 38px;
+    background-color: var(--brand-primary);
+    color: var(--bg-white);
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-weight: 700;
+    text-decoration: none;
+}
+
+/* Catalog Filter Hero */
+.catalog-wrapper {
+    max-width: 1200px;
+    margin: 0 auto;
+    padding: 48px 24px;
+}
+
+.filter-hero {
+    text-align: center;
+    margin-bottom: 48px;
+}
+
+.section-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+    color: var(--brand-primary);
+    font-weight: 700;
+    font-size: 0.8rem;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    margin-bottom: 1rem;
+}
+
+.section-badge::before {
+    content: '';
+    width: 6px;
+    height: 6px;
+    background: var(--brand-accent);
+    border-radius: 1px;
+    display: inline-block;
+}
+
+.filter-hero h1 {
+    font-size: 36px;
+    font-weight: 800;
+    color: var(--text-primary-light);
+    margin-bottom: 12px;
+    letter-spacing: -0.01em;
+}
+
+.accent-highlight {
+    background: linear-gradient(100deg, var(--brand-primary) 0%, var(--brand-accent) 100%);
+    -webkit-background-clip: text;
+    background-clip: text;
+    -webkit-text-fill-color: transparent;
+}
+
+.filter-hero p {
+    color: var(--text-secondary-light);
+    max-width: 600px;
+    margin: 0 auto 32px auto;
+    font-size: 16px;
+    line-height: 1.5;
+}
+
+.search-filter-bar {
+    background-color: var(--bg-white);
+    padding: 12px;
+    border-radius: var(--radius-lg);
+    box-shadow: var(--shadow-card);
+    border: 1px solid var(--border-light);
+    display: flex;
+    gap: 16px;
+    max-width: 900px;
+    margin: 0 auto;
+    transition: border-color 220ms ease, box-shadow 220ms ease;
+}
+
+.search-filter-bar:focus-within {
+    border-color: var(--brand-primary-light);
+    box-shadow: var(--shadow-card-hover);
+}
+
+.search-input-group {
+    flex: 1;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding-left: 12px;
+}
+
+.search-input-group ion-icon {
+    font-size: 20px;
+    color: var(--text-secondary-light);
+}
+
+.search-input-group input {
+    width: 100%;
+    border: none;
+    outline: none;
+    font-size: 14px;
+    color: var(--text-primary-light);
+}
+
+.select-group select {
+    padding: 10px 16px;
+    border-radius: var(--radius-sm);
+    border: 1px solid var(--border-light);
+    background-color: var(--bg-light-market);
+    font-size: 14px;
+    font-weight: 600;
+    color: var(--text-secondary-light);
+    outline: none;
+    cursor: pointer;
+}
+
+/* Grid Layout Matrix */
+.products-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+    gap: 32px;
+}
+
+.loading-placeholder,
+.error-state,
+.empty-state {
+    grid-column: 1 / -1;
+    text-align: center;
+    padding: 64px 24px;
+    border-radius: var(--radius-lg);
+    background-color: var(--bg-white);
+    border: 1px dashed var(--border-light);
+    color: var(--text-secondary-light);
+    font-size: 15px;
+    font-weight: 600;
+}
+
+.error-state {
+    color: var(--brand-accent);
+    border-color: var(--brand-accent);
+    background-color: #FCECEC;
+}
+
+.product-card {
+    background-color: var(--bg-white);
+    border-radius: var(--radius-lg);
+    border: 1px solid var(--border-light);
+    overflow: hidden;
+    box-shadow: var(--shadow-card);
+    display: flex;
+    flex-direction: column;
+    transition: transform 220ms ease, box-shadow 220ms ease, border-color 220ms ease;
+}
+
+.product-card:hover {
+    transform: translateY(-6px);
+    box-shadow: var(--shadow-card-hover);
+    border-color: var(--brand-primary-light);
+}
+
+.card-banner {
+    position: relative;
+    height: 190px;
+    background-color: #e2e8f0;
+    overflow: hidden;
+}
+
+.card-banner img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    transition: transform 400ms ease;
+}
+
+.product-card:hover .card-banner img {
+    transform: scale(1.06);
+}
+
+.badge-f {
+    position: absolute;
+    top: 12px;
+    left: 12px;
+    padding: 6px 12px;
+    border-radius: 50px;
+    font-size: 12px;
+    font-weight: 700;
+    color: var(--bg-white);
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.18);
+}
+
+.badge-f.video { background-color: var(--brand-accent); }
+.badge-f.audio { background-color: var(--format-audio); }
+.badge-f.pdf { background-color: var(--brand-primary); }
+.badge-f.live { background-color: var(--format-live); }
+
+.card-details {
+    padding: 22px;
+    display: flex;
+    flex-direction: column;
+    flex: 1;
+}
+
+.category-meta {
+    font-size: 11px;
+    font-weight: 700;
+    letter-spacing: 0.06em;
+    color: var(--brand-primary);
+    margin-bottom: 8px;
+}
+
+.product-title {
+    font-size: 18px;
+    font-weight: 700;
+    line-height: 1.4;
+    margin-bottom: 8px;
+    color: var(--text-primary-light);
+}
+
+.product-snippet {
+    font-size: 13px;
+    color: var(--text-secondary-light);
+    line-height: 1.55;
+    margin-bottom: 20px;
+    display: -webkit-box;
+    -webkit-line-clamp: 2;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+}
+
+.card-footer-row {
+    margin-top: auto;
+    padding-top: 16px;
+    border-top: 1px solid var(--border-light);
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.product-cost {
+    font-size: 18px;
+    font-weight: 800;
+    color: var(--brand-primary-dark);
+}
+
+/* ====================================================================
+   3. IMMERSIVE MEDIA WORKSPACE STYLES (`video`, `audio`, `pdf`)
+   ==================================================================== */
+.player-body {
+    background-color: var(--bg-dark-workspace);
+    color: var(--text-primary-dark);
+    height: 100vh;
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+}
+
+.player-header {
+    background-color: var(--bg-dark-card);
+    border-bottom: 1px solid var(--border-dark);
+    padding: 16px 24px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    height: 70px;
+}
+
+.player-header-left {
+    display: flex;
+    align-items: center;
+    gap: 24px;
+}
+
+.back-to-library-btn {
+    color: var(--text-secondary-dark);
+    text-decoration: none;
+    font-size: 14px;
+    font-weight: 600;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    transition: color 0.15s ease;
+}
+
+.back-to-library-btn:hover {
+    color: var(--brand-accent);
+}
+
+.player-course-title {
+    font-size: 18px;
+    font-weight: 700;
+    border-left: 2px solid var(--border-dark);
+    padding-left: 24px;
+}
+
+.progress-indicator {
+    font-size: 13px;
+    font-weight: 600;
+    color: var(--brand-accent);
+    background-color: rgba(0, 191, 166, 0.1);
+    padding: 6px 14px;
+    border-radius: 50px;
+}
+
+/* Multi-Lesson Split Layout Container */
+.player-container {
+    display: flex;
+    flex: 1;
+    overflow: hidden;
+}
+
+.video-workspace {
+    flex: 1;
+    overflow-y: auto;
+    padding: 32px;
+    display: flex;
+    flex-direction: column;
+    gap: 24px;
+}
+
+.video-aspect-wrapper {
+    width: 100%;
+    background-color: #000000;
+    border-radius: var(--radius-lg);
+    overflow: hidden;
+    aspect-ratio: 16 / 9;
+    box-shadow: 0 20px 25px -5px rgba(0,0,0,0.3);
+}
+
+.video-aspect-wrapper video {
+    width: 100%;
+    height: 100%;
+    display: block;
+}
+
+.video-meta-pane, .pdf-meta-pane {
+    padding-top: 8px;
+}
+
+.video-meta-pane h2, .pdf-meta-pane h2 {
+    font-size: 22px;
+    font-weight: 700;
+    margin-bottom: 12px;
+}
+
+.video-meta-pane p, .pdf-description-text {
+    color: var(--text-secondary-dark);
+    font-size: 14px;
+    line-height: 1.6;
+}
+
+/* Playlist Sidebar Structure */
+.playlist-sidebar {
+    width: 360px;
+    background-color: var(--bg-dark-card);
+    border-left: 1px solid var(--border-dark);
+    display: flex;
+    flex-direction: column;
+}
+
+.playlist-header {
+    padding: 24px;
+    border-bottom: 1px solid var(--border-dark);
+}
+
+.playlist-header h3 {
+    font-size: 16px;
+    font-weight: 700;
+}
+
+.playlist-menu {
+    list-style: none;
+    overflow-y: auto;
+    flex: 1;
+}
+
+.playlist-item {
+    padding: 20px 24px;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.03);
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    cursor: pointer;
+    transition: background-color 0.15s ease;
+}
+
+.playlist-item:hover {
+    background-color: rgba(255, 255, 255, 0.02);
+}
+
+.playlist-item.active {
+    background-color: rgba(79, 70, 229, 0.15);
+    border-left: 4px solid var(--brand-primary);
+}
+
+.playlist-item-meta {
+    display: flex;
+    gap: 16px;
+    align-items: center;
+}
+
+.lesson-index-badge {
+    width: 28px;
+    height: 28px;
+    border-radius: 50%;
+    background-color: var(--bg-dark-workspace);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 12px;
+    font-weight: 700;
+    color: var(--text-secondary-dark);
+}
+
+.playlist-item.active .lesson-index-badge {
+    background-color: var(--brand-primary);
+    color: var(--text-primary-dark);
+}
+
+.lesson-text-block {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+}
+
+.lesson-item-title {
+    font-size: 14px;
+    font-weight: 600;
+}
+
+.lesson-item-duration {
+    font-size: 12px;
+    color: var(--text-secondary-dark);
+    display: flex;
+    align-items: center;
+    gap: 4px;
+}
+
+.play-indicator-icon {
+    font-size: 20px;
+    color: var(--text-secondary-dark);
+}
+
+.playlist-item.active .play-indicator-icon {
+    color: var(--brand-accent);
+}
+
+/* ====================================================================
+   4. AUDIO CANVAS INTERFACE LAYOUT (`audio-catalog.html`)
+   ==================================================================== */
+.audio-player-container {
+    flex: 1;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 40px;
+}
+
+.audio-workspace-card {
+    background-color: var(--bg-dark-card);
+    border: 1px solid var(--border-dark);
+    border-radius: var(--radius-lg);
+    width: 100%;
+    max-width: 500px;
+    padding: 40px;
+    box-shadow: 0 25px 50px -12px rgba(0,0,0,0.5);
+    text-align: center;
+}
+
+.audio-cover-art-wrapper {
+    width: 200px;
+    height: 200px;
+    margin: 0 auto 32px auto;
+    border-radius: var(--radius-md);
+    overflow: hidden;
+    position: relative;
+    box-shadow: 0 15px 30px rgba(0,0,0,0.4);
+}
+
+.audio-cover-art-wrapper img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+}
+
+.audio-author {
+    font-size: 14px;
+    color: var(--brand-accent);
+    font-weight: 600;
+    margin-bottom: 12px;
+}
+
+.audio-description-body {
+    font-size: 13px;
+    color: var(--text-secondary-dark);
+    line-height: 1.6;
+    margin-bottom: 32px;
+}
+
+.audio-controls-wrapper {
+    background-color: var(--bg-dark-workspace);
+    padding: 12px;
+    border-radius: 50px;
+}
+
+.audio-controls-wrapper audio {
+    width: 100%;
+    outline: none;
+}
+
+/* Visual Equalizer Animation Wave */
+.audio-pulse-indicator {
+    position: absolute;
+    bottom: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba(15, 23, 42, 0.7);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 4px;
+    opacity: 0;
+    transition: opacity 0.3s ease;
+}
+
+.audio-pulse-indicator.playing {
+    opacity: 1;
+}
+
+.audio-pulse-indicator span {
+    width: 4px;
+    height: 20px;
+    background-color: var(--brand-accent);
+    border-radius: 50px;
+}
+
+.audio-pulse-indicator.playing span {
+    animation: bounceWave 1.2s infinite ease-in-out;
+}
+.audio-pulse-indicator.playing span:nth-child(2) { animation-delay: 0.2s; }
+.audio-pulse-indicator.playing span:nth-child(3) { animation-delay: 0.4s; }
+.audio-pulse-indicator.playing span:nth-child(4) { animation-delay: 0.6s; }
+.audio-pulse-indicator.playing span:nth-child(5) { animation-delay: 0.8s; }
+
+@keyframes bounceWave {
+    0%, 100% { height: 15px; }
+    50% { height: 45px; }
+}
+
+/* ====================================================================
+   5. PDF EMBED AREA CONFIGURATION (`pdf-catalog.html`)
+   ==================================================================== */
+.pdf-player-container {
+    flex: 1;
+    padding: 32px;
+    overflow-y: auto;
+}
+
+.pdf-viewer-workspace {
+    max-width: 1000px;
+    margin: 0 auto;
+    display: flex;
+    flex-direction: column;
+    gap: 24px;
+    height: 100%;
+}
+
+.pdf-frame-wrapper {
+    flex: 1;
+    min-height: 550px;
+    background-color: var(--bg-dark-card);
+    border: 1px solid var(--border-dark);
+    border-radius: var(--radius-lg);
+    overflow: hidden;
+    box-shadow: 0 20px 25px -5px rgba(0,0,0,0.3);
+}
+
+.pdf-frame-wrapper iframe {
+    border: none;
+    display: block;
+}
+
+/* ====================================================================
+   6. GLOBAL SHARED UTILITY BUTTONS
+   ==================================================================== */
+.btn {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    padding: 10px 22px;
+    font-size: 14px;
+    font-weight: 700;
+    border-radius: var(--radius-sm);
+    border: none;
+    cursor: pointer;
+    text-decoration: none;
+    transition: background-color 0.15s ease;
+}
+
+.btn-primary {
+    background-color: var(--brand-primary);
+    color: var(--bg-white);
+}
+.btn-primary:hover { background-color: var(--brand-hover); }
+
+.btn-secondary {
+    background-color: #f1f5f9;
+    color: var(--text-primary-light);
+    border: 1px solid var(--border-light);
+}
+.btn-secondary:hover { background-color: #e2e8f0; }
+
+.player-header .btn-secondary {
+    background-color: rgba(255, 255, 255, 0.05);
+    color: var(--text-primary-dark);
+    border-color: var(--border-dark);
+}
+.player-header .btn-secondary:hover {
+    background-color: rgba(255, 255, 255, 0.1);
+}
+
+.btn-sm {
+    padding: 8px 14px;
+    font-size: 12px;
+}

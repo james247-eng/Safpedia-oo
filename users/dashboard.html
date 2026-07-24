@@ -1,0 +1,90 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>My Dashboard | Safpedia</title>
+    <link rel="stylesheet" href="./css/student-dashboard.css">
+    <script type="module" src="https://unpkg.com/ionicons@7.1.0/dist/ionicons/ionicons.esm.js"></script>
+    <script nomodule src="https://unpkg.com/ionicons@7.1.0/dist/ionicons/ionicons.js"></script>
+</head>
+<body>
+
+    <!-- MOBILE TOP BAR — visible below 900px only -->
+    <div class="mobile-topbar">
+        <button class="sidebar-toggle-btn" id="sidebar-toggle-btn">
+            <ion-icon name="menu-outline" class="menu-icon"></ion-icon>
+            <ion-icon name="close-outline" class="close-icon"></ion-icon>
+        </button>
+        <div class="brand-logo">Safpedia</div>
+    </div>
+
+    <!-- Overlay behind the drawer, closes it when tapped -->
+    <div class="sidebar-overlay" id="sidebar-overlay"></div>
+
+    <div class="dashboard-layout">
+        <!-- SIDEBAR NAVIGATION PANEL -->
+        <aside class="sidebar-panel">
+            <div class="brand-logo">Safpedia</div>
+            <ul class="nav-group">
+                <li><div class="nav-item-btn active" onclick="switchDashboardTab('library-pane', this)"><ion-icon name="grid-outline"></ion-icon><span class="nav-label">My Courses</span></div></li>
+                <li><a href="affiliate.html"><div class="nav-item-btn"><ion-icon name="cash-outline"></ion-icon><span class="nav-label">Referral Earnings</span></div></a></li>
+                <li><a href="sellers-page.html"><div class="nav-item-btn"><ion-icon name="book-outline"></ion-icon><span class="nav-label">Publish your products</span></div></a></li>
+                <li><div class="nav-item-btn" onclick="switchDashboardTab('history-pane', this)"><ion-icon name="receipt-outline"></ion-icon><span class="nav-label">Purchase History</span></div></li>
+                <li><a href="../all-courses.html"><div class="nav-item-btn"><ion-icon name="book-outline"></ion-icon><span class="nav-label">Digital Libriary</span></div></a></li>
+            </ul>
+            <div class="sidebar-footer">
+                <div class="student-profile-avatar" id="admin-avatar-slot">U</div>
+                <div>
+                    <div id="user-display-email">User Account</div>
+                    <a href="#" id="student-logout-trigger">Sign Out</a>
+                </div>
+            </div>
+        </aside>
+
+        <!-- MAIN MONITORING WORKSPACE -->
+        <main class="main-workspace-view">
+            <!-- TAB 1: MY COURSES -->
+            <section id="library-pane" class="dashboard-section-card active-tab">
+
+                <!-- Signature "continue watching" strip — purely presentational,
+                     safe to leave static or wire up to real progress data later -->
+                <div class="continue-hero">
+                    <div class="continue-hero-eyebrow">Continue Watching</div>
+                    <h3>Pick up right where you left off</h3>
+                    <div class="hero-scrubber"><div class="hero-scrubber-fill"></div></div>
+                    <button class="hero-resume-btn"><ion-icon name="play"></ion-icon> Resume Lesson</button>
+                </div>
+
+                <h2>My Courses</h2>
+                <p>Pick up any course below to continue learning.</p>
+                <div id="library-grid" class="products-grid">
+                    <div class="loading-placeholder">Loading your courses...</div>
+                </div>
+            </section>
+
+
+            <!-- TAB 3: PURCHASE HISTORY -->
+            <section id="history-pane" class="dashboard-section-card">
+                <h2>Purchase History</h2>
+                <p>A record of everything you've purchased on Safpedia, synced directly with Paystack.</p>
+                <table class="data-table-frame">
+                    <thead>
+                        <tr>
+                            <th>Reference</th>
+                            <th>Product</th>
+                            <th>Amount Paid</th>
+                            <th>Date</th>
+                        </tr>
+                    </thead>
+                    <tbody id="purchase-history-table">
+                        <tr><td colspan="4" class="table-empty-state">Loading your purchase history...</td></tr>
+                    </tbody>
+                </table>
+            </section>
+        </main>
+    </div>
+    <script type="module" src="./js/dashboard.js"></script>
+    <script src="./js/dashboard-nav.js"></script>
+</body>
+</html>

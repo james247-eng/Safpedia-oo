@@ -1,0 +1,116 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Sign In | Tech Wizard Academy</title>
+
+  <!-- Favicon -->
+  <link rel="apple-touch-icon" sizes="180x180" href="favicon/apple-touch-icon.png">
+  <link rel="icon" type="image/png" sizes="32x32" href="favicon/favicon-32x32.png">
+  <link rel="icon" type="image/png" sizes="16x16" href="favicon/favicon-16x16.png">
+  <link rel="manifest" href="favicon/site.webmanifest">
+  <meta name="theme-color" content="#16407E" />
+
+  <!-- Fonts -->
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link
+    href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,500;0,9..144,600;0,9..144,700;1,9..144,500&family=Inter:wght@400;500;600;700;800&display=swap"
+    rel="stylesheet"
+  />
+
+  <!-- Ionicons -->
+  <script type="module" src="https://unpkg.com/ionicons@7.1.0/dist/ionicons/ionicons.esm.js"></script>
+
+  <link rel="stylesheet" href="css/auth.css" />
+</head>
+
+<body class="auth-body">
+
+  <main class="auth-shell">
+
+    <!-- BRAND PANEL -->
+    <section class="auth-brand">
+      <div class="auth-brand-top">
+        <img src="images/TECH_WIZARD_ACADEMY_LOGO-removebg-preview.png" alt="Tech Wizards Academy" />
+        <span>Tech Wizards Academy</span>
+      </div>
+
+      <div class="auth-brand-mid">
+        <div class="auth-brand-seal">
+          <ion-icon name="ribbon-outline"></ion-icon>
+          <span>Certified Digital Skills Training</span>
+        </div>
+        <h2>Welcome back, future Wizard.</h2>
+        <p>
+          Sign in to pick up your courses, track your progress, and continue
+          building the portfolio that gets you hired.
+        </p>
+
+        <div class="auth-brand-quote">
+          <p>"I made my first ₦300k as a student through their job posting program!"</p>
+          Funmi Bosede Joseph — Data Analysis
+        </div>
+      </div>
+
+      <div class="auth-brand-bottom">© 2025 Tech Wizards Academy</div>
+    </section>
+
+    <!-- FORM PANEL -->
+    <section class="auth-form-panel">
+      <div class="auth-card">
+
+        <!-- ⭐ ENROLLMENT CONTEXT BANNER -->
+        <div id="enrollment-context" style="display:none; background:#EAF1FB; border:2px solid #16407E; border-radius:12px; padding:20px; margin-bottom:20px; text-align:center; width:100%;">
+          <ion-icon name="school-outline" style="font-size:2.5rem; color:#16407E; margin-bottom:10px;"></ion-icon>
+          <h3 style="margin:0 0 8px 0; color:#0B2A54;">Complete Your Enrollment</h3>
+          <p style="margin:0; color:#58626E; font-size:14px;">
+            Login to continue enrolling in your selected course
+          </p>
+        </div>
+
+        <div class="auth-header">
+          <h1>Sign In</h1>
+          <p>Enter your email and password to sign in</p>
+        </div>
+
+        <form id="login-form" role="form">
+          <div class="input-group">
+            <input id="log-in-email" type="email" placeholder="Email" required />
+          </div>
+
+          <div class="input-group">
+            <input id="log-in-password" type="password" placeholder="Password" required />
+          </div>
+
+          <div class="rememberMe">
+            <input id="rememberMe" type="checkbox" />
+            <label for="rememberMe">Remember me</label>
+          </div>
+
+          <div class="btn-container">
+            <button id="login-btn" type="submit">Sign in</button>
+          </div>
+        </form>
+
+        <!-- Error/Success Messages -->
+        <div id="login-result"></div>
+
+        <!-- ⭐ SIGNUP LINK -->
+        <div class="auth-links">
+          <a href="sign-up.html" id="signup-link">Don't have an account? Sign up</a>
+        </div>
+      </div>
+    </section>
+
+  </main>
+
+  <!-- ⭐ MODAL CONTAINER -->
+  <div id="enrollment-success-modal" style="display:none;"></div>
+
+  <script type="module" src="js/auth.js"></script>
+
+</body>
+</html>

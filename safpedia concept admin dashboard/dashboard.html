@@ -1,0 +1,595 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Admin Dashboard - Tech Wizards Academy</title>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+  <link rel="icon" type="image/x-icon" href="favicon.ico">
+  <link rel="stylesheet" href="assets/css/admin.css">
+  <!-- Ionicons -->
+  <script type="module" src="https://unpkg.com/ionicons@7.1.0/dist/ionicons/ionicons.esm.js"></script>
+  <script nomodule src="https://unpkg.com/ionicons@7.1.0/dist/ionicons/ionicons.js"></script>
+  <!--===============================-->
+<style>
+.lessons-section {
+  background: #ffffff;
+  border-radius: 12px;
+}
+
+.lesson-card {
+  transition: all 0.2s ease-in-out;
+}
+
+.lesson-card:hover {
+  border-color: #3b82f6 !important;
+  box-shadow: 0 4px 12px rgba(59, 130, 246, 0.08);
+}
+
+.remove-lesson-btn:hover {
+  transform: scale(1.02);
+}
+</style>
+  <!--favicon starts from here-->
+
+  <link rel="apple-touch-icon" sizes="180x180" href="/favicon/apple-touch-icon.png">
+  <link rel="icon" type="image/png" sizes="32x32" href="/favicon/favicon-32x32.png">
+  <link rel="icon" type="image/png" sizes="16x16" href="/favicon/favicon-16x16.png">
+  <link rel="manifest" href="/favicon/site.webmanifest">
+</head>
+<body>
+  <div class="admin-container">
+    <!-- Sidebar -->
+    <aside class="sidebar" id="sidebar">
+      <div class="sidebar-header">
+        <h2>SafPedia Concept</h2>
+        <p>Admin Dashboard</p>
+      </div>
+      <nav>
+        <ul class="nav-menu">
+          <li class="nav-item">
+            <a class="nav-link active" data-section="overview">
+              <span class="nav-icon"><ion-icon name="home"></ion-icon></span>
+              <span>Overview</span>
+            </a>
+          </li>
+          <li class="nav-item">
+            <a class="nav-link" data-section="courses">
+              <span class="nav-icon">📚</span>
+              <span>Courses</span>
+            </a>
+          </li>
+          <li class="nav-item">
+            <a class="nav-link" data-section="students">
+              <span class="nav-icon"><ion-icon name="people"></ion-icon></span>
+              <span>Students</span>
+            </a>
+          </li>
+          <li class="nav-item">
+            <a class="nav-link" data-section="sales">
+              <span class="nav-icon"><ion-icon name="cash"></ion-icon></span>
+              <span>Sales</span>
+            </a>
+          </li>
+          <li class="nav-item">
+            <a class="nav-link" data-section="analytics">
+              <span class="nav-icon"><ion-icon name="analytics"></ion-icon></span>
+              <span>Analytics</span>
+            </a>
+          </li>
+          <li class="nav-item">
+            <a class="nav-link" data-section="affiliates">
+              <span class="nav-icon"><ion-icon name="people-circle"></ion-icon></span>
+              <span>Affiliates</span>
+            </a>
+          </li>
+          <li class="nav-item">
+            <a href="blog-management.html" class="nav-link" >
+              <!--blog icon-->
+              <span class="nav-icon"><ion-icon name="book"></ion-icon></span>
+              <span>Blog</span>
+            </a>
+          </li>
+        </ul>
+      </nav>
+    </aside>
+
+    <!-- Main Content -->
+    <main class="main-content">
+      <!-- Header -->
+      <header class="header">
+        <div class="header-left-wrapper">
+          <button class="mobile-menu-btn" id="mobile-menu-btn">☰</button>
+          <h1 id="page-title">Dashboard Overview</h1>
+        </div>
+        <div class="user-info">
+          <div class="user-avatar" id="user-avatar">A</div>
+          <button class="logout-btn" id="logout-btn">Logout</button>
+        </div>
+      </header>
+
+      <!-- Alert Container -->
+      <div id="alert-container"></div>
+
+      <!-- Overview Section -->
+      <section class="content-section active" id="overview-section">
+        <div class="stats-grid">
+          <div class="stat-card">
+            <div class="stat-header">
+              <span class="stat-title">Total Students</span>
+              <div class="stat-icon stat-blue"><ion-icon name="people"></ion-icon></div>
+            </div>
+            <div class="stat-value" id="total-students">0</div>
+            <div class="stat-change">+12% from last month</div>
+          </div>
+
+          <div class="stat-card">
+            <div class="stat-header">
+              <span class="stat-title">Total Revenue</span>
+              <div class="stat-icon stat-blue-deep"><ion-icon name="cash"></ion-icon></div>
+            </div>
+            <div class="stat-value" id="total-revenue">₦0</div>
+            <div class="stat-change">+23% from last month</div>
+          </div>
+
+          <div class="stat-card">
+            <div class="stat-header">
+              <span class="stat-title">Active Courses</span>
+              <div class="stat-icon stat-neutral">📚</div>
+            </div>
+            <div class="stat-value" id="active-courses">0</div>
+            <div class="stat-change">+2 new this month</div>
+          </div>
+
+          <div class="stat-card">
+            <div class="stat-header">
+              <span class="stat-title">Total Sales</span>
+              <div class="stat-icon stat-indigo"><ion-icon name="cart"></ion-icon></div>
+            </div>
+            <div class="stat-value" id="total-sales">0</div>
+            <div class="stat-change">+8% from last month</div>
+          </div>
+        </div>
+
+        <!-- Recent Sales -->
+        <div class="card">
+          <div class="card-header">
+            <h2 class="card-title">Recent Sales</h2>
+          </div>
+          <div class="table-container">
+            <table id="recent-sales-table">
+              <thead>
+                <tr>
+                  <th>Student</th>
+                  <th>Course</th>
+                  <th>Amount</th>
+                  <th>Date</th>
+                  <th>Status</th>
+                </tr>
+              </thead>
+              <tbody id="recent-sales-body">
+                <tr>
+                  <td colspan="5" class="empty-state">Loading sales data...</td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </section>
+
+      <!-- Courses Section -->
+      <section class="content-section" id="courses-section">
+        <div class="card">
+          <div class="card-header responsive-header-block">
+            <h2 class="card-title">All Courses</h2>
+            <div class="header-actions-group">
+              <input type="text" class="search-box" id="courses-search" placeholder="Search courses...">
+              <button class="btn btn-primary" id="add-course-btn">+ Add New Course</button>
+            </div>
+          </div>
+          <div class="table-container">
+            <table>
+              <thead>
+                <tr>
+                  <th>Thumbnail</th>
+                  <th>Title</th>
+                  <th>Category</th>
+                  <th>Price</th>
+                  <th>Enrolled</th>
+                  <th>Status</th>
+                  <th>Actions</th>
+                </tr>
+              </thead>
+              <tbody id="courses-table-body">
+                <tr>
+                  <td colspan="7" class="empty-state">Loading courses...</td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </section>
+
+      <!-- Students Section -->
+      <section class="content-section" id="students-section">
+        <div class="card">
+          <div class="card-header responsive-header-block">
+            <h2 class="card-title">All Students</h2>
+            <input type="text" class="search-box" id="students-search" placeholder="Search students...">
+          </div>
+          <div class="table-container">
+            <table>
+              <thead>
+                <tr>
+                  <th>Name</th>
+                  <th>Email</th>
+                  <th>Enrolled Courses</th>
+                  <th>Joined Date</th>
+                  <th>Actions</th>
+                </tr>
+              </thead>
+              <tbody id="students-table-body">
+                <tr>
+                  <td colspan="5" class="empty-state">Loading students...</td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </section>
+
+      <!-- Sales Section -->
+      <section class="content-section" id="sales-section">
+        <div class="card">
+          <div class="card-header responsive-header-block">
+            <h2 class="card-title">All Transactions</h2>
+            <input type="text" class="search-box" id="sales-search" placeholder="Search transactions...">
+          </div>
+          <div class="table-container">
+            <table>
+              <thead>
+                <tr>
+                  <th>Reference</th>
+                  <th>Student</th>
+                  <th>Course</th>
+                  <th>Amount</th>
+                  <th>Date</th>
+                  <th>Status</th>
+                </tr>
+              </thead>
+              <tbody id="sales-table-body">
+                <tr>
+                  <td colspan="6" class="empty-state">Loading transactions...</td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </section>
+
+      <!-- Analytics Section -->
+      <section class="content-section" id="analytics-section">
+        <div class="card">
+          <div class="card-header">
+            <h2 class="card-title">Monthly Revenue</h2>
+          </div>
+          <div id="revenue-chart"></div>
+        </div>
+
+        <div class="card">
+          <div class="card-header">
+            <!-- <h2 class="card-title">Top 5 Courses by Revenue</h2> -->
+          </div>
+          <div id="top-courses-chart"></div>
+        </div>
+
+        <div class="card">
+          <div class="card-header">
+            <!-- <h2 class="card-title">Top 5 Courses by Enrollments</h2> -->
+          </div>
+          <div id="enrollment-stats"></div>
+        </div>
+      </section>
+
+      <!-- Affiliates Section -->
+      <section class="content-section" id="affiliates-section">
+        <div class="card">
+          <div class="card-header">
+            <h2 class="card-title">Pending Applications</h2>
+          </div>
+          <div class="table-container">
+            <table>
+              <thead>
+                <tr>
+                  <th>Name</th>
+                  <th>Email</th>
+                  <th>Reason</th>
+                  <th>Applied</th>
+                  <th>Actions</th>
+                </tr>
+              </thead>
+              <tbody id="pending-affiliates-body">
+                <tr><td colspan="5" class="empty-state">Loading applications...</td></tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+
+        <div class="card">
+          <div class="card-header responsive-header-block">
+            <h2 class="card-title">Active Affiliates</h2>
+            <button class="btn btn-primary" id="create-affiliate-btn">+ Create Affiliate Account</button>
+          </div>
+          <div class="table-container">
+            <table>
+              <thead>
+                <tr>
+                  <th>Name</th>
+                  <th>Code</th>
+                  <th>Rate</th>
+                  <th>Total Earned</th>
+                  <th>Available</th>
+                  <th>Sales</th>
+                </tr>
+              </thead>
+              <tbody id="active-affiliates-body">
+                <tr><td colspan="6" class="empty-state">Loading affiliates...</td></tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </section>
+    </main>
+  </div>
+
+
+<!-- Add/Edit Course Modal with Lessons Support -->
+<div class="modal" id="course-modal">
+  <div class="modal-content">
+    <div class="modal-header">
+      <h2 class="modal-title" id="modal-title">Add New Course</h2>
+      <button class="close-modal" id="close-modal">&times;</button>
+    </div>
+    <form id="course-form">
+      <input type="hidden" id="course-id">
+      
+      <!-- Basic Course Info -->
+      <div class="form-row">
+        <div class="form-group">
+          <label class="form-label">Course Title *</label>
+          <input type="text" class="form-input" id="course-title" required>
+        </div>
+        <div class="form-group">
+          <label class="form-label">Category *</label>
+          <select class="form-select" id="course-category" required>
+            <option value="">Select Category</option>
+            <option value="web-development">Web Development</option>
+            <option value="mobile-development">Mobile Development</option>
+            <option value="data-analysis">Data Analysis</option>
+            <option value="graphic-design">Graphic Design</option>
+            <option value="digital-marketing">Digital Marketing</option>
+            <option value="video-editing">Video Editing</option>
+            <option value="cybersecurity">Cybersecurity</option>
+          </select>
+        </div>
+      </div>
+
+      <div class="form-group">
+        <label class="form-label">Short Description *</label>
+        <input type="text" class="form-input" id="course-short-desc" required>
+      </div>
+
+      <div class="form-group">
+        <label class="form-label">Full Description *</label>
+        <textarea class="form-textarea" id="course-description" required></textarea>
+      </div>
+
+      <div class="form-row">
+        <div class="form-group">
+          <label class="form-label">Price (₦) *</label>
+          <input type="number" class="form-input" id="course-price" required>
+        </div>
+        <div class="form-group">
+          <label class="form-label">Thumbnail URL *</label>
+          <input type="url" class="form-input" id="course-thumbnail" required>
+        </div>
+      </div>
+
+      <div class="form-row">
+        <div class="form-group">
+          <label class="form-label">Instructor Name</label>
+          <input type="text" class="form-input" id="course-instructor">
+        </div>
+        <div class="form-group">
+          <label class="form-label">Level</label>
+          <select class="form-select" id="course-level">
+            <option value="beginner">Beginner</option>
+            <option value="intermediate">Intermediate</option>
+            <option value="advanced">Advanced</option>
+          </select>
+        </div>
+      </div>
+
+      <div class="form-group">
+        <label class="form-label">Status</label>
+        <select class="form-select" id="course-status">
+          <option value="true">Published</option>
+          <option value="false">Draft</option>
+        </select>
+      </div>
+
+      <!-- LESSONS SECTION -->
+      <div class="lessons-section-wrapper">
+        <div class="lessons-section-header">
+          <h3>Course Lessons</h3>
+          <button type="button" class="btn btn-secondary" id="add-lesson-btn">
+            + Add Lesson
+          </button>
+        </div>
+
+        <div id="lessons-container">
+          <!-- Lessons will be added here dynamically -->
+        </div>
+      </div>
+
+      <div class="action-buttons-modal-row">
+        <button type="submit" class="btn btn-primary" id="save-course-btn">Save Course</button>
+        <button type="button" class="btn btn-secondary" id="cancel-btn">Cancel</button>
+      </div>
+    </form>
+  </div>
+</div>
+
+<!-- Lesson Card Template (Hidden) -->
+<template id="lesson-card-template">
+  <div class="lesson-card">
+    <div class="lesson-template-header">
+      <h4 class="lesson-title-display">Lesson <span class="lesson-number">1</span></h4>
+      <button type="button" class="btn btn-danger btn-sm remove-lesson-btn">
+        Remove
+      </button>
+    </div>
+
+    <div class="form-group">
+      <label class="form-label">Lesson Title *</label>
+      <input type="text" class="form-input lesson-title" required placeholder="e.g., Introduction to HTML">
+    </div>
+
+    <div class="form-row">
+      <div class="form-group">
+        <label class="form-label">Content Type *</label>
+        <select class="form-select lesson-content-type" required>
+          <option value="video">Video</option>
+          <option value="audio">Audio</option>
+          <option value="pdf">PDF</option>
+          <option value="live">Live Session (Zoom)</option>
+        </select>
+      </div>
+      <div class="form-group">
+        <label class="form-label">Duration</label>
+        <input type="text" class="form-input lesson-duration" placeholder="e.g., 15 mins">
+      </div>
+    </div>
+
+    <!-- VIDEO -->
+    <div class="form-group lesson-video-fields">
+      <label class="form-label">Video URL *</label>
+      <input type="url" class="form-input lesson-video-url" placeholder="YouTube or Vimeo link">
+    </div>
+
+    <!-- AUDIO (Cloudinary upload) -->
+    <div class="form-group lesson-audio-fields" style="display:none;">
+      <label class="form-label">Audio File *</label>
+      <input type="file" class="lesson-audio-file" accept="audio/*">
+      <button type="button" class="btn btn-secondary btn-sm lesson-audio-upload-btn" style="margin-top:8px; display:block;">Upload Audio</button>
+      <input type="hidden" class="lesson-content-url">
+      <p class="lesson-audio-status" style="font-size:12px; color:#9ca3af; margin-top:6px;"></p>
+    </div>
+
+    <!-- PDF (Cloudinary upload) -->
+    <div class="form-group lesson-pdf-fields" style="display:none;">
+      <label class="form-label">PDF File *</label>
+      <input type="file" class="lesson-pdf-file" accept="application/pdf">
+      <button type="button" class="btn btn-secondary btn-sm lesson-pdf-upload-btn" style="margin-top:8px; display:block;">Upload PDF</button>
+      <p class="lesson-pdf-status" style="font-size:12px; color:#9ca3af; margin-top:6px;"></p>
+    </div>
+
+    <!-- LIVE / ZOOM -->
+    <div class="lesson-live-fields" style="display:none;">
+      <div class="form-row">
+        <div class="form-group">
+          <label class="form-label">Session Date & Time *</label>
+          <input type="datetime-local" class="form-input lesson-live-datetime">
+        </div>
+        <div class="form-group">
+          <label class="form-label">Duration (minutes)</label>
+          <input type="number" class="form-input lesson-live-duration" value="60">
+        </div>
+      </div>
+      <button type="button" class="btn btn-secondary btn-sm lesson-create-zoom-btn">Create Zoom Meeting</button>
+      <p class="lesson-zoom-status" style="font-size:12px; color:#9ca3af; margin-top:8px;"></p>
+      <input type="hidden" class="lesson-zoom-join-url">
+      <input type="hidden" class="lesson-zoom-start-url">
+      <input type="hidden" class="lesson-zoom-meeting-id">
+    </div>
+
+    <div class="form-group">
+      <label class="form-label">Lesson Description</label>
+      <textarea class="form-input lesson-description" rows="2" placeholder="Brief description of what students will learn"></textarea>
+    </div>
+  </div>
+</template>
+
+  <!-- Approve Affiliate Modal -->
+  <div class="modal" id="approve-affiliate-modal">
+    <div class="modal-content" style="max-width: 480px;">
+      <div class="modal-header">
+        <h2 class="modal-title">Approve Affiliate</h2>
+        <button class="close-modal" id="close-approve-modal">&times;</button>
+      </div>
+      <form id="approve-affiliate-form">
+        <input type="hidden" id="approve-affiliate-uid">
+        <p style="margin-bottom:15px; color:#64748b;">Approving <strong id="approve-affiliate-name"></strong></p>
+        <div class="form-group">
+          <label class="form-label">Commission Rate (%) *</label>
+          <input type="number" class="form-input" id="approve-commission-rate" min="1" max="100" placeholder="e.g. 20" required>
+          <small style="color:#64748b; display: block; margin-top: 4px;">Percentage of each sale this affiliate earns.</small>
+        </div>
+        <div class="action-buttons" style="margin-top:20px;">
+          <button type="submit" class="btn btn-primary">Approve</button>
+          <button type="button" class="btn btn-secondary" id="cancel-approve-btn">Cancel</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- Create Affiliate Account Modal -->
+  <div class="modal" id="create-affiliate-modal">
+    <div class="modal-content" style="max-width: 480px;">
+      <div class="modal-header">
+        <h2 class="modal-title">Create Affiliate Account</h2>
+        <button class="close-modal" id="close-create-affiliate-modal">&times;</button>
+      </div>
+      <form id="create-affiliate-form">
+        <div class="form-group">
+          <label class="form-label">Student Email *</label>
+          <input type="email" class="form-input" id="create-affiliate-email" required placeholder="student@example.com">
+          <small id="create-affiliate-lookup-status" style="color:#64748b; display: block; margin-top: 4px;"></small>
+        </div>
+        <input type="hidden" id="create-affiliate-uid">
+        <div class="form-group">
+          <label class="form-label">Commission Rate (%) *</label>
+          <input type="number" class="form-input" id="create-affiliate-rate" min="1" max="100" placeholder="e.g. 20" required>
+        </div>
+        <div class="action-buttons" style="margin-top:20px;">
+          <button type="submit" class="btn btn-primary">Create Account</button>
+          <button type="button" class="btn btn-secondary" id="cancel-create-affiliate-btn">Cancel</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <script type="module" src="assets/js/admin.js"></script>
+  <!-- Put this right above your script type="module" line in dashboard.html -->
+  <script>
+    document.addEventListener("DOMContentLoaded", function() {
+      const menuBtn = document.getElementById("mobile-menu-btn");
+      const sidebar = document.getElementById("sidebar");
+      
+      if (menuBtn && sidebar) {
+        menuBtn.addEventListener("click", function(e) {
+          e.stopPropagation();
+          sidebar.classList.toggle("active");
+        });
+        
+        // Close sidebar when clicking outside on mobile viewports
+        document.addEventListener("click", function(e) {
+          if (!sidebar.contains(e.target) && e.target !== menuBtn) {
+            sidebar.classList.remove("active");
+          }
+        });
+      }
+    });
+  </script>
+  </body>
+</html>

@@ -1,0 +1,145 @@
+/* students/css/seller-dashboard.css */
+
+/*
+  Deliberately only styles the classes introduced by seller-dashboard.html
+  that AREN'T already in student-dashboard.css (e.g. .product-card,
+  .products-grid, .data-table-frame, .badge-f, .btn/.btn-primary/.btn-secondary,
+  .empty-state, .error-state, .loading-placeholder are assumed to already
+  exist there and are intentionally left untouched here to avoid duplicate/
+  conflicting definitions).
+*/
+
+/* ---- Utility ---- */
+.hidden {
+    display: none !important;
+}
+
+/* ---- Forms ---- */
+.seller-form {
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+    max-width: 520px;
+    margin-top: 12px;
+}
+
+.seller-form .form-row {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+}
+
+.seller-form label {
+    font-weight: 600;
+    font-size: 0.9rem;
+}
+
+.seller-form input[type="text"],
+.seller-form input[type="number"],
+.seller-form input[type="file"],
+.seller-form select,
+.seller-form textarea {
+    padding: 10px 12px;
+    border: 1px solid #d8dce1;
+    border-radius: 8px;
+    font-size: 0.95rem;
+    font-family: inherit;
+}
+
+.seller-form textarea {
+    resize: vertical;
+}
+
+.seller-form input:focus,
+.seller-form select:focus,
+.seller-form textarea:focus {
+    outline: none;
+    border-color: #4a7dff;
+    box-shadow: 0 0 0 3px rgba(74, 125, 255, 0.15);
+}
+
+.radio-group {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+}
+
+.radio-group label {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    font-weight: 400;
+    cursor: pointer;
+}
+
+.radio-group input[type="radio"] {
+    width: 16px;
+    height: 16px;
+}
+
+/* ---- Upload / status feedback ---- */
+.upload-progress {
+    padding: 10px 14px;
+    border-radius: 8px;
+    background: #eef3ff;
+    color: #274690;
+    font-size: 0.9rem;
+}
+
+.upload-progress.status-error {
+    background: #fdecec;
+    color: #a92c2c;
+}
+
+/* ---- Balance summary cards ---- */
+.balance-summary {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
+    gap: 16px;
+    margin: 16px 0 20px;
+}
+
+.balance-card {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+    padding: 18px;
+    border-radius: 12px;
+    background: #f7f9fc;
+    border: 1px solid #e5e9f0;
+}
+
+.balance-label {
+    font-size: 0.8rem;
+    color: #6b7280;
+    text-transform: uppercase;
+    letter-spacing: 0.03em;
+}
+
+.balance-value {
+    font-size: 1.5rem;
+    font-weight: 700;
+    color: #1a1f36;
+}
+
+/* ---- Bank account display ---- */
+.bank-account-display {
+    margin: 10px 0 20px;
+    padding: 14px;
+    border-radius: 8px;
+    background: #f7f9fc;
+    border: 1px solid #e5e9f0;
+}
+
+.bank-account-display p {
+    margin: 2px 0;
+}
+
+/* ---- Orders table small screens ---- */
+@media (max-width: 700px) {
+    .data-table-frame {
+        display: block;
+        overflow-x: auto;
+        white-space: nowrap;
+    }
+}

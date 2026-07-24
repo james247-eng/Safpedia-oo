@@ -1,0 +1,124 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Course Viewer | Safpedia</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@500;600;700&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="./css/course-viewer.css">
+  <script type="module" src="https://unpkg.com/ionicons@7.1.0/dist/ionicons/ionicons.esm.js"></script>
+  <script nomodule src="https://unpkg.com/ionicons@7.1.0/dist/ionicons/ionicons.js"></script>
+</head>
+<body>
+  <!-- Header -->
+  <header class="viewer-header">
+    <div class="header-content">
+      <div class="logo">
+        <a href="dashboard.html">
+          <ion-icon name="arrow-back-outline"></ion-icon>
+          Back to Dashboard
+        </a>
+      </div>
+      <h1 class="course-title" id="course-title">Loading...</h1>
+      <div class="header-actions">
+        <span class="progress-badge" id="progress-badge">0% Complete</span>
+      </div>
+    </div>
+  </header>
+  
+  <!-- Main Content -->
+  <div class="viewer-container">
+    <!-- Video Player Section -->
+    <div class="video-section">
+      <div class="video-container" id="video-container">
+        <div class="video-placeholder">
+          <ion-icon name="play-circle-outline"></ion-icon>
+          <p>Select a lesson to start</p>
+        </div>
+      </div>
+
+      <!-- Video Controls -->
+      <div class="video-info">
+        <h2 id="current-lesson-title">Select a lesson to begin</h2>
+        <p id="current-lesson-description"></p>
+        
+        <div class="lesson-actions">
+          <button class="btn btn-primary is-hidden" id="mark-complete-btn">
+            <ion-icon name="checkmark-circle-outline"></ion-icon>
+            Mark as Complete
+          </button>
+          <button class="btn btn-secondary is-hidden" id="next-lesson-btn">
+            Next Lesson
+            <ion-icon name="arrow-forward-outline"></ion-icon>
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Lessons Sidebar -->
+    <aside class="lessons-sidebar">
+      <div class="sidebar-header">
+        <h3>Course Content</h3>
+        <span class="lesson-count" id="lesson-count">0 Lessons</span>
+      </div>
+      
+      <div class="lessons-list" id="lessons-list">
+        <!-- Lessons will be loaded here -->
+        <div class="loading-state">
+          <ion-icon name="hourglass-outline"></ion-icon>
+          <p>Loading lessons...</p>
+        </div>
+      </div>
+
+      <!-- Certificate Section -->
+      <div class="certificate-section is-hidden" id="certificate-section">
+        <div class="certificate-banner">
+          <ion-icon name="trophy-outline"></ion-icon>
+          <h4>Course Complete!</h4>
+          <p>Congratulations on finishing</p>
+          <button class="btn btn-success" id="view-certificate-btn">
+            <ion-icon name="ribbon-outline"></ion-icon>
+            View Certificate
+          </button>
+        </div>
+      </div>
+    </aside>
+  </div>
+
+  <!-- Certificate Modal -->
+  <div class="certificate-modal" id="certificate-modal">
+    <div class="certificate-overlay" onclick="closeCertificate()"></div>
+    <div class="certificate-content">
+      <button class="close-btn" onclick="closeCertificate()">
+        <ion-icon name="close-outline"></ion-icon>
+      </button>
+      
+      <div class="certificate-card" id="certificate-card">
+        <!-- Certificate will be generated here -->
+      </div>
+      
+      <div class="certificate-actions">
+        <button class="btn btn-primary" onclick="downloadCertificate()">
+          <ion-icon name="download-outline"></ion-icon>
+          Download Certificate
+        </button>
+        <button class="btn btn-secondary" onclick="shareCertificate()">
+          <ion-icon name="share-social-outline"></ion-icon>
+          Share
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Loading Overlay -->
+  <div class="loading-overlay" id="loading-overlay">
+    <div class="spinner"></div>
+    <p>Loading course...</p>
+  </div>
+
+
+  <script type="module" src="js/course-viewer.js"></script>
+</body>
+</html>

@@ -1,0 +1,59 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Payment Successful - Tech Wizards Academy</title>
+
+    <link rel="stylesheet" href="css/payment-success-page.css">
+
+    
+  <!--favicon starts from here-->
+
+        <link rel="apple-touch-icon" sizes="180x180" href="favicon/apple-touch-icon.png">
+      <link rel="icon" type="image/png" sizes="32x32" href="favicon/favicon-32x32.png">
+      <link rel="icon" type="image/png" sizes="16x16" href="favicon/favicon-16x16.png">
+      <link rel="manifest" href="favicon/site.webmanifest">
+
+<noscript><img height="1" width="1" style="display:none"
+src="https://www.facebook.com/tr?id=1605167704195649&ev=PageView&noscript=1"
+/></noscript>
+<!-- End Meta Pixel Code -->
+  
+    <body>
+    <div class="success-container">
+      <div class="success-icon"></div>
+      <h1>Payment Successful!</h1>
+      <p class="message">
+        Thank you for your purchase! Your course has been added to your
+        dashboard. You can start learning immediately.
+      </p>
+
+      <div class="info-box" id="payment-info" style="display: none">
+        <div class="info-row">
+          <span class="info-label">Transaction Reference:</span>
+          <span class="info-value" id="reference">Loading...</span>
+        </div>
+        <div class="info-row">
+          <span class="info-label">Status:</span>
+          <span class="info-value" style="color: #10b981">Paid</span>
+        </div>
+      </div>
+
+      <div class="loading" id="loading">
+        <div class="spinner"></div>
+        <p>Processing your purchase...</p>
+      </div>
+
+      <div id="actions" style="display: none">
+        <a href="students/dashboard.html" class="btn">Go to My Courses</a>
+        <a href="all-courses.html" class="btn btn-secondary"
+          >Browse More Courses</a
+        >
+      </div>
+    </div>
+    <script type="module" src="js/payment-success.js">
+    </script>
+  </body>
+</html>
+
