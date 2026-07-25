@@ -1,0 +1,57 @@
+<!-- category.html -->
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Category Store | Safpedia Marketplace</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@500;600;700;800&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="css/marketplace.css">
+    <link rel="stylesheet" href="css/vendors-product-details.css">
+    <script type="module" src="https://unpkg.com/ionicons@7.1.0/dist/ionicons/ionicons.esm.js"></script>
+    <script nomodule src="https://unpkg.com/ionicons@7.1.0/dist/ionicons/ionicons.js"></script>
+</head>
+<body>
+
+    <!-- MARKETPLACE HEADER (mirrors vendors-product-details.html) -->
+    <header class="marketplace-header">
+        <div class="header-container">
+            <a href="index.html" class="brand-logo">Safpedia</a>
+            <nav class="main-nav">
+                <a href="index.html" class="nav-link">Home</a>
+                <a href="all-courses.html" class="nav-link">Browse Marketplace</a>
+                <a href="marketplace-store.html" class="nav-link">Vendor Products</a>
+                <a href="sell.html" class="nav-link">Sell on Safpedia</a>
+                <a href="students/dashboard.html" class="nav-link" id="student-portal-link">My Library</a>
+            </nav>
+            <div class="header-actions">
+                <div class="user-action-area" id="auth-status-container">
+                    <a href="sign-in.html" class="btn btn-primary">Sign In</a>
+                </div>
+                <button class="mobile-menu-btn" id="mobile-menu-btn">
+                    <ion-icon name="menu-outline" class="menu-icon"></ion-icon>
+                    <ion-icon name="close-outline" class="close-icon"></ion-icon>
+                </button>
+            </div>
+        </div>
+    </header>
+
+    <main class="product-details-wrapper">
+        <header class="category-header" style="margin-bottom: 24px;">
+            <span class="category-meta" id="category-badge">Category</span>
+            <h1 id="category-title" style="font-size: 2rem; margin-top: 8px;">Explore Products</h1>
+            <p id="category-description" style="color: #666; margin-top: 6px;">Browse verified products listed under this category.</p>
+        </header>
+
+        <div id="category-loading" class="loading-placeholder">Loading products...</div>
+        <div id="category-error" class="error-state hidden"></div>
+
+        <div id="category-products-grid" class="products-grid hidden"></div>
+    </main>
+
+    <script type="module" src="js/category-store.js"></script>
+    <script src="js/mobile-nav.js"></script>
+</body>
+</html>

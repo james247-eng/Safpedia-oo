@@ -73,7 +73,25 @@
 
                     <div class="form-row">
                         <label for="product-category">Category</label>
-                        <input type="text" id="product-category" placeholder="e.g. Fashion, Home & Living, E-books" required>
+                        <select id="product-category" required>
+                            <option value="">Select Category</option>
+                            <option value="electronics">Electronics &amp; Gadgets</option>
+                            <option value="foodstuff">Foodstuff &amp; Provisions</option>
+                            <option value="clothing">Clothing &amp; Apparel</option>
+                            <option value="building">Plumbing &amp; Building Materials</option>
+                            <option value="ebooks">E-Books &amp; Guides</option>
+                            <option value="software">Software &amp; Templates</option>
+                            <option value="audio_media">Audio &amp; Music</option>
+                            <option value="courses_coaching">Digital Courses &amp; Resources</option>
+                            <option value="general">General Goods &amp; Services</option>
+                        </select>
+                    </div>
+
+                    <div class="form-row" id="unit-field-wrapper">
+                        <label for="product-unit">Unit of Measurement</label>
+                        <select id="product-unit" required>
+                            <option value="unit">Unit / Item</option>
+                        </select>
                     </div>
 
                     <div class="form-row">

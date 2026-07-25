@@ -3,10 +3,10 @@
 import { initializeApp } from 'https://www.gstatic.com/firebasejs/11.9.1/firebase-app.js';
 import { getFirestore, collection, doc } from 'https://www.gstatic.com/firebasejs/11.9.1/firebase-firestore.js';
 import { getAuth, onAuthStateChanged, signOut } from 'https://www.gstatic.com/firebasejs/11.9.1/firebase-auth.js';
+import { CATEGORIES, getUnitsForCategory } from '../../js/categories-config.js';
 
 // NOTE: mirrors course.js's inline Firebase init since this project's shared
-// firebase-config.js exports weren't available to confirm against. If you've
-// centralized this elsewhere, swap these three lines for that shared import.
+// firebase-config.js exports weren't available to confirm against.
 const firebaseConfig = {
     apiKey: "AIzaSyAATExPAdi27kKvuvU0ujf6f2QqR8JWwTg",
     authDomain: "tech-wizards-academy.firebaseapp.com",
@@ -65,7 +65,7 @@ document.getElementById('seller-logout-trigger').addEventListener('click', async
 });
 
 // ====================================================================
-// STATUS MESSAGE HELPER (kept dependency-free — no assumed toast module)
+// STATUS MESSAGE HELPER
 // ====================================================================
 function showStatus(message, isError = false) {
     const el = document.getElementById('upload-progress');
@@ -79,6 +79,34 @@ function clearStatus() {
     el.textContent = '';
     el.classList.add('hidden');
     el.classList.remove('status-error');
+}
+
+// ====================================================================
+// DYNAMIC CATEGORY & UNIT SELECTORS
+// ====================================================================
+const categorySelect = document.getElementById('product-category');
+const unitSelect = document.getElementById('product-unit');
+
+function updateUnitDropdown() {
+    const selectedCategory = categorySelect.value;
+    const productType = document.querySelector('input[name="product-type"]:checked').value;
+    
+    const units = getUnitsForCategory(selectedCategory, productType);
+    unitSelect.innerHTML = '';
+    
+    units.forEach((unit) => {
+        const opt = document.createElement('option');
+        opt.value = unit;
+        opt.textContent = unit.charAt(0).toUpperCase() + unit.slice(1);
+        unitSelect.appendChild(opt);
+    });
+}
+
+if (categorySelect && unitSelect) {
+    categorySelect.addEventListener('change', updateUnitDropdown);
+    document.querySelectorAll('input[name="product-type"]').forEach((radio) => {
+        radio.addEventListener('change', updateUnitDropdown);
+    });
 }
 
 // ====================================================================
@@ -149,7 +177,7 @@ function renderProducts(products) {
                 <span class="category-meta">${p.category}</span>
                 <h3 class="product-title">${p.title}</h3>
                 <div class="card-footer-row">
-                    <span class="product-cost">₦${p.price.toLocaleString()}</span>
+                    <span class="product-cost">₦${p.price.toLocaleString()}${p.unit ? ` / ${p.unit}` : ''}</span>
                     <span>${p.type === 'physical' ? `Stock: ${p.stock}` : 'Digital'}</span>
                 </div>
                 <p>Sales: ${p.totalSales}</p>
@@ -291,7 +319,7 @@ async function uploadToCloudinary(file, signed) {
     const res = await fetch(url, { method: 'POST', body: formData });
     const json = await res.json();
     if (json.error) throw new Error(json.error.message);
-    return json; // { public_id, format, secure_url, bytes, ... }
+    return json;
 }
 
 // ====================================================================
@@ -306,10 +334,15 @@ document.getElementById('add-product-form').addEventListener('submit', async (e)
     try {
         const title = document.getElementById('product-title').value.trim();
         const description = document.getElementById('product-description').value.trim();
-        const category = document.getElementById('product-category').value.trim();
+        const category = document.getElementById('product-category').value;
+        const unit = document.getElementById('product-unit').value || 'unit';
         const price = parseFloat(document.getElementById('product-price').value);
         const type = document.querySelector('input[name="product-type"]:checked').value;
         const imageFiles = Array.from(document.getElementById('product-images').files || []);
+
+        if (!category) {
+            throw new Error('Please select a product category');
+        }
 
         if (imageFiles.length > 6) {
             throw new Error('Maximum 6 product photos allowed');
@@ -331,7 +364,6 @@ document.getElementById('add-product-form').addEventListener('submit', async (e)
             }
         }
 
-        // Draft ID generated locally, shared across upload calls and create-product.
         const productId = doc(collection(db, 'vendorProducts')).id;
 
         // ---- Upload images ----
@@ -367,6 +399,7 @@ document.getElementById('add-product-form').addEventListener('submit', async (e)
                 title,
                 description,
                 category,
+                unit,
                 price,
                 type,
                 stock,
@@ -443,7 +476,7 @@ function renderOrders(orders) {
         return `
             <tr>
                 <td>${o.productTitle}</td>
-                <td>${o.quantity}</td>
+                <td>${o.quantity} ${o.unit ? o.unit : ''}</td>
                 <td>₦${(o.vendorAmount || 0).toLocaleString()}</td>
                 <td>${o.fulfillmentStatus}</td>
                 <td>${date}</td>

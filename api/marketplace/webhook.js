@@ -1,5 +1,4 @@
 // api/marketplace/webhook.js
-
 const crypto = require('crypto');
 const { getFirebaseAdmin } = require('../../lib/firebase-admin');
 
@@ -86,11 +85,6 @@ module.exports = async (req, res) => {
 /**
  * Handles a successful marketplace payment: verifies stock (if physical),
  * credits the vendor's balance with their cut, records the sale.
- *
- * Stock is re-checked and decremented atomically here (not at checkout
- * init) to avoid overselling. If two buyers race for the last unit, the
- * loser's payment is refunded via the Paystack Refund API rather than
- * silently taking their money for a product that's no longer available.
  */
 async function handleChargeSuccess(data, admin, db, res, PAYSTACK_SECRET) {
   const metadata = data.metadata || {};
@@ -170,6 +164,7 @@ async function handleChargeSuccess(data, admin, db, res, PAYSTACK_SECRET) {
         productTitle: metadata.productTitle || product.title || 'Product',
         productType: product.type,
         quantity: qty,
+        unit: product.unit || 'unit', // <-- SAVED TO SALE RECORD
         amount: amountNaira,
         commissionRate: rate,
         commissionAmount,
@@ -205,8 +200,6 @@ async function handleChargeSuccess(data, admin, db, res, PAYSTACK_SECRET) {
         createdAt: admin.firestore.Timestamp.now()
       }, { merge: true });
     } catch (refundErr) {
-      // If the automated refund call itself fails, this needs a human to
-      // resolve manually — logging loudly rather than failing silently.
       console.error('❌ AUTOMATED REFUND FAILED — manual action required:', reference, refundErr.message);
     }
     return res.status(200).send('ok');
@@ -218,9 +211,7 @@ async function handleChargeSuccess(data, admin, db, res, PAYSTACK_SECRET) {
 
 /**
  * Settles a vendorPayoutRequests doc once Paystack confirms the transfer's
- * final state. Mirrors the affiliate payout settlement logic, but reads
- * from the vendorPayoutRequests collection group — kept as a distinct name
- * from affiliates' payoutRequests so the two collection groups never overlap.
+ * final state.
  */
 async function handleTransferEvent(eventType, data, admin, db, res) {
   try {

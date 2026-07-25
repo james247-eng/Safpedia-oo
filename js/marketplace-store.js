@@ -3,6 +3,7 @@
 import { initializeApp } from 'https://www.gstatic.com/firebasejs/11.9.1/firebase-app.js';
 import { getFirestore, collection, query, where, orderBy, getDocs } from 'https://www.gstatic.com/firebasejs/11.9.1/firebase-firestore.js';
 import { getAuth, onAuthStateChanged } from 'https://www.gstatic.com/firebasejs/11.9.1/firebase-auth.js';
+import { CATEGORIES } from './categories-config.js';
 
 // NOTE: mirrors course.js's inline Firebase init since this project's shared
 // firebase-config.js exports weren't available to confirm against.
@@ -23,17 +24,18 @@ const auth = getAuth(app);
 let localProductCache = [];
 
 // ====================================================================
-// AUTH STATUS (mirrors course.js)
+// AUTH STATUS
 // ====================================================================
 onAuthStateChanged(auth, (user) => {
     const container = document.getElementById('auth-status-container');
-    if (user) {
+    if (container && user) {
         container.innerHTML = `
             <a href="/users/dashboard.html" class="student-profile-avatar" title="View Profile">
                 ${(user.email || 'U').charAt(0).toUpperCase()}
             </a>
         `;
-        document.getElementById('student-portal-link').href = '/users/dashboard.html';
+        const portalLink = document.getElementById('student-portal-link');
+        if (portalLink) portalLink.href = '/users/dashboard.html';
     }
 });
 
@@ -55,7 +57,7 @@ async function fetchProductCatalog() {
             localProductCache.push({ id: docSnap.id, ...docSnap.data() });
         });
 
-        populateCategoryFilter(localProductCache);
+        populateCategoryFilter();
         renderProductGrid(localProductCache);
 
     } catch (error) {
@@ -64,16 +66,16 @@ async function fetchProductCatalog() {
     }
 }
 
-function populateCategoryFilter(items) {
+function populateCategoryFilter() {
     const select = document.getElementById('filter-category');
-    const categories = [...new Set(items.map((i) => i.category).filter(Boolean))].sort();
+    if (!select) return;
 
-    // Preserve the "All Categories" option, append the rest once.
-    categories.forEach((cat) => {
-        if ([...select.options].some((opt) => opt.value === cat)) return;
+    select.innerHTML = '<option value="all">All Categories</option>';
+
+    CATEGORIES.forEach((cat) => {
         const opt = document.createElement('option');
-        opt.value = cat;
-        opt.textContent = cat;
+        opt.value = cat.id;
+        opt.textContent = cat.name;
         select.appendChild(opt);
     });
 }
@@ -100,6 +102,9 @@ function renderProductGrid(items) {
             ? (item.stock > 0 ? `${item.stock} in stock` : 'Out of stock')
             : 'Instant download';
 
+        // Measurement unit formatting (e.g. ₦5,000 / bag)
+        const unitDisplay = item.unit ? ` / ${item.unit}` : '';
+
         card.innerHTML = `
             <div class="card-banner">
                 <img src="${cover}" alt="${item.title}">
@@ -108,10 +113,10 @@ function renderProductGrid(items) {
             <div class="card-details">
                 <span class="category-meta">${(item.category || 'GENERAL').toUpperCase()}</span>
                 <h3 class="product-title">${item.title}</h3>
-                <a href="vendorstore.html?vendor=${item.vendorUid}" class="product-vendor-link">by ${item.vendorFirstName || 'Vendor'}</a>
+                <a href="vendor-store.html?vendor=${item.vendorUid}" class="product-vendor-link">by ${item.vendorFirstName || 'Vendor'}</a>
                 <p class="product-snippet">${stockNote}</p>
                 <div class="card-footer-row">
-                    <span class="product-cost">₦${item.price.toLocaleString()}</span>
+                    <span class="product-cost">₦${item.price.toLocaleString()}${unitDisplay}</span>
                     <a href="vendors-product-details.html?id=${item.id}" class="btn btn-secondary btn-sm">View Product</a>
                 </div>
             </div>
