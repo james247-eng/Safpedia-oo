@@ -1,0 +1,86 @@
+<!-- admin-vendor-management.html -->
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Vendor Management | Safpedia Admin</title>
+    <link rel="stylesheet" href="css/admin-vendor-management.css">
+    <script type="module" src="https://unpkg.com/ionicons@7.1.0/dist/ionicons/ionicons.esm.js"></script>
+    <script nomodule src="https://unpkg.com/ionicons@7.1.0/dist/ionicons/ionicons.js"></script>
+</head>
+<body>
+
+    <!-- MOBILE TOP BAR -->
+    <div class="mobile-topbar">
+        <button class="sidebar-toggle-btn" id="sidebar-toggle-btn">
+            <ion-icon name="menu-outline" class="menu-icon"></ion-icon>
+            <ion-icon name="close-outline" class="close-icon"></ion-icon>
+        </button>
+        <div class="brand-logo">Safpedia Admin</div>
+    </div>
+
+    <div class="sidebar-overlay" id="sidebar-overlay"></div>
+
+    <div class="dashboard-layout">
+        <aside class="sidebar-panel" id="sidebar-panel">
+            <div class="brand-logo">Safpedia Admin</div>
+            <ul class="nav-group">
+                <li><div class="nav-item-btn active" data-tab="vendors-pane"><ion-icon name="people-outline"></ion-icon><span class="nav-label">Vendors</span></div></li>
+                <li><div class="nav-item-btn" data-tab="products-pane"><ion-icon name="cube-outline"></ion-icon><span class="nav-label">Products</span></div></li>
+                <li><a href="index.html"><div class="nav-item-btn"><ion-icon name="arrow-back-outline"></ion-icon><span class="nav-label">Back to Site</span></div></a></li>
+            </ul>
+            <div class="sidebar-footer">
+                <div class="admin-avatar" id="admin-avatar-slot">A</div>
+                <div>
+                    <div id="admin-display-email">Admin Account</div>
+                    <a href="#" id="admin-logout-trigger">Sign Out</a>
+                </div>
+            </div>
+        </aside>
+
+        <main class="main-workspace-view">
+
+            <!-- ACCESS DENIED (shown/hidden by JS) -->
+            <div id="access-denied" class="access-denied hidden">
+                <ion-icon name="lock-closed-outline"></ion-icon>
+                <h2>Admin access required</h2>
+                <p>You don't have permission to view this page.</p>
+            </div>
+
+            <div id="dashboard-content" class="hidden">
+
+                <!-- TAB 1: VENDORS -->
+                <section id="vendors-pane" class="dashboard-section-card active-tab">
+                    <h2>Vendors</h2>
+                    <p>Every seller who has listed at least one product on Safpedia's marketplace.</p>
+                    <div id="vendors-list" class="data-table-wrapper">
+                        <div class="loading-placeholder">Loading vendors...</div>
+                    </div>
+                </section>
+
+                <!-- TAB 2: PRODUCTS -->
+                <section id="products-pane" class="dashboard-section-card">
+                    <h2>Products</h2>
+                    <p>Every product listed across all vendors.</p>
+                    <div class="filter-row">
+                        <input type="text" id="product-search" placeholder="Search by title or vendor...">
+                        <select id="status-filter">
+                            <option value="all">All Statuses</option>
+                            <option value="active">Active</option>
+                            <option value="inactive">Inactive</option>
+                            <option value="admin-suspended">Admin Suspended</option>
+                        </select>
+                    </div>
+                    <div id="products-list" class="data-table-wrapper">
+                        <div class="loading-placeholder">Loading products...</div>
+                    </div>
+                </section>
+
+            </div>
+        </main>
+    </div>
+
+    <script type="module" src="js/admin-vendor-management.js"></script>
+</body>
+</html>

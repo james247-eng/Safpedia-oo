@@ -1,0 +1,40 @@
+<!-- marketplace-payment-success.html -->
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Payment Successful | Safpedia</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@500;600;700;800&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="css/marketplace.css">
+    <link rel="stylesheet" href="css/marketplace-payment-success.css">
+    <script type="module" src="https://unpkg.com/ionicons@7.1.0/dist/ionicons/ionicons.esm.js"></script>
+    <script nomodule src="https://unpkg.com/ionicons@7.1.0/dist/ionicons/ionicons.js"></script>
+</head>
+<body>
+
+    <main class="payment-success-wrapper">
+        <div class="payment-success-card">
+            <div class="status-icon" id="status-icon">
+                <ion-icon name="hourglass-outline"></ion-icon>
+            </div>
+
+            <h1 id="status-title">Confirming your payment...</h1>
+            <p id="status-message">Hang tight while we confirm this with Paystack.</p>
+
+            <div id="order-summary" class="order-summary hidden"></div>
+
+            <div class="success-actions">
+                <a href="students/marketplace-orders.html" class="btn btn-primary" id="go-to-orders-btn">Go to My Orders</a>
+                <a href="marketplace-store.html" class="btn btn-secondary">Continue Shopping</a>
+            </div>
+
+            <p class="redirect-note" id="redirect-note"></p>
+        </div>
+    </main>
+
+    <script type="module" src="js/marketplace-payment-success.js"></script>
+</body>
+</html>
