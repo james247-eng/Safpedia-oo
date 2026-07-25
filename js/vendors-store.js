@@ -115,7 +115,7 @@ function renderProductGrid(items) {
                 <p class="product-snippet">${stockNote}</p>
                 <div class="card-footer-row">
                     <span class="product-cost">₦${item.price.toLocaleString()}</span>
-                    <a href="product-details.html?id=${item.id}" class="btn btn-secondary btn-sm">View Product</a>
+                    <a href="/vendors-product-details.html?id=${item.id}" class="btn btn-secondary btn-sm">View Product</a>
                 </div>
             </div>
         `;

@@ -154,7 +154,7 @@ function renderProducts(products) {
                 </div>
                 <p>Sales: ${p.totalSales}</p>
                 <div class="product-card-actions">
-                    <a href="product-details.html?id=${p.id}" class="btn btn-secondary btn-sm" target="_blank">View</a>
+                    <a href="/vendors-product-details.html?id=${p.id}" class="btn btn-secondary btn-sm" target="_blank">View</a>
                     <button class="btn btn-secondary btn-sm edit-product-btn" data-id="${p.id}">Edit</button>
                     <button class="btn btn-secondary btn-sm toggle-active-btn" data-id="${p.id}" data-active="${p.isActive}">${p.isActive ? 'Deactivate' : 'Activate'}</button>
                     <button class="btn btn-secondary btn-sm delete-product-btn" data-id="${p.id}">Delete</button>
