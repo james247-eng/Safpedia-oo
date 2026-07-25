@@ -75,7 +75,7 @@ function populateCategoryFilter() {
     CATEGORIES.forEach((cat) => {
         const opt = document.createElement('option');
         opt.value = cat.id;
-        opt.textContent = cat.name;
+        opt.textContent = cat.label;
         select.appendChild(opt);
     });
 }
