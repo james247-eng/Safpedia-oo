@@ -1,0 +1,111 @@
+<!-- product-details.html -->
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Product | Safpedia Marketplace</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@500;600;700;800&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="css/marketplace.css">
+    <link rel="stylesheet" href="css/vendors-product-details.css">
+    <script type="module" src="https://unpkg.com/ionicons@7.1.0/dist/ionicons/ionicons.esm.js"></script>
+    <script nomodule src="https://unpkg.com/ionicons@7.1.0/dist/ionicons/ionicons.js"></script>
+</head>
+<body>
+
+    <!-- MARKETPLACE HEADER (mirrors all-courses.html) -->
+    <header class="marketplace-header">
+        <div class="header-container">
+            <a href="index.html" class="brand-logo">Safpedia</a>
+            <nav class="main-nav">
+                <a href="index.html" class="nav-link">Home</a>
+                <a href="all-courses.html" class="nav-link">Browse Marketplace</a>
+                <a href="marketplace-store.html" class="nav-link">Vendor Products</a>
+                <a href="sell.html" class="nav-link">Sell on Safpedia</a>
+                <a href="students/dashboard.html" class="nav-link" id="student-portal-link">My Library</a>
+            </nav>
+            <div class="header-actions">
+                <div class="user-action-area" id="auth-status-container">
+                    <a href="sign-in.html" class="btn btn-primary">Sign In</a>
+                </div>
+                <button class="mobile-menu-btn" id="mobile-menu-btn">
+                    <ion-icon name="menu-outline" class="menu-icon"></ion-icon>
+                    <ion-icon name="close-outline" class="close-icon"></ion-icon>
+                </button>
+            </div>
+        </div>
+    </header>
+
+    <main class="product-details-wrapper">
+        <div id="product-loading" class="loading-placeholder">Loading product...</div>
+        <div id="product-error" class="error-state hidden"></div>
+
+        <div id="product-content" class="product-details-grid hidden">
+
+            <!-- LEFT: GALLERY -->
+            <section class="product-gallery">
+                <div class="gallery-main">
+                    <img id="gallery-main-image" src="" alt="Product image">
+                </div>
+                <div class="gallery-thumbs" id="gallery-thumbs"></div>
+            </section>
+
+            <!-- RIGHT: INFO + PURCHASE -->
+            <section class="product-info-panel">
+                <span class="category-meta" id="product-category">Category</span>
+                <h1 id="product-title">Product title</h1>
+                <p class="product-vendor">Sold by <strong id="product-vendor-name">Vendor</strong></p>
+
+                <div class="product-price-row">
+                    <span class="product-cost" id="product-price">₦0</span>
+                    <span class="badge-f" id="product-type-badge"></span>
+                </div>
+
+                <p id="product-stock-note" class="stock-note hidden"></p>
+
+                <p id="product-description" class="product-full-description"></p>
+
+                <div class="quantity-row" id="quantity-row">
+                    <label for="quantity-input">Quantity</label>
+                    <input type="number" id="quantity-input" min="1" value="1">
+                </div>
+
+                <!-- Shown only for physical products -->
+                <div id="shipping-form" class="shipping-form hidden">
+                    <h3>Shipping Details</h3>
+                    <div class="form-row">
+                        <label for="ship-fullname">Full Name</label>
+                        <input type="text" id="ship-fullname" required>
+                    </div>
+                    <div class="form-row">
+                        <label for="ship-phone">Phone Number</label>
+                        <input type="tel" id="ship-phone" required>
+                    </div>
+                    <div class="form-row">
+                        <label for="ship-address">Address</label>
+                        <input type="text" id="ship-address" required>
+                    </div>
+                    <div class="form-row-inline">
+                        <div class="form-row">
+                            <label for="ship-city">City</label>
+                            <input type="text" id="ship-city" required>
+                        </div>
+                        <div class="form-row">
+                            <label for="ship-state">State</label>
+                            <input type="text" id="ship-state" required>
+                        </div>
+                    </div>
+                </div>
+
+                <button id="buy-now-btn" class="btn btn-primary buy-now-btn">Buy Now</button>
+                <p id="purchase-status" class="purchase-status hidden"></p>
+            </section>
+        </div>
+    </main>
+
+    <script type="module" src="js/vendors-product-details.js"></script>
+    <script src="js/mobile-nav.js"></script>
+</body>
+</html>

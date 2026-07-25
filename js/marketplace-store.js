@@ -29,11 +29,11 @@ onAuthStateChanged(auth, (user) => {
     const container = document.getElementById('auth-status-container');
     if (user) {
         container.innerHTML = `
-            <a href="/students/dashboard.html" class="student-profile-avatar" title="View Profile">
+            <a href="/users/dashboard.html" class="student-profile-avatar" title="View Profile">
                 ${(user.email || 'U').charAt(0).toUpperCase()}
             </a>
         `;
-        document.getElementById('student-portal-link').href = '/students/dashboard.html';
+        document.getElementById('student-portal-link').href = '/users/dashboard.html';
     }
 });
 
