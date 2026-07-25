@@ -20,7 +20,6 @@ const firebaseConfig = {
   appId: "1:155089680506:web:bd1909e4cc8e85b09663c3",
   measurementId: "G-1JCG9GLV37"
 };
-
 // Initialize Firebase
 const app = initializeApp(firebaseConfig);
 const auth = getAuth(app);
@@ -106,7 +105,7 @@ document.querySelectorAll('.nav-link').forEach(link => {
     const titles = {
       overview: 'Dashboard Overview',
       courses: 'Course Management',
-      user: 'Student Management',
+      user: 'user Management',
       sales: 'Sales & Transactions',
       analytics: 'Analytics',
       affiliates: 'Affiliate Program'
@@ -516,13 +515,13 @@ async function loadRecentSales() {
       const data = docSnap.data();
       const row = tbody.insertRow();
       
-      let studentName = 'Unknown';
+      let userName = 'Unknown';
       if (data.userId) {
         try {
           const userDoc = await getDoc(doc(db, 'user', data.userId));
           if (userDoc.exists()) {
             const userData = userDoc.data();
-            studentName = `${userData.firstName || ''} ${userData.lastName || ''}`.trim() || userData.email || 'Unknown';
+            userName = `${userData.firstName || ''} ${userData.lastName || ''}`.trim() || userData.email || 'Unknown';
           }
         } catch (e) {
           console.error('Error fetching user:', e);
@@ -542,7 +541,7 @@ async function loadRecentSales() {
       }
       
       row.innerHTML = `
-        <td><strong>${studentName}</strong></td>
+        <td><strong>${userName}</strong></td>
         <td>${courseName}</td>
         <td style="font-weight:600; color:#059669;">₦${((data.amount || 0) / 100).toLocaleString()}</td>
         <td>${data.paid_at?.toDate().toLocaleDateString() || 'N/A'}</td>
@@ -622,7 +621,7 @@ async function loaduser() {
         <td>${(data.enrolledCourses || []).length}</td>
         <td>${data.createdAt ? new Date(data.createdAt).toLocaleDateString() : 'N/A'}</td>
         <td>
-          <button class="btn btn-secondary btn-sm" onclick="viewStudent('${doc.id}')">View</button>
+          <button class="btn btn-secondary btn-sm" onclick="viewuser('${doc.id}')">View</button>
         </td>
       `;
     });
@@ -651,12 +650,12 @@ async function loadSales() {
     for (const docSnap of snapshot.docs) {
       const data = docSnap.data();
       
-      let studentEmail = 'Unknown';
+      let userEmail = 'Unknown';
       if (data.userId) {
         try {
           const userDoc = await getDoc(doc(db, 'user', data.userId));
           if (userDoc.exists()) {
-            studentEmail = userDoc.data().email || 'Unknown';
+            userEmail = userDoc.data().email || 'Unknown';
           }
         } catch (e) {
           console.error('Error fetching user:', e);
@@ -678,7 +677,7 @@ async function loadSales() {
       const saleWithDetails = {
         id: docSnap.id,
         ...data,
-        studentEmail,
+        userEmail,
         courseTitle
       };
       allSales.push(saleWithDetails);
@@ -687,7 +686,7 @@ async function loadSales() {
       
       row.innerHTML = `
         <td><code style="background:#f3f4f6; padding:4px 8px; border-radius:4px; font-size:11px;">${data.reference || docSnap.id}</code></td>
-        <td>${studentEmail}</td>
+        <td>${userEmail}</td>
         <td>${courseTitle}</td>
         <td style="font-weight:600; color:#059669;">₦${((data.amount || 0) / 100).toLocaleString()}</td>
         <td>${data.paid_at?.toDate().toLocaleDateString() || 'N/A'}</td>
@@ -872,10 +871,10 @@ window.deleteCourse = async (courseId) => {
 };
 
 // ====================================================================
-// VIEW STUDENT
+// VIEW user
 // ====================================================================
-window.viewStudent = async (studentId) => {
-  alert('Student details coming soon...');
+window.viewuser = async (userId) => {
+  alert('user details coming soon...');
 };
 
 // ====================================================================
@@ -1095,7 +1094,7 @@ document.getElementById('create-affiliate-form').addEventListener('submit', asyn
   const ratePercent = parseFloat(document.getElementById('create-affiliate-rate').value);
 
   if (!uid) {
-    showAlert('Look up a valid student email first', 'error');
+    showAlert('Look up a valid user email first', 'error');
     return;
   }
   if (!ratePercent || ratePercent <= 0 || ratePercent > 100) {
