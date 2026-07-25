@@ -60,7 +60,7 @@
             </a>
           </li>
           <li class="nav-item">
-            <a class="nav-link" data-section="students">
+            <a class="nav-link" data-section="users">
               <span class="nav-icon"><ion-icon name="people"></ion-icon></span>
               <span>Users</span>
             </a>
@@ -119,7 +119,7 @@
               <span class="stat-title">Total Users</span>
               <div class="stat-icon stat-blue"><ion-icon name="people"></ion-icon></div>
             </div>
-            <div class="stat-value" id="total-students">0</div>
+            <div class="stat-value" id="total-users">0</div>
             <div class="stat-change">+12% from last month</div>
           </div>
 
@@ -210,12 +210,12 @@
         </div>
       </section>
 
-      <!-- Students Section -->
-      <section class="content-section" id="students-section">
+      <!-- Users Section -->
+      <section class="content-section" id="users-section">
         <div class="card">
           <div class="card-header responsive-header-block">
             <h2 class="card-title">All Users</h2>
-            <input type="text" class="search-box" id="students-search" placeholder="Search students...">
+            <input type="text" class="search-box" id="users-search" placeholder="Search users...">
           </div>
           <div class="table-container">
             <table>
@@ -228,7 +228,7 @@
                   <th>Actions</th>
                 </tr>
               </thead>
-              <tbody id="students-table-body">
+              <tbody id="users-table-body">
                 <tr>
                   <td colspan="5" class="empty-state">Loading users...</td>
                 </tr>
@@ -237,7 +237,6 @@
           </div>
         </div>
       </section>
-
       <!-- Sales Section -->
       <section class="content-section" id="sales-section">
         <div class="card">
@@ -514,7 +513,7 @@
 
     <div class="form-group">
       <label class="form-label">Lesson Description</label>
-      <textarea class="form-input lesson-description" rows="2" placeholder="Brief description of what students will learn"></textarea>
+      <textarea class="form-input lesson-description" rows="2" placeholder="Brief description of what users will learn"></textarea>
     </div>
   </div>
 </template>
@@ -551,8 +550,8 @@
       </div>
       <form id="create-affiliate-form">
         <div class="form-group">
-          <label class="form-label">Student Email *</label>
-          <input type="email" class="form-input" id="create-affiliate-email" required placeholder="student@example.com">
+          <label class="form-label">User Email *</label>
+          <input type="email" class="form-input" id="create-affiliate-email" required placeholder="user@example.com">
           <small id="create-affiliate-lookup-status" style="color:#64748b; display: block; margin-top: 4px;"></small>
         </div>
         <input type="hidden" id="create-affiliate-uid">

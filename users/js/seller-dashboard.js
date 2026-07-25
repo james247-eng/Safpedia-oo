@@ -51,6 +51,7 @@ onAuthStateChanged(auth, (user) => {
 
     document.getElementById('seller-avatar-slot').textContent = (user.email || 'U').charAt(0).toUpperCase();
     document.getElementById('seller-display-email').textContent = user.email || 'Seller Account';
+    document.getElementById('my-storefront-link').href = `/vendor-store.html?vendor=${user.uid}`;
 
     loadVendorProfile();
     loadBankList();

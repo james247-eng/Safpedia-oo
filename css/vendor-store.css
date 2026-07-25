@@ -1,0 +1,43 @@
+/* css/vendor-store.css */
+
+.vendor-store-banner {
+    text-align: center;
+    padding: 40px 20px 30px;
+}
+
+.vendor-avatar {
+    width: 72px;
+    height: 72px;
+    border-radius: 50%;
+    background: #4a7dff;
+    color: #fff;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 1.6rem;
+    font-weight: 700;
+    margin: 0 auto 14px;
+}
+
+.vendor-store-banner h1 {
+    margin: 0 0 6px;
+    font-size: 1.8rem;
+}
+
+.vendor-store-banner p {
+    color: #6b7280;
+    margin: 0;
+}
+
+.product-vendor-link {
+    display: block;
+    font-size: 0.85rem;
+    color: #6b7280;
+    text-decoration: none;
+    margin: 2px 0 6px;
+}
+
+.product-vendor-link:hover {
+    color: #4a7dff;
+    text-decoration: underline;
+}

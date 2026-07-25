@@ -12,7 +12,7 @@ import { getFirestore, collection, getDocs, addDoc, updateDoc, deleteDoc, doc, q
 // FIREBASE CONFIGURATION
 // ====================================================================
 const firebaseConfig = {
- apiKey: "AIzaSyAATExPAdi27kKvuvU0ujf6f2QqR8JWwTg",
+  apiKey: "AIzaSyAATExPAdi27kKvuvU0ujf6f2QqR8JWwTg",
   authDomain: "tech-wizards-academy.firebaseapp.com",
   projectId: "tech-wizards-academy",
   storageBucket: "tech-wizards-academy.firebasestorage.app",
@@ -29,9 +29,9 @@ const db = getFirestore(app);
 // GLOBAL VARIABLES
 // ====================================================================
 let allCourses = [];
-let alluser = [];
+let allUsers = [];
 let allSales = [];
-let lessonCount = 0; // NEW: Track lesson count
+let lessonCount = 0; // Track lesson count
 
 // ====================================================================
 // AUTHENTICATION CHECK
@@ -105,7 +105,7 @@ document.querySelectorAll('.nav-link').forEach(link => {
     const titles = {
       overview: 'Dashboard Overview',
       courses: 'Course Management',
-      user: 'user Management',
+      users: 'User Management',
       sales: 'Sales & Transactions',
       analytics: 'Analytics',
       affiliates: 'Affiliate Program'
@@ -113,7 +113,7 @@ document.querySelectorAll('.nav-link').forEach(link => {
     document.getElementById('page-title').textContent = titles[section];
     
     if (section === 'courses') loadCourses();
-    if (section === 'user') loaduser();
+    if (section === 'users') loadUsers();
     if (section === 'sales') loadSales();
     if (section === 'analytics') loadAnalytics();
     if (section === 'affiliates') loadAffiliates();
@@ -143,7 +143,7 @@ document.getElementById('cancel-btn').addEventListener('click', () => {
 // ====================================================================
 // LESSON MANAGEMENT FUNCTIONS - CONTENT-TYPE AWARE (video/audio/pdf/live)
 // ====================================================================
-user
+
 // Add new lesson
 document.getElementById('add-lesson-btn').addEventListener('click', () => {
   lessonCount++;
@@ -153,7 +153,6 @@ document.getElementById('add-lesson-btn').addEventListener('click', () => {
 });
 
 // Builds a lesson card from the template and wires up all its interactive bits.
-// Shared by both "Add Lesson" and "populateLessons" (edit mode) so behavior never drifts apart.
 function createLessonCardElement() {
   const template = document.getElementById('lesson-card-template');
   const clone = template.content.cloneNode(true);
@@ -183,94 +182,57 @@ function wireLessonCard(root) {
     updateLessonNumbers();
   });
 
+  // PDF Upload Click Handler
+  root.querySelector('.lesson-pdf-upload-btn')?.addEventListener('click', async (e) => {
+    const container = e.target.closest('.lesson-pdf-fields');
+    const fileInput = container ? container.querySelector('.lesson-pdf-file') : null;
+    const statusEl = container ? container.querySelector('.lesson-pdf-status') : null;
+    const urlInput = root.querySelector('.lesson-content-url');
 
+    if (!fileInput || !fileInput.files[0]) {
+      showAlert('Choose a PDF file first', 'error');
+      return;
+    }
 
+    statusEl.textContent = 'Uploading...';
+    statusEl.style.color = '#9ca3af';
 
+    try {
+      const url = await uploadToCloudinary(fileInput.files[0], 'course-pdfs');
+      if (urlInput) urlInput.value = url;
+      statusEl.textContent = 'Uploaded ✓';
+      statusEl.style.color = '#059669';
+    } catch (error) {
+      statusEl.textContent = 'Upload failed: ' + error.message;
+      statusEl.style.color = '#ef4444';
+    }
+  });
 
-// PDF Upload Click Handler
-root.querySelector('.lesson-pdf-upload-btn')?.addEventListener('click', async (e) => {
-  // Target the container block directly from the clicked button
-  const container = e.target.closest('.lesson-pdf-fields');
-  const fileInput = container ? container.querySelector('.lesson-pdf-file') : null;
-  const statusEl = container ? container.querySelector('.lesson-pdf-status') : null;
-  const urlInput = root.querySelector('.lesson-content-url');
+  // Audio Upload Click Handler
+  root.querySelector('.lesson-audio-upload-btn')?.addEventListener('click', async (e) => {
+    const container = e.target.closest('.lesson-audio-fields');
+    const fileInput = container ? container.querySelector('.lesson-audio-file') : null;
+    const statusEl = container ? container.querySelector('.lesson-audio-status') : null;
+    const urlInput = root.querySelector('.lesson-content-url');
 
-  if (!fileInput || !fileInput.files[0]) {
-    showAlert('Choose a PDF file first', 'error');
-    return;
-  }
+    if (!fileInput || !fileInput.files[0]) {
+      showAlert('Choose an audio file first', 'error');
+      return;
+    }
 
-  statusEl.textContent = 'Uploading...';
-  statusEl.style.color = '#9ca3af';
+    statusEl.textContent = 'Uploading...';
+    statusEl.style.color = '#9ca3af';
 
-  try {
-    const url = await uploadToCloudinary(fileInput.files[0], 'course-pdfs');
-    if (urlInput) urlInput.value = url;
-    statusEl.textContent = 'Uploaded ✓';
-    statusEl.style.color = '#059669';
-  } catch (error) {
-    statusEl.textContent = 'Upload failed: ' + error.message;
-    statusEl.style.color = '#ef4444';
-  }
-});
-
-// Audio Upload Click Handler
-root.querySelector('.lesson-audio-upload-btn')?.addEventListener('click', async (e) => {
-  const container = e.target.closest('.lesson-audio-fields');
-  const fileInput = container ? container.querySelector('.lesson-audio-file') : null;
-  const statusEl = container ? container.querySelector('.lesson-audio-status') : null;
-  const urlInput = root.querySelector('.lesson-content-url');
-
-  if (!fileInput || !fileInput.files[0]) {
-    showAlert('Choose an audio file first', 'error');
-    return;
-  }
-
-  statusEl.textContent = 'Uploading...';
-  statusEl.style.color = '#9ca3af';
-
-  try {
-    const url = await uploadToCloudinary(fileInput.files[0], 'course-audio');
-    if (urlInput) urlInput.value = url;
-    statusEl.textContent = 'Uploaded ✓';
-    statusEl.style.color = '#059669';
-  } catch (error) {
-    statusEl.textContent = 'Upload failed: ' + error.message;
-    statusEl.style.color = '#ef4444';
-  }
-});
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
+    try {
+      const url = await uploadToCloudinary(fileInput.files[0], 'course-audio');
+      if (urlInput) urlInput.value = url;
+      statusEl.textContent = 'Uploaded ✓';
+      statusEl.style.color = '#059669';
+    } catch (error) {
+      statusEl.textContent = 'Upload failed: ' + error.message;
+      statusEl.style.color = '#ef4444';
+    }
+  });
 
   // Create Zoom meeting for a live lesson
   root.querySelector('.lesson-create-zoom-btn').addEventListener('click', async () => {
@@ -314,8 +276,7 @@ root.querySelector('.lesson-audio-upload-btn')?.addEventListener('click', async 
   });
 }
 
-// Uploads a file to Cloudinary via a signed request (signature comes from our own
-// serverless function so the Cloudinary API secret never touches the browser).
+// Uploads a file to Cloudinary via a signed request
 async function uploadToCloudinary(file, folder) {
   const idToken = await auth.currentUser.getIdToken();
   const sigRes = await fetch('/api/cloudinary/signature', {
@@ -355,8 +316,7 @@ function updateLessonNumbers() {
   });
 }
 
-// Collect lessons data from form. Returns null if any lesson is missing required
-// content for its type (caller should show an error and abort the save).
+// Collect lessons data from form.
 function collectLessonsData() {
   const lessonCards = document.querySelectorAll('.lesson-card');
   const lessons = [];
@@ -389,12 +349,12 @@ function collectLessonsData() {
 
     } else if (contentType === 'audio' || contentType === 'pdf') {
       const url = card.querySelector('.lesson-content-url').value.trim();
-      if (!url) { hasError = true; return; } // must have been uploaded first
+      if (!url) { hasError = true; return; }
       lesson.contentUrl = url;
 
     } else if (contentType === 'live') {
       const joinUrl = card.querySelector('.lesson-zoom-join-url').value.trim();
-      if (!joinUrl) { hasError = true; return; } // Zoom meeting must be created first
+      if (!joinUrl) { hasError = true; return; }
       lesson.zoomJoinUrl = joinUrl;
       lesson.zoomStartUrl = card.querySelector('.lesson-zoom-start-url').value.trim();
       lesson.zoomMeetingId = card.querySelector('.lesson-zoom-meeting-id').value.trim();
@@ -425,7 +385,6 @@ function populateLessons(lessons) {
     clone.querySelector('.lesson-duration').value = lesson.duration || '';
     clone.querySelector('.lesson-description').value = lesson.description || '';
 
-    // Older lessons saved before this update have no contentType -> treat as video
     const contentType = lesson.contentType || 'video';
     const typeSelect = clone.querySelector('.lesson-content-type');
     typeSelect.value = contentType;
@@ -459,9 +418,7 @@ function populateLessons(lessons) {
       }
     }
 
-    // Field visibility was wired against the default value before we set the real one — refresh it
     typeSelect.dispatchEvent(new Event('change'));
-
     document.getElementById('lessons-container').appendChild(clone);
   });
 }
@@ -476,7 +433,7 @@ async function loadDashboardData() {
     const purchasesSnap = await getDocs(collection(db, 'purchases'));
     
     document.getElementById('active-courses').textContent = coursesSnap.size;
-    document.getElementById('total-user').textContent = userSnap.size;
+    document.getElementById('total-users').textContent = userSnap.size;
     document.getElementById('total-sales').textContent = purchasesSnap.size;
     
     let totalRevenue = 0;
@@ -598,21 +555,24 @@ async function loadCourses() {
 }
 
 // ====================================================================
-// LOAD user
+// LOAD USERS
 // ====================================================================
-async function loaduser() {
+async function loadUsers() {
   try {
     const snapshot = await getDocs(collection(db, 'user'));
-    const tbody = document.getElementById('user-table-body');
+    const tbody = document.getElementById('users-table-body');
     tbody.innerHTML = '';
     
+    allUsers = [];
+    
     if (snapshot.empty) {
-      tbody.innerHTML = '<tr><td colspan="5" class="empty-state">No user yet</td></tr>';
+      tbody.innerHTML = '<tr><td colspan="5" class="empty-state">No users yet</td></tr>';
       return;
     }
     
-    snapshot.forEach(doc => {
-      const data = doc.data();
+    snapshot.forEach(docSnap => {
+      const data = docSnap.data();
+      allUsers.push({ id: docSnap.id, ...data });
       const row = tbody.insertRow();
       
       row.innerHTML = `
@@ -621,12 +581,12 @@ async function loaduser() {
         <td>${(data.enrolledCourses || []).length}</td>
         <td>${data.createdAt ? new Date(data.createdAt).toLocaleDateString() : 'N/A'}</td>
         <td>
-          <button class="btn btn-secondary btn-sm" onclick="viewuser('${doc.id}')">View</button>
+          <button class="btn btn-secondary btn-sm" onclick="viewUser('${docSnap.id}')">View</button>
         </td>
       `;
     });
   } catch (error) {
-    showAlert('Error loading user: ' + error.message, 'error');
+    showAlert('Error loading users: ' + error.message, 'error');
   }
 }
 
@@ -742,7 +702,7 @@ async function loadAnalytics() {
             <div style="display:flex; justify-content:space-between; align-items:center;">
               <div>
                 <strong style="color:#1a1f36;">${index + 1}. ${course.title || 'Unknown Course'}</strong>
-                <p style="margin:5px 0 0 0; color:#6b7280; font-size:14px;">${course.enrolledCount || 0} user</p>
+                <p style="margin:5px 0 0 0; color:#6b7280; font-size:14px;">${course.enrolledCount || 0} users enrolled</p>
               </div>
               <div style="font-size:20px; font-weight:700; color:#059669;">₦${revenue.toLocaleString()}</div>
             </div>
@@ -871,10 +831,10 @@ window.deleteCourse = async (courseId) => {
 };
 
 // ====================================================================
-// VIEW user
+// VIEW USER
 // ====================================================================
-window.viewuser = async (userId) => {
-  alert('user details coming soon...');
+window.viewUser = async (userId) => {
+  alert('User details coming soon...');
 };
 
 // ====================================================================
