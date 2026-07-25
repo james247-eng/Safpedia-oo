@@ -349,7 +349,8 @@ document.getElementById('add-product-form').addEventListener('submit', async (e)
             showStatus('Uploading product file...');
             const signed = await getUploadSignature(productId, 'digital');
             const uploaded = await uploadToCloudinary(digitalFile, signed);
-            digitalAsset = { publicId: uploaded.public_id, format: uploaded.format };
+            const fileExtension = digitalFile.name.split('.').pop().toLowerCase();
+            digitalAsset = { publicId: uploaded.public_id, format: fileExtension };
         }
 
         // ---- Create the product ----
