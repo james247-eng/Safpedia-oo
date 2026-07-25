@@ -187,7 +187,7 @@ function wireLessonCard(root) {
     const container = e.target.closest('.lesson-pdf-fields');
     const fileInput = container ? container.querySelector('.lesson-pdf-file') : null;
     const statusEl = container ? container.querySelector('.lesson-pdf-status') : null;
-    const urlInput = root.querySelector('.lesson-content-url');
+    const urlInput = container ? container.querySelector('.lesson-content-url') : null;
 
     if (!fileInput || !fileInput.files[0]) {
       showAlert('Choose a PDF file first', 'error');
@@ -213,7 +213,7 @@ function wireLessonCard(root) {
     const container = e.target.closest('.lesson-audio-fields');
     const fileInput = container ? container.querySelector('.lesson-audio-file') : null;
     const statusEl = container ? container.querySelector('.lesson-audio-status') : null;
-    const urlInput = root.querySelector('.lesson-content-url');
+    const urlInput = container ? container.querySelector('.lesson-content-url') : null;
 
     if (!fileInput || !fileInput.files[0]) {
       showAlert('Choose an audio file first', 'error');
@@ -348,7 +348,9 @@ function collectLessonsData() {
       lesson.contentUrl = url;
 
     } else if (contentType === 'audio' || contentType === 'pdf') {
-      const url = card.querySelector('.lesson-content-url').value.trim();
+      const targetContainer = contentType === 'audio' ? card.querySelector('.lesson-audio-fields') : card.querySelector('.lesson-pdf-fields');
+      const urlInput = targetContainer ? targetContainer.querySelector('.lesson-content-url') : null;
+      const url = urlInput ? urlInput.value.trim() : '';
       if (!url) { hasError = true; return; }
       lesson.contentUrl = url;
 
@@ -393,11 +395,16 @@ function populateLessons(lessons) {
       clone.querySelector('.lesson-video-url').value = lesson.contentUrl || lesson.videoUrl || '';
 
     } else if (contentType === 'audio' || contentType === 'pdf') {
-      clone.querySelector('.lesson-content-url').value = lesson.contentUrl || '';
+      const container = contentType === 'audio' ? clone.querySelector('.lesson-audio-fields') : clone.querySelector('.lesson-pdf-fields');
+      const urlInput = container ? container.querySelector('.lesson-content-url') : null;
+      if (urlInput) urlInput.value = lesson.contentUrl || '';
+      
       if (lesson.contentUrl) {
         const statusEl = clone.querySelector(contentType === 'audio' ? '.lesson-audio-status' : '.lesson-pdf-status');
-        statusEl.textContent = 'Existing file on record ✓';
-        statusEl.style.color = '#059669';
+        if (statusEl) {
+          statusEl.textContent = 'Existing file on record ✓';
+          statusEl.style.color = '#059669';
+        }
       }
 
     } else if (contentType === 'live') {
