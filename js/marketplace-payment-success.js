@@ -23,7 +23,7 @@ const auth = getAuth(app);
 const MAX_POLL_ATTEMPTS = 6;
 const POLL_INTERVAL_MS = 2000;
 const AUTO_REDIRECT_MS = 5000;
-const ORDERS_PAGE = 'students/marketplace-orders.html';
+const ORDERS_PAGE = 'users/marketplace-orders.html';
 
 function setStatus(iconName, title, message) {
     document.getElementById('status-icon').innerHTML = `<ion-icon name="${iconName}"></ion-icon>`;

@@ -157,19 +157,81 @@ video {
   color: var(--blue);
 }
 
+/* PDF is document-shaped, not video-shaped — override the 16:9 lock
+   applied to .video-container on smaller screens so pages render at a
+   readable size instead of being squeezed into a widescreen strip. */
+.video-container.pdf-mode {
+  align-items: stretch;
+  justify-content: stretch;
+}
+
+@media (max-width: 1024px) {
+  .video-container.pdf-mode {
+    aspect-ratio: unset;
+    height: 80vh;
+  }
+}
+
 /* PDF lesson — neutral gray canvas, matching standard PDF viewer chrome */
 .pdf-viewer-wrapper {
-  position: relative;
   width: 100%;
   height: 100%;
+  display: flex;
+  flex-direction: column;
   background: #525659;
 }
 
-.pdf-open-tab-btn {
-  position: absolute;
-  top: 15px;
-  right: 15px;
-  z-index: 5;
+.pdf-toolbar {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 10px 16px;
+  background: var(--ink);
+  color: white;
+  flex-shrink: 0;
+}
+
+.pdf-nav-btn {
+  background: rgba(255, 255, 255, 0.1);
+  border: none;
+  color: white;
+  width: 32px;
+  height: 32px;
+  border-radius: 6px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  text-decoration: none;
+  transition: background 0.2s;
+}
+
+.pdf-nav-btn:hover {
+  background: rgba(255, 255, 255, 0.2);
+}
+
+.pdf-page-indicator {
+  font-size: 13px;
+  font-weight: 600;
+  min-width: 60px;
+  text-align: center;
+}
+
+.pdf-toolbar-spacer {
+  flex: 1;
+}
+
+.pdf-canvas-scroll {
+  flex: 1;
+  overflow: auto;
+  display: flex;
+  justify-content: center;
+  padding: 16px;
+}
+
+.pdf-canvas-scroll canvas {
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.3);
+  background: white;
 }
 
 /* Live / Zoom lesson */

@@ -1,0 +1,1098 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="description" content="See exactly how SAFpedia works — how to learn a skill, open a storefront, and earn commission by referring others, all from one account.">
+  <title>How It Works — SAFpedia</title>
+
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,wght@0,500;0,600;0,700;1,500&family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+
+  <!-- <link rel="stylesheet" href="/css/home.css"> -->
+  <link rel="stylesheet" href="css/how-it-works.css">
+  <style>
+    /* =============================================================
+   SAFpedia — Design Tokens
+   All colors are named by ROLE so they're easy to trace and swap:
+   --color-blue / --color-red / --color-gold  → brand accents
+   --color-blue-deep                          → dark-background variant (used only where a section needs a dark surface, e.g. tools/CTA)
+   --color-*-light                            → soft tint versions for badges/hover states
+   --color-text / --color-text-muted          → typography
+   --color-bg / --color-bg-alt                → page backgrounds
+   --color-border                             → hairline dividers
+   ============================================================= */
+:root {
+  /* Blue */
+  --color-blue: #2563EB;         /* normal blue — buttons, links, headings, icons */
+  --color-blue-deep: #12305C;    /* dark blue — ONLY for dark section backgrounds (preloader, tools, CTA) */
+  --color-blue-light: #E8EFFD;   /* light blue tint — badge backgrounds, hover fills */
+
+  /* Red */
+  --color-red: #D82F1E;          /* primary accent / CTA red */
+  --color-red-deep: #B02416;     /* red hover / darker state */
+  --color-red-light: #FCEAE8;    /* light red tint — badge backgrounds */
+
+  /* Gold (small highlight only, never a base color) */
+  --color-gold: #E8A93A;
+
+  /* Neutrals */
+  --color-white: #FFFFFF;
+  --color-bg: #FFFFFF;           /* default page/section background */
+  --color-bg-alt: #F7F8FB;       /* alternating section background */
+  --color-text: #0B1220;         /* primary text */
+  --color-text-muted: #4A5568;   /* secondary text */
+  --color-border: #E3E7F0;       /* hairline dividers */
+
+  /* Type */
+  --font-display: 'Fraunces', Georgia, serif;
+  --font-body: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+
+  /* Radius / shadow */
+  --r-sm: 8px;
+  --r-md: 14px;
+  --r-lg: 22px;
+  --shadow-card: 0 4px 24px rgba(11, 46, 89, 0.08);
+  --shadow-pop: 0 12px 40px rgba(11, 46, 89, 0.14);
+}
+
+* { box-sizing: border-box; margin: 0; padding: 0; }
+html { scroll-behavior: smooth; }
+body {
+  font-family: var(--font-body);
+  color: var(--color-text);
+  background: var(--color-bg);
+  line-height: 1.6;
+  -webkit-font-smoothing: antialiased;
+}
+img { max-width: 100%; display: block; }
+a { text-decoration: none; color: inherit; }
+ul { list-style: none; }
+button { font-family: inherit; cursor: pointer; border: none; background: none; }
+
+@media (prefers-reduced-motion: reduce) {
+  * { animation-duration: 0.01ms !important; transition-duration: 0.01ms !important; scroll-behavior: auto !important; }
+}
+
+:focus-visible {
+  outline: 2px solid var(--color-blue);
+  outline-offset: 3px;
+}
+
+.section-container {
+  max-width: 1180px;
+  margin: 0 auto;
+  padding: 0 24px;
+}
+
+/* =============================================================
+   Preloader (dark by design — a splash screen, not the hero)
+   ============================================================= */
+.preloader {
+  position: fixed; inset: 0; z-index: 9999;
+  background: var(--color-blue-deep);
+  display: flex; align-items: center; justify-content: center;
+  transition: opacity 0.5s ease, visibility 0.5s ease;
+}
+.preloader.hidden { opacity: 0; visibility: hidden; }
+.preloader-content { text-align: center; }
+.loader-ring {
+  width: 46px; height: 46px;
+  border: 3px solid rgba(255,255,255,0.18);
+  border-top-color: var(--color-gold);
+  border-radius: 50%;
+  margin: 0 auto 16px;
+  animation: spin 0.9s linear infinite;
+}
+@keyframes spin { to { transform: rotate(360deg); } }
+.loading-text { color: rgba(255,255,255,0.8); font-size: 14px; letter-spacing: 0.04em; }
+
+/* =============================================================
+   Navbar
+   ============================================================= */
+.navbar {
+  position: sticky; top: 0; z-index: 1000;
+  background: rgba(255,255,255,0.92);
+  backdrop-filter: blur(10px);
+  border-bottom: 1px solid var(--color-border);
+}
+.nav-container {
+  max-width: 1240px; margin: 0 auto; padding: 0 24px;
+  height: 72px;
+  display: flex; align-items: center; justify-content: space-between;
+}
+.brand-logo {
+  font-family: var(--font-display);
+  font-size: 24px; font-weight: 700;
+  color: var(--color-blue);
+  display: flex; align-items: baseline; gap: 2px;
+}
+.brand-logo::after {
+  content: "";
+  width: 6px; height: 6px; border-radius: 50%;
+  background: var(--color-red);
+  margin-left: 4px;
+  align-self: flex-end;
+  margin-bottom: 6px;
+}
+.nav-links {
+  display: flex; align-items: center; gap: 34px;
+}
+.nav-link {
+  font-size: 15px; font-weight: 500;
+  color: var(--color-text-muted);
+  position: relative;
+  padding: 6px 0;
+  transition: color 0.2s ease;
+}
+.nav-link:hover, .nav-link.active { color: var(--color-blue); }
+.nav-link.active::after {
+  content: "";
+  position: absolute; left: 0; right: 0; bottom: -2px;
+  height: 2px; background: var(--color-red); border-radius: 2px;
+}
+.nav-dropdown { position: relative; }
+.nav-dropdown-toggle { display: flex; align-items: center; gap: 4px; }
+.nav-dropdown-menu {
+  position: absolute; top: calc(100% + 14px); left: 50%;
+  transform: translateX(-50%) translateY(6px);
+  background: var(--color-white);
+  border: 1px solid var(--color-border);
+  border-radius: var(--r-md);
+  box-shadow: var(--shadow-pop);
+  min-width: 210px;
+  padding: 10px;
+  opacity: 0; visibility: hidden;
+  transition: all 0.2s ease;
+}
+.nav-dropdown:hover .nav-dropdown-menu {
+  opacity: 1; visibility: visible; transform: translateX(-50%) translateY(0);
+}
+.nav-dropdown-menu a {
+  display: block; padding: 10px 12px; border-radius: var(--r-sm);
+  font-size: 14px; color: var(--color-text-muted);
+}
+.nav-dropdown-menu a:hover { background: var(--color-blue-light); color: var(--color-blue); }
+
+.nav-right { display: flex; align-items: center; gap: 18px; }
+.nav-signin {
+  font-size: 15px; font-weight: 600; color: var(--color-blue);
+  display: flex; align-items: center; gap: 6px;
+}
+.btn {
+  display: inline-flex; align-items: center; justify-content: center; gap: 8px;
+  font-weight: 600; font-size: 15px;
+  padding: 12px 24px;
+  border-radius: 999px;
+  transition: transform 0.15s ease, box-shadow 0.15s ease, background 0.15s ease, color 0.15s ease, border-color 0.15s ease;
+  white-space: nowrap;
+}
+.btn-primary {
+  background: var(--color-red); color: var(--color-white);
+  box-shadow: 0 6px 18px rgba(216,47,30,0.28);
+}
+.btn-primary:hover { background: var(--color-red-deep); transform: translateY(-1px); }
+.btn-secondary {
+  background: transparent; color: var(--color-blue);
+  border: 1.5px solid var(--color-border);
+}
+.btn-secondary:hover { border-color: var(--color-blue); color: var(--color-blue); }
+.btn-outline {
+  background: transparent; color: var(--color-blue);
+  border: 1.5px solid var(--color-blue);
+}
+.btn-outline:hover { background: var(--color-blue); color: var(--color-white); }
+.btn-white { background: var(--color-white); color: var(--color-blue); }
+.btn-white:hover { background: var(--color-bg-alt); }
+.btn-sm { padding: 9px 18px; font-size: 14px; }
+
+.mobile-menu-btn { display: none; font-size: 26px; color: var(--color-blue); }
+
+@media (max-width: 960px) {
+  .nav-links, .nav-signin { display: none; }
+  .mobile-menu-btn { display: block; }
+}
+
+.mobile-menu {
+  position: fixed; top: 72px; left: 0; right: 0; bottom: 0;
+  background: var(--color-white);
+  z-index: 999;
+  padding: 24px;
+  transform: translateX(100%);
+  transition: transform 0.3s ease;
+  overflow-y: auto;
+}
+.mobile-menu.open { transform: translateX(0); }
+.mobile-nav-link {
+  display: block; padding: 16px 4px;
+  font-size: 18px; font-weight: 600; color: var(--color-text);
+  border-bottom: 1px solid var(--color-border);
+}
+
+/* =============================================================
+   Hero — white background, orbit/gradient blobs as the only color
+   ============================================================= */
+.hero {
+  position: relative;
+  background: var(--color-bg);
+  overflow: hidden;
+  padding: 96px 0 64px;
+}
+.hero-bg { position: absolute; inset: 0; overflow: hidden; z-index: 0; }
+.gradient-orb {
+  position: absolute; border-radius: 50%;
+  filter: blur(70px); opacity: 0.28;
+}
+.orb-1 { width: 420px; height: 420px; background: var(--color-red); top: -140px; right: -100px; }
+.orb-2 { width: 320px; height: 320px; background: var(--color-gold); bottom: -100px; left: -80px; opacity: 0.22; }
+.orb-3 { width: 260px; height: 260px; background: var(--color-blue); top: 40%; left: 55%; opacity: 0.2; }
+
+.hero-container { position: relative; z-index: 1; max-width: 1180px; margin: 0 auto; padding: 0 24px; }
+.hero-content { max-width: 760px; }
+.hero-badge {
+  display: inline-flex; align-items: center; gap: 8px;
+  background: var(--color-blue-light);
+  border: 1px solid var(--color-border);
+  color: var(--color-blue);
+  padding: 8px 16px; border-radius: 999px;
+  font-size: 13px; font-weight: 600;
+  margin-bottom: 28px;
+}
+.badge-icon { color: var(--color-gold); font-size: 16px; display: flex; }
+
+.hero-title {
+  font-family: var(--font-display);
+  font-size: clamp(2.4rem, 5vw, 3.6rem);
+  font-weight: 600;
+  line-height: 1.12;
+  color: var(--color-text);
+  letter-spacing: -0.01em;
+  margin-bottom: 24px;
+}
+.gradient-text { color: var(--color-red); font-style: italic; }
+
+.hero-subtitle {
+  font-size: 17px; color: var(--color-text-muted);
+  max-width: 600px; margin-bottom: 36px;
+}
+.hero-cta { display: flex; gap: 16px; flex-wrap: wrap; margin-bottom: 60px; }
+
+.hero-stats {
+  display: grid; grid-template-columns: repeat(3, auto); gap: 40px;
+  border-top: 1px solid var(--color-border);
+  padding-top: 32px;
+}
+.stat-item h3 {
+  font-family: var(--font-display);
+  font-size: 28px; color: var(--color-blue); margin-bottom: 4px;
+}
+.stat-item p { font-size: 13px; color: var(--color-text-muted); }
+
+@media (max-width: 640px) {
+  .hero-stats { grid-template-columns: repeat(2, 1fr); gap: 24px; }
+}
+
+/* Thread motif — signature element */
+.thread-divider {
+  display: flex; align-items: center; justify-content: center; gap: 10px;
+  padding: 36px 0;
+}
+.thread-line { flex: 1; max-width: 120px; height: 1px; background: var(--color-border); }
+.thread-chip {
+  width: 9px; height: 9px; border-radius: 50%;
+  background: var(--color-red);
+}
+.thread-chip:nth-child(3) { background: var(--color-blue); }
+.thread-chip:nth-child(5) { background: var(--color-gold); }
+
+/* =============================================================
+   Trust bar
+   ============================================================= */
+.trust-bar { background: var(--color-bg-alt); padding: 32px 0; border-bottom: 1px solid var(--color-border); }
+.trust-row {
+  display: flex; align-items: center; justify-content: center; gap: 14px;
+  flex-wrap: wrap; text-align: center;
+}
+.trust-avatars { display: flex; }
+.trust-avatars img {
+  width: 34px; height: 34px; border-radius: 50%;
+  border: 2px solid var(--color-white);
+  margin-left: -10px;
+  object-fit: cover;
+}
+.trust-avatars img:first-child { margin-left: 0; }
+.trust-text { font-size: 14px; color: var(--color-text-muted); }
+.trust-text strong { color: var(--color-blue); }
+
+/* =============================================================
+   Section headers
+   ============================================================= */
+.section-badge {
+  display: inline-block; font-size: 12px; font-weight: 700;
+  letter-spacing: 0.06em; text-transform: uppercase;
+  color: var(--color-red);
+  background: var(--color-red-light);
+  padding: 6px 14px; border-radius: 999px;
+  margin-bottom: 16px;
+}
+.section-title {
+  font-family: var(--font-display);
+  font-size: clamp(1.8rem, 3.4vw, 2.5rem);
+  font-weight: 600;
+  color: var(--color-blue);
+  line-height: 1.2;
+  margin-bottom: 16px;
+}
+.section-description {
+  font-size: 16px; color: var(--color-text-muted);
+  max-width: 560px;
+}
+.section-header { text-align: center; margin: 0 auto 56px; }
+.section-header .section-description { margin: 0 auto; }
+
+/* =============================================================
+   About / Three Pillars
+   ============================================================= */
+.about { padding: 96px 0; }
+.about-grid {
+  display: grid; grid-template-columns: 1fr 1fr; gap: 64px; align-items: center;
+}
+.image-wrapper {
+  position: relative; border-radius: var(--r-lg); overflow: hidden;
+  box-shadow: var(--shadow-card);
+}
+.image-wrapper img { width: 100%; height: 100%; object-fit: cover; }
+.image-overlay { position: absolute; bottom: 20px; left: 20px; }
+.overlay-badge {
+  display: flex; align-items: center; gap: 8px;
+  background: var(--color-white); padding: 10px 16px; border-radius: 999px;
+  font-size: 13px; font-weight: 600; color: var(--color-blue);
+  box-shadow: var(--shadow-card);
+}
+.overlay-badge ion-icon { color: var(--color-gold); }
+
+.about-features { margin: 28px 0 32px; display: flex; flex-direction: column; gap: 20px; }
+.feature-item { display: flex; gap: 14px; align-items: flex-start; }
+.feature-icon {
+  flex-shrink: 0; width: 30px; height: 30px; border-radius: 50%;
+  background: var(--color-blue-light); color: var(--color-blue);
+  display: flex; align-items: center; justify-content: center;
+  font-size: 17px;
+}
+.feature-text h4 { font-size: 15px; font-weight: 600; color: var(--color-text); margin-bottom: 2px; }
+.feature-text p { font-size: 14px; color: var(--color-text-muted); }
+
+@media (max-width: 860px) {
+  .about-grid { grid-template-columns: 1fr; gap: 40px; }
+  .about-image { order: -1; }
+}
+
+/* =============================================================
+   Pillars (Learn / Sell / Earn)
+   ============================================================= */
+.pillars { padding: 96px 0; background: var(--color-bg-alt); }
+.pillars-grid {
+  display: grid; grid-template-columns: repeat(3, 1fr); gap: 28px;
+}
+.pillar-card {
+  background: var(--color-white); border: 1px solid var(--color-border);
+  border-radius: var(--r-lg); padding: 32px;
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+.pillar-card:hover { transform: translateY(-4px); box-shadow: var(--shadow-pop); }
+.pillar-index {
+  font-family: var(--font-display); font-size: 13px; font-weight: 700;
+  color: var(--color-white); background: var(--color-blue);
+  width: 30px; height: 30px; border-radius: 50%;
+  display: flex; align-items: center; justify-content: center;
+  margin-bottom: 20px;
+}
+.pillar-card:nth-child(2) .pillar-index { background: var(--color-red); }
+.pillar-card:nth-child(3) .pillar-index { background: var(--color-gold); color: var(--color-text); }
+.pillar-card h3 { font-size: 19px; font-weight: 700; color: var(--color-blue); margin-bottom: 10px; }
+.pillar-card p { font-size: 14.5px; color: var(--color-text-muted); margin-bottom: 18px; }
+.pillar-link { font-size: 14px; font-weight: 600; color: var(--color-blue); display: inline-flex; align-items: center; gap: 4px; }
+
+@media (max-width: 860px) {
+  .pillars-grid { grid-template-columns: 1fr; }
+}
+
+/* =============================================================
+   How it works
+   ============================================================= */
+.how-it-works { padding: 96px 0; }
+.steps-row {
+  display: grid; grid-template-columns: repeat(4, 1fr); gap: 24px;
+  margin-top: 20px;
+}
+.step-card { text-align: left; padding: 0 8px; position: relative; }
+.step-num {
+  font-family: var(--font-display); font-size: 40px; font-weight: 600;
+  color: transparent;
+  -webkit-text-stroke: 1.5px var(--color-blue);
+  margin-bottom: 14px;
+}
+.step-card h4 { font-size: 16px; font-weight: 700; color: var(--color-text); margin-bottom: 8px; }
+.step-card p { font-size: 14px; color: var(--color-text-muted); }
+
+@media (max-width: 860px) {
+  .steps-row { grid-template-columns: 1fr 1fr; }
+}
+@media (max-width: 520px) {
+  .steps-row { grid-template-columns: 1fr; }
+}
+
+/* =============================================================
+   Feature strip (tools grid) — intentionally dark for contrast
+   ============================================================= */
+.tools-section { padding: 96px 0; background: var(--color-blue-deep); }
+.tools-section .section-badge { background: rgba(255,255,255,0.1); color: var(--color-gold); }
+.tools-section .section-title { color: var(--color-white); }
+.tools-section .section-description { color: rgba(255,255,255,0.7); }
+.tools-grid {
+  display: grid; grid-template-columns: repeat(4, 1fr); gap: 20px;
+  margin-top: 20px;
+}
+.tool-card {
+  background: rgba(255,255,255,0.05);
+  border: 1px solid rgba(255,255,255,0.12);
+  border-radius: var(--r-md); padding: 24px;
+}
+.tool-card ion-icon { font-size: 24px; color: var(--color-gold); margin-bottom: 14px; }
+.tool-card h4 { font-size: 15.5px; font-weight: 700; color: var(--color-white); margin-bottom: 8px; }
+.tool-card p { font-size: 13.5px; color: rgba(255,255,255,0.65); }
+
+@media (max-width: 860px) { .tools-grid { grid-template-columns: 1fr 1fr; } }
+@media (max-width: 520px) { .tools-grid { grid-template-columns: 1fr; } }
+
+/* =============================================================
+   Payments / reach strip
+   ============================================================= */
+.payments-section { padding: 80px 0; text-align: center; }
+.payments-logos {
+  display: flex; flex-wrap: wrap; justify-content: center; gap: 32px;
+  margin-top: 32px; align-items: center;
+}
+.payments-logos span {
+  font-weight: 700; font-size: 15px; color: var(--color-text-muted);
+  padding: 10px 18px; border: 1px solid var(--color-border); border-radius: var(--r-sm);
+}
+
+/* =============================================================
+   Testimonials
+   ============================================================= */
+.testimonials { padding: 96px 0; background: var(--color-bg-alt); }
+.testimonials-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 24px; }
+.testimonial-card {
+  background: var(--color-white); border: 1px solid var(--color-border);
+  border-radius: var(--r-lg); padding: 28px;
+}
+.testimonial-header { display: flex; align-items: center; gap: 12px; margin-bottom: 14px; }
+.testimonial-header img { width: 46px; height: 46px; border-radius: 50%; object-fit: cover; }
+.testimonial-info h4 { font-size: 15px; font-weight: 700; }
+.testimonial-info p { font-size: 13px; color: var(--color-text-muted); }
+.rating { color: var(--color-gold); font-size: 14px; margin-bottom: 12px; display: flex; gap: 2px; }
+.testimonial-text { font-size: 14.5px; color: var(--color-text-muted); }
+
+@media (max-width: 860px) { .testimonials-grid { grid-template-columns: 1fr; } }
+
+/* =============================================================
+   Press strip
+   ============================================================= */
+.press-section { padding: 60px 0; text-align: center; }
+.press-logos {
+  display: flex; flex-wrap: wrap; justify-content: center; gap: 40px;
+  margin-top: 28px; opacity: 0.6;
+  font-weight: 700; font-size: 15px; color: var(--color-text-muted);
+}
+
+/* =============================================================
+   CTA — intentionally dark for contrast, mirrors tools-section
+   ============================================================= */
+.cta-section {
+  background: linear-gradient(135deg, var(--color-blue-deep), var(--color-red-deep));
+  padding: 88px 0;
+}
+.cta-container { max-width: 720px; margin: 0 auto; padding: 0 24px; text-align: center; }
+.cta-content h2 {
+  font-family: var(--font-display); font-size: clamp(1.8rem, 3.6vw, 2.4rem);
+  color: var(--color-white); margin-bottom: 16px; font-weight: 600;
+}
+.cta-content p { color: rgba(255,255,255,0.8); font-size: 16px; margin-bottom: 32px; }
+
+/* =============================================================
+   Footer
+   ============================================================= */
+.footer { background: var(--color-text); color: rgba(255,255,255,0.7); padding: 72px 0 24px; }
+.footer-container { max-width: 1180px; margin: 0 auto; padding: 0 24px; }
+.footer-grid {
+  display: grid; grid-template-columns: 2fr 1fr 1fr 1.4fr; gap: 40px;
+  padding-bottom: 48px; border-bottom: 1px solid rgba(255,255,255,0.1);
+}
+.footer-brand h3 { font-family: var(--font-display); color: var(--color-white); font-size: 22px; margin-bottom: 12px; }
+.footer-brand p { font-size: 14px; margin-bottom: 20px; }
+.social-links { display: flex; gap: 12px; }
+.social-links a {
+  width: 36px; height: 36px; border-radius: 50%;
+  background: rgba(255,255,255,0.08);
+  display: flex; align-items: center; justify-content: center;
+  font-size: 17px; transition: background 0.2s ease;
+}
+.social-links a:hover { background: var(--color-red); }
+.footer-links h4, .footer-contact h4 { color: var(--color-white); font-size: 14.5px; margin-bottom: 18px; }
+.footer-links ul { display: flex; flex-direction: column; gap: 12px; }
+.footer-links a { font-size: 14px; }
+.footer-links a:hover { color: var(--color-white); }
+.contact-item { display: flex; align-items: center; gap: 10px; font-size: 14px; margin-bottom: 12px; }
+.contact-item ion-icon { color: var(--color-gold); }
+
+.footer-bottom {
+  display: flex; justify-content: space-between; align-items: center;
+  padding-top: 24px; font-size: 13px; flex-wrap: wrap; gap: 12px;
+}
+.footer-bottom-links { display: flex; gap: 20px; }
+
+@media (max-width: 860px) {
+  .footer-grid { grid-template-columns: 1fr 1fr; }
+}
+@media (max-width: 520px) {
+  .footer-grid { grid-template-columns: 1fr; }
+}
+
+/* =============================================================
+   Secondary Page Hero — shared by About, How It Works, and any
+   other inner page. Keeps the same white-bg + orb pattern as the
+   homepage hero without duplicating it per page.
+   ============================================================= */
+.page-hero {
+  position: relative;
+  background: var(--color-bg);
+  overflow: hidden;
+  padding: 88px 0 64px;
+  text-align: center;
+}
+.page-hero-bg { position: absolute; inset: 0; z-index: 0; }
+.page-hero-container {
+  position: relative; z-index: 1;
+  max-width: 800px; margin: 0 auto; padding: 0 24px;
+}
+.page-hero .hero-badge { margin-bottom: 24px; }
+.page-hero-title {
+  font-family: var(--font-display);
+  font-size: clamp(2rem, 4.5vw, 3.2rem);
+  font-weight: 600;
+  color: var(--color-text);
+  line-height: 1.15;
+  margin-bottom: 20px;
+}
+.page-hero-title .accent { color: var(--color-red); font-style: italic; }
+.page-hero-subtitle {
+  font-size: 17px; color: var(--color-text-muted);
+  max-width: 640px; margin: 0 auto;
+}
+
+/* Reversible two-column row (reuses .about-grid pieces on inner pages) */
+.about-grid.reverse .about-image { order: 2; }
+.about-grid.reverse .about-content { order: 1; }
+@media (max-width: 860px) {
+  .about-grid.reverse .about-image,
+  .about-grid.reverse .about-content { order: initial; }
+}
+
+/* =============================================================
+   Stats strip — shared by About, Refer & Earn, etc.
+   ============================================================= */
+.stats-section {
+  padding: 64px 0;
+  background: var(--color-bg-alt);
+  border-top: 1px solid var(--color-border);
+  border-bottom: 1px solid var(--color-border);
+}
+.stats-grid-large {
+  display: grid; grid-template-columns: repeat(4, 1fr); gap: 28px;
+}
+.stat-card-large { text-align: center; padding: 8px; }
+.stat-card-large h3 {
+  font-family: var(--font-display); font-size: 34px;
+  color: var(--color-blue); margin-bottom: 6px;
+}
+.stat-card-large p { font-weight: 700; font-size: 15px; color: var(--color-text); margin-bottom: 6px; }
+.stat-detail { font-size: 13px; color: var(--color-text-muted); }
+
+@media (max-width: 860px) { .stats-grid-large { grid-template-columns: 1fr 1fr; } }
+@media (max-width: 520px) { .stats-grid-large { grid-template-columns: 1fr; } }
+
+/* =============================================================
+   Scroll reveal utility
+   ============================================================= */
+.reveal { opacity: 0; transform: translateY(18px); transition: opacity 0.6s ease, transform 0.6s ease; }
+.reveal.in-view { opacity: 1; transform: translateY(0); }
+  </style>
+</head>
+<body>
+
+  <!-- NAVIGATION (shared with homepage) -->
+  <nav class="navbar" id="navbar">
+    <div class="nav-container">
+      <div class="nav-logo">
+        <a href="index.html" class="brand-logo">SAFpedia</a>
+      </div>
+
+      <ul class="nav-links" id="nav-links">
+        <li><a href="index.html" class="nav-link">Home</a></li>
+        <li><a href="how-it-works.html" class="nav-link active">How It Works</a></li>
+        <li><a href="pricing.html" class="nav-link">Pricing</a></li>
+        <li class="nav-dropdown">
+          <a href="#" class="nav-link nav-dropdown-toggle">
+            Library <ion-icon name="chevron-down-outline"></ion-icon>
+          </a>
+          <div class="nav-dropdown-menu">
+            <a href="all-courses.html">All Courses</a>
+            <a href="ebooks.html">Ebooks</a>
+            <a href="audio.html">Audio Courses</a>
+            <a href="Podcast.html">Podcasts</a>
+          </div>
+        </li>
+        <li><a href="marketplace.html" class="nav-link">Marketplace</a></li>
+        <li><a href="refer-earn.html" class="nav-link">Refer & Earn</a></li>
+      </ul>
+
+      <div class="nav-right">
+        <a href="sign-in.html" class="nav-signin">
+          <ion-icon name="person-outline"></ion-icon> Log In
+        </a>
+        <a href="sign-up.html" class="btn btn-primary btn-sm">Get Started</a>
+
+        <button class="mobile-menu-btn" id="mobile-menu-btn" aria-label="Toggle menu">
+          <ion-icon name="menu-outline" class="menu-icon"></ion-icon>
+          <ion-icon name="close-outline" class="close-icon" style="display:none;"></ion-icon>
+        </button>
+      </div>
+    </div>
+  </nav>
+
+  <div class="mobile-menu" id="mobile-menu">
+    <a href="index.html" class="mobile-nav-link">Home</a>
+    <a href="how-it-works.html" class="mobile-nav-link">How It Works</a>
+    <a href="pricing.html" class="mobile-nav-link">Pricing</a>
+    <a href="all-courses.html" class="mobile-nav-link">Library</a>
+    <a href="marketplace.html" class="mobile-nav-link">Marketplace</a>
+    <a href="refer-earn.html" class="mobile-nav-link">Refer & Earn</a>
+    <a href="sign-in.html" class="mobile-nav-link">Log In</a>
+    <a href="sign-up.html" class="mobile-nav-link">Get Started</a>
+  </div>
+
+  <!-- HERO -->
+  <section class="page-hero">
+    <div class="page-hero-bg">
+      <div class="gradient-orb orb-1"></div>
+      <div class="gradient-orb orb-2"></div>
+    </div>
+
+    <div class="page-hero-container">
+      <div class="hero-badge">
+        <span class="badge-icon"><ion-icon name="compass-outline"></ion-icon></span>
+        <span>How It Works</span>
+      </div>
+
+      <h1 class="page-hero-title">
+        Three ways to grow, <span class="accent">one simple account</span>
+      </h1>
+
+      <p class="page-hero-subtitle">
+        Whether you came to learn, to sell, or to earn — here's exactly how SAFpedia works, step by step.
+      </p>
+    </div>
+  </section>
+
+  <div class="recap-row section-container">
+    <div class="recap-pill"><span class="dot"></span> Learn a skill</div>
+    <div class="recap-pill"><span class="dot"></span> Sell a product</div>
+    <div class="recap-pill"><span class="dot"></span> Earn a commission</div>
+  </div>
+
+  <!-- QUICK OVERVIEW -->
+  <section class="how-it-works">
+    <div class="section-container">
+      <div class="section-header reveal">
+        <div class="section-badge">The Short Version</div>
+        <h2 class="section-title">Four steps, one account</h2>
+        <p class="section-description">This is the whole setup — everything below just goes deeper on each part.</p>
+      </div>
+
+      <div class="steps-row">
+        <div class="step-card reveal">
+          <div class="step-num">01</div>
+          <h4>Create your account</h4>
+          <p>Sign up free and verify your email and bank details in under two minutes.</p>
+        </div>
+        <div class="step-card reveal">
+          <div class="step-num">02</div>
+          <h4>Pick your path</h4>
+          <p>Enrol in a course, list a product, or grab your referral link — or start all three.</p>
+        </div>
+        <div class="step-card reveal">
+          <div class="step-num">03</div>
+          <h4>Share your link</h4>
+          <p>Every account gets a personal storefront and referral link to share anywhere.</p>
+        </div>
+        <div class="step-card reveal">
+          <div class="step-num">04</div>
+          <h4>Get paid</h4>
+          <p>Sales and commissions are tracked automatically and paid to your bank account.</p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <div class="thread-divider">
+    <span class="thread-line"></span><span class="thread-chip"></span>
+    <span class="thread-line" style="max-width:40px;"></span><span class="thread-chip"></span>
+    <span class="thread-line" style="max-width:40px;"></span><span class="thread-chip"></span>
+    <span class="thread-line"></span>
+  </div>
+
+  <!-- LEARN — detail -->
+  <section class="about">
+    <div class="section-container">
+      <div class="about-grid">
+        <div class="about-image reveal">
+          <div class="image-wrapper">
+            <img src="https://static.vecteezy.com/system/resources/previews/002/051/188/non_2x/online-digital-library-app-bookshelves-with-books-on-smartphone-screen-bookcase-on-phone-online-free-vector.jpg" alt="Learning on SAFpedia" loading="lazy">
+            <div class="image-overlay">
+              <div class="overlay-badge"><ion-icon name="school-outline"></ion-icon><span>Learn</span></div>
+            </div>
+          </div>
+        </div>
+
+        <div class="about-content reveal">
+          <div class="section-badge">Learning</div>
+          <h2 class="section-title">Build a skill you can actually use</h2>
+          <p class="section-description">Courses and ebooks are built by practitioners, not templated, and every format fits real schedules.</p>
+
+          <div class="about-features">
+            <div class="feature-item">
+              <div class="feature-icon"><ion-icon name="search-outline"></ion-icon></div>
+              <div class="feature-text">
+                <h4>Browse by skill or goal</h4>
+                <p>Filter the library by topic, format, or how much time you have.</p>
+              </div>
+            </div>
+            <div class="feature-item">
+              <div class="feature-icon"><ion-icon name="play-circle-outline"></ion-icon></div>
+              <div class="feature-text">
+                <h4>Learn on your schedule</h4>
+                <p>Video, ebook, or audio — start, pause, and pick back up whenever.</p>
+              </div>
+            </div>
+            <div class="feature-item">
+              <div class="feature-icon"><ion-icon name="ribbon-outline"></ion-icon></div>
+              <div class="feature-text">
+                <h4>Finish with proof</h4>
+                <p>A shareable certificate lands in your account the moment you complete a course.</p>
+              </div>
+            </div>
+          </div>
+
+          <a href="all-courses.html" class="btn btn-outline">Browse the Library</a>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- SELL — detail (reversed layout) -->
+  <section class="about" style="background:var(--color-bg-alt);">
+    <div class="section-container">
+      <div class="about-grid reverse">
+        <div class="about-image reveal">
+          <div class="image-wrapper">
+            <img src="https://images.pexels.com/photos/5709661/pexels-photo-5709661.jpeg?auto=compress&cs=tinysrgb&w=800" alt="Selling on SAFpedia" loading="lazy">
+            <div class="image-overlay">
+              <div class="overlay-badge"><ion-icon name="storefront-outline"></ion-icon><span>Sell</span></div>
+            </div>
+          </div>
+        </div>
+
+        <div class="about-content reveal">
+          <div class="section-badge">Selling</div>
+          <h2 class="section-title">Open a storefront in minutes</h2>
+          <p class="section-description">List a digital download, a service, or a physical product — your storefront link is ready before you finish your coffee.</p>
+
+          <div class="about-features">
+            <div class="feature-item">
+              <div class="feature-icon"><ion-icon name="add-circle-outline"></ion-icon></div>
+              <div class="feature-text">
+                <h4>List in a few fields</h4>
+                <p>Title, price, description, and images — no website or code required.</p>
+              </div>
+            </div>
+            <div class="feature-item">
+              <div class="feature-icon"><ion-icon name="link-outline"></ion-icon></div>
+              <div class="feature-text">
+                <h4>Share one link</h4>
+                <p>Your storefront link works on WhatsApp, Instagram, or anywhere else you post.</p>
+              </div>
+            </div>
+            <div class="feature-item">
+              <div class="feature-icon"><ion-icon name="card-outline"></ion-icon></div>
+              <div class="feature-text">
+                <h4>Get paid on checkout</h4>
+                <p>Buyers pay by card, bank transfer, or USSD — funds settle to your account automatically.</p>
+              </div>
+            </div>
+          </div>
+
+          <a href="marketplace.html" class="btn btn-outline">Start a Storefront</a>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- EARN — detail -->
+  <section class="about">
+    <div class="section-container">
+      <div class="about-grid">
+        <div class="about-image reveal">
+          <div class="image-wrapper">
+            <img src="https://images.pexels.com/photos/4386158/pexels-photo-4386158.jpeg?auto=compress&cs=tinysrgb&w=800" alt="Earning on SAFpedia" loading="lazy">
+            <div class="image-overlay">
+              <div class="overlay-badge"><ion-icon name="cash-outline"></ion-icon><span>Earn</span></div>
+            </div>
+          </div>
+        </div>
+
+        <div class="about-content reveal">
+          <div class="section-badge">Earning</div>
+          <h2 class="section-title">Turn your network into income</h2>
+          <p class="section-description">Every member gets a personal referral link — share it and earn a commission whenever it converts into a course or a sale.</p>
+
+          <div class="about-features">
+            <div class="feature-item">
+              <div class="feature-icon"><ion-icon name="copy-outline"></ion-icon></div>
+              <div class="feature-text">
+                <h4>Grab your link</h4>
+                <p>Found under Refer & Earn — unique to your account, ready instantly.</p>
+              </div>
+            </div>
+            <div class="feature-item">
+              <div class="feature-icon"><ion-icon name="stats-chart-outline"></ion-icon></div>
+              <div class="feature-text">
+                <h4>Track it in real time</h4>
+                <p>See clicks, conversions, and pending commission from your dashboard.</p>
+              </div>
+            </div>
+            <div class="feature-item">
+              <div class="feature-icon"><ion-icon name="wallet-outline"></ion-icon></div>
+              <div class="feature-text">
+                <h4>Withdraw anytime</h4>
+                <p>Confirmed commission moves to your bank account within 24 hours of request.</p>
+              </div>
+            </div>
+          </div>
+
+          <a href="refer-earn.html" class="btn btn-outline">See Referral Rates</a>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- FAQ -->
+  <section class="faq-section">
+    <div class="section-container">
+      <div class="section-header reveal">
+        <div class="section-badge">Common Questions</div>
+        <h2 class="section-title">Still have questions?</h2>
+        <p class="section-description">The most common ones, answered directly.</p>
+      </div>
+
+      <div class="faq-list">
+        <div class="faq-item">
+          <div class="faq-question">
+            <span>Do I have to pick just one — learning, selling, or earning?</span>
+            <ion-icon name="add-outline"></ion-icon>
+          </div>
+          <div class="faq-answer"><p>No. One account does all three — enrol in a course, list a product, and share your referral link at the same time.</p></div>
+        </div>
+        <div class="faq-item">
+          <div class="faq-question">
+            <span>How fast do I actually get paid?</span>
+            <ion-icon name="add-outline"></ion-icon>
+          </div>
+          <div class="faq-answer"><p>Confirmed sales and commissions are available for withdrawal within 24 hours, straight to your linked bank account.</p></div>
+        </div>
+        <div class="faq-item">
+          <div class="faq-question">
+            <span>What if I don't have a product to sell yet?</span>
+            <ion-icon name="add-outline"></ion-icon>
+          </div>
+          <div class="faq-answer"><p>That's fine — start with a course or your referral link. You can open a storefront whenever you're ready.</p></div>
+        </div>
+        <div class="faq-item">
+          <div class="faq-question">
+            <span>Is there a fee to join SAFpedia?</span>
+            <ion-icon name="add-outline"></ion-icon>
+          </div>
+          <div class="faq-answer"><p>Creating an account is free. Course and platform fees are shown upfront on the pricing page before you pay for anything.</p></div>
+        </div>
+        <div class="faq-item">
+          <div class="faq-question">
+            <span>Can I sell to buyers outside Nigeria?</span>
+            <ion-icon name="add-outline"></ion-icon>
+          </div>
+          <div class="faq-answer"><p>Yes — SAFpedia supports buyers across Africa, with local payment methods for supported countries.</p></div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- CTA -->
+  <section class="cta-section">
+    <div class="cta-container">
+      <div class="cta-content">
+        <h2>Ready to see it in action?</h2>
+        <p>Create your free account and pick your first path — learn, sell, or earn.</p>
+        <a href="sign-up.html" class="btn btn-white">
+          Create Free Account
+          <ion-icon name="arrow-forward-outline"></ion-icon>
+        </a>
+      </div>
+    </div>
+  </section>
+
+  <!-- FOOTER (shared with homepage) -->
+  <footer class="footer">
+    <div class="footer-container">
+      <div class="footer-grid">
+        <div class="footer-brand">
+          <h3>SAFpedia</h3>
+          <p>Learn. Sell. Refer & Earn. All in one place.</p>
+          <div class="social-links">
+            <a href="#" aria-label="Instagram"><ion-icon name="logo-instagram"></ion-icon></a>
+            <a href="#" aria-label="Facebook"><ion-icon name="logo-facebook"></ion-icon></a>
+            <a href="https://wa.me/+234xxxxxxx" aria-label="WhatsApp" target="_blank"><ion-icon name="logo-whatsapp"></ion-icon></a>
+          </div>
+        </div>
+
+        <div class="footer-links">
+          <h4>Quick Links</h4>
+          <ul>
+            <li><a href="about-us.html">About Us</a></li>
+            <li><a href="all-courses.html">Library</a></li>
+            <li><a href="marketplace.html">Marketplace</a></li>
+            <li><a href="how-it-works.html">How It Works</a></li>
+          </ul>
+        </div>
+
+        <div class="footer-links">
+          <h4>Popular</h4>
+          <ul>
+            <li><a href="audio.html">Audio Courses</a></li>
+            <li><a href="VideoCourses.html">Video Courses</a></li>
+            <li><a href="ebooks.html">Ebooks</a></li>
+            <li><a href="Podcast.html">Podcasts</a></li>
+          </ul>
+        </div>
+
+        <div class="footer-contact">
+          <h4>Contact Us</h4>
+          <div class="contact-item"><ion-icon name="call-outline"></ion-icon><span>+234 70xxxxxxx</span></div>
+          <div class="contact-item"><ion-icon name="mail-outline"></ion-icon><span>safpediaconcept@gmail.com</span></div>
+        </div>
+      </div>
+
+      <div class="footer-bottom">
+        <p>&copy; 2026 SAFpedia. All rights reserved.</p>
+        <div class="footer-bottom-links">
+          <a href="#">Privacy Policy</a>
+          <a href="#">Terms of Service</a>
+        </div>
+      </div>
+    </div>
+  </footer>
+
+  <script>
+    // Preloader
+window.addEventListener('load', () => {
+  const pre = document.getElementById('preloader');
+  if (pre) setTimeout(() => pre.classList.add('hidden'), 300);
+});
+
+// Mobile menu toggle
+const menuBtn = document.getElementById('mobile-menu-btn');
+const mobileMenu = document.getElementById('mobile-menu');
+if (menuBtn && mobileMenu) {
+  menuBtn.addEventListener('click', () => {
+    mobileMenu.classList.toggle('open');
+    const menuIcon = menuBtn.querySelector('.menu-icon');
+    const closeIcon = menuBtn.querySelector('.close-icon');
+    const isOpen = mobileMenu.classList.contains('open');
+    if (menuIcon) menuIcon.style.display = isOpen ? 'none' : 'block';
+    if (closeIcon) closeIcon.style.display = isOpen ? 'block' : 'none';
+  });
+  mobileMenu.querySelectorAll('a').forEach(a => {
+    a.addEventListener('click', () => mobileMenu.classList.remove('open'));
+  });
+}
+
+// Animated stat counters
+function animateCounter(el) {
+  const target = parseInt(el.dataset.count, 10);
+  const duration = 1400;
+  const start = performance.now();
+  function tick(now) {
+    const progress = Math.min((now - start) / duration, 1);
+    const eased = 1 - Math.pow(1 - progress, 3);
+    const value = Math.floor(eased * target);
+    el.textContent = value.toLocaleString() + (target === 98 ? '' : '+');
+    if (progress < 1) requestAnimationFrame(tick);
+    else el.textContent = target.toLocaleString() + (target === 98 ? '' : '+');
+  }
+  requestAnimationFrame(tick);
+}
+
+const statObserver = new IntersectionObserver((entries) => {
+  entries.forEach(entry => {
+    if (entry.isIntersecting) {
+      animateCounter(entry.target);
+      statObserver.unobserve(entry.target);
+    }
+  });
+}, { threshold: 0.4 });
+
+document.querySelectorAll('[data-count]').forEach(el => statObserver.observe(el));
+
+// FAQ accordion (How It Works page)
+document.querySelectorAll('.faq-item').forEach(item => {
+  const question = item.querySelector('.faq-question');
+  const answer = item.querySelector('.faq-answer');
+  if (!question || !answer) return;
+  question.addEventListener('click', () => {
+    const isOpen = item.classList.contains('open');
+    document.querySelectorAll('.faq-item.open').forEach(openItem => {
+      if (openItem !== item) {
+        openItem.classList.remove('open');
+        openItem.querySelector('.faq-answer').style.maxHeight = null;
+      }
+    });
+    item.classList.toggle('open', !isOpen);
+    answer.style.maxHeight = !isOpen ? answer.scrollHeight + 'px' : null;
+  });
+});
+
+// Scroll reveal
+const revealObserver = new IntersectionObserver((entries) => {
+  entries.forEach(entry => {
+    if (entry.isIntersecting) {
+      entry.target.classList.add('in-view');
+      revealObserver.unobserve(entry.target);
+    }
+  });
+}, { threshold: 0.15 });
+
+document.querySelectorAll('.reveal').forEach(el => revealObserver.observe(el));
+  </script>
+  <script type="module" src="https://unpkg.com/ionicons@8.0.13/dist/ionicons/ionicons.esm.js"></script>
+  <script nomodule src="https://unpkg.com/ionicons@8.0.13/dist/ionicons/ionicons.js"></script>
+</body>
+</html>

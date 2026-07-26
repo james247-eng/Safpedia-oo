@@ -8,6 +8,11 @@ import { onAuthStateChanged } from 'https://www.gstatic.com/firebasejs/11.9.1/fi
 import { doc, getDoc, updateDoc, Timestamp } from 'https://www.gstatic.com/firebasejs/11.9.1/firebase-firestore.js';
 
 
+if (window.pdfjsLib) {
+  pdfjsLib.GlobalWorkerOptions.workerSrc =
+    'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js';
+}
+
 // Global Variables
 let currentUser = null;
 let currentCourse = null;
@@ -274,6 +279,7 @@ function loadLesson(index) {
 // used videoUrl — treat those as 'video' so nothing breaks retroactively.
 // ====================================================================
 function loadLessonContent(lesson) {
+  document.getElementById('video-container').classList.remove('pdf-mode');
   const contentType = lesson.contentType || 'video';
 
   if (contentType === 'video') {
@@ -319,8 +325,9 @@ function loadAudioPlayer(audioUrl) {
 // ====================================================================
 // PDF VIEWER
 // ====================================================================
-function loadPdfViewer(pdfUrl) {
+async function loadPdfViewer(pdfUrl) {
   const container = document.getElementById('video-container');
+  container.classList.add('pdf-mode');
 
   if (!pdfUrl) {
     container.innerHTML = `
@@ -334,12 +341,71 @@ function loadPdfViewer(pdfUrl) {
 
   container.innerHTML = `
     <div class="pdf-viewer-wrapper">
-      <iframe src="${pdfUrl}" style="width:100%; height:100%; border:none;"></iframe>
-      <a href="${pdfUrl}" target="_blank" class="btn btn-secondary pdf-open-tab-btn">
-        <ion-icon name="open-outline"></ion-icon> Open in New Tab
-      </a>
+      <div class="pdf-toolbar">
+        <button id="pdf-prev" class="pdf-nav-btn"><ion-icon name="chevron-back-outline"></ion-icon></button>
+        <span class="pdf-page-indicator"><span id="pdf-page-num">1</span> / <span id="pdf-page-count">-</span></span>
+        <button id="pdf-next" class="pdf-nav-btn"><ion-icon name="chevron-forward-outline"></ion-icon></button>
+        <div class="pdf-toolbar-spacer"></div>
+        <button id="pdf-zoom-out" class="pdf-nav-btn"><ion-icon name="remove-outline"></ion-icon></button>
+        <button id="pdf-zoom-in" class="pdf-nav-btn"><ion-icon name="add-outline"></ion-icon></button>
+        <a href="${pdfUrl}" target="_blank" class="pdf-nav-btn" title="Open in new tab">
+          <ion-icon name="open-outline"></ion-icon>
+        </a>
+      </div>
+      <div class="pdf-canvas-scroll" id="pdf-canvas-scroll">
+        <canvas id="pdf-canvas"></canvas>
+      </div>
     </div>
   `;
+
+  const canvas = document.getElementById('pdf-canvas');
+  const ctx = canvas.getContext('2d');
+  let pdfDoc = null;
+  let pageNum = 1;
+  let scale = 1.0;
+
+  async function renderPage(num) {
+    const page = await pdfDoc.getPage(num);
+    const wrapWidth = document.getElementById('pdf-canvas-scroll').clientWidth - 32;
+    const baseViewport = page.getViewport({ scale: 1 });
+    const fitScale = (wrapWidth / baseViewport.width) * scale;
+    const viewport = page.getViewport({ scale: fitScale });
+    canvas.width = viewport.width;
+    canvas.height = viewport.height;
+    await page.render({ canvasContext: ctx, viewport }).promise;
+    document.getElementById('pdf-page-num').textContent = num;
+  }
+
+  try {
+    pdfDoc = await pdfjsLib.getDocument(pdfUrl).promise;
+    document.getElementById('pdf-page-count').textContent = pdfDoc.numPages;
+    await renderPage(pageNum);
+  } catch (error) {
+    console.error('Error loading PDF:', error);
+    container.innerHTML = `
+      <div class="video-placeholder">
+        <ion-icon name="alert-circle-outline"></ion-icon>
+        <p>Couldn't load this PDF</p>
+        <a href="${pdfUrl}" target="_blank" class="btn btn-primary" style="margin-top:1rem;">Open in New Tab</a>
+      </div>
+    `;
+    return;
+  }
+
+  document.getElementById('pdf-prev').addEventListener('click', () => {
+    if (pageNum > 1) renderPage(--pageNum);
+  });
+  document.getElementById('pdf-next').addEventListener('click', () => {
+    if (pageNum < pdfDoc.numPages) renderPage(++pageNum);
+  });
+  document.getElementById('pdf-zoom-in').addEventListener('click', () => {
+    scale = Math.min(scale + 0.2, 2.5);
+    renderPage(pageNum);
+  });
+  document.getElementById('pdf-zoom-out').addEventListener('click', () => {
+    scale = Math.max(scale - 0.2, 0.5);
+    renderPage(pageNum);
+  });
 }
 
 // ====================================================================
