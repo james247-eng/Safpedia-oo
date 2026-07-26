@@ -26,8 +26,10 @@
         <aside class="sidebar-panel" id="sidebar-panel">
             <div class="brand-logo">Safpedia Admin</div>
             <ul class="nav-group">
-                <li><div class="nav-item-btn active" data-tab="vendors-pane"><ion-icon name="people-outline"></ion-icon><span class="nav-label">Vendors</span></div></li>
+                <li><div class="nav-item-btn active" data-tab="overview-pane"><ion-icon name="stats-chart-outline"></ion-icon><span class="nav-label">Overview</span></div></li>
+                <li><div class="nav-item-btn" data-tab="vendors-pane"><ion-icon name="people-outline"></ion-icon><span class="nav-label">Vendors</span></div></li>
                 <li><div class="nav-item-btn" data-tab="products-pane"><ion-icon name="cube-outline"></ion-icon><span class="nav-label">Products</span></div></li>
+                <li><div class="nav-item-btn" data-tab="payouts-pane"><ion-icon name="cash-outline"></ion-icon><span class="nav-label">Payouts</span></div></li>
                 <li><a href="index.html"><div class="nav-item-btn"><ion-icon name="arrow-back-outline"></ion-icon><span class="nav-label">Back to Site</span></div></a></li>
             </ul>
             <div class="sidebar-footer">
@@ -50,10 +52,20 @@
 
             <div id="dashboard-content" class="hidden">
 
+                <!-- TAB 0: OVERVIEW -->
+                <section id="overview-pane" class="dashboard-section-card active-tab">
+                    <h2>Platform Overview</h2>
+                    <p>Business-wide numbers across every vendor on the marketplace.</p>
+
+                    <div class="stats-grid" id="stats-grid">
+                        <div class="loading-placeholder">Loading platform stats...</div>
+                    </div>
+                </section>
+
                 <!-- TAB 1: VENDORS -->
-                <section id="vendors-pane" class="dashboard-section-card active-tab">
+                <section id="vendors-pane" class="dashboard-section-card">
                     <h2>Vendors</h2>
-                    <p>Every seller who has listed at least one product on Safpedia's marketplace.</p>
+                    <p>Every seller on Safpedia's marketplace, with earnings and payout status.</p>
                     <div id="vendors-list" class="data-table-wrapper">
                         <div class="loading-placeholder">Loading vendors...</div>
                     </div>
@@ -77,6 +89,36 @@
                     </div>
                 </section>
 
+                <!-- TAB 3: PAYOUTS -->
+                <section id="payouts-pane" class="dashboard-section-card">
+                    <h2>Payout History</h2>
+                    <p>Every payout request across all vendors, most recent first.</p>
+                    <div id="payouts-list" class="data-table-wrapper">
+                        <div class="loading-placeholder">Loading payout history...</div>
+                    </div>
+                </section>
+
+            </div>
+
+            <!-- VENDOR DETAIL MODAL -->
+            <div id="vendor-detail-modal" class="modal-overlay hidden">
+                <div class="modal-box">
+                    <button class="modal-close-btn" id="modal-close-btn">&times;</button>
+                    <h2 id="modal-vendor-name">Vendor</h2>
+                    <p id="modal-vendor-email" class="modal-subtitle"></p>
+
+                    <div class="modal-balance-row" id="modal-balance-row"></div>
+
+                    <h3>Recent Sales</h3>
+                    <div id="modal-sales-list" class="data-table-wrapper">
+                        <div class="loading-placeholder">Loading...</div>
+                    </div>
+
+                    <h3>Payout History</h3>
+                    <div id="modal-payouts-list" class="data-table-wrapper">
+                        <div class="loading-placeholder">Loading...</div>
+                    </div>
+                </div>
             </div>
         </main>
     </div>

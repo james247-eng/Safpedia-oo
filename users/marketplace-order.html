@@ -1,0 +1,57 @@
+<!-- students/marketplace-orders.html -->
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>My Marketplace Orders | Safpedia</title>
+    <link rel="stylesheet" href="css/student-dashboard.css">
+    <link rel="stylesheet" href="css/marketplace-orders.css">
+    <script type="module" src="https://unpkg.com/ionicons@7.1.0/dist/ionicons/ionicons.esm.js"></script>
+    <script nomodule src="https://unpkg.com/ionicons@7.1.0/dist/ionicons/ionicons.js"></script>
+</head>
+<body>
+
+    <div class="mobile-topbar">
+        <button class="sidebar-toggle-btn" id="sidebar-toggle-btn">
+            <ion-icon name="menu-outline" class="menu-icon"></ion-icon>
+            <ion-icon name="close-outline" class="close-icon"></ion-icon>
+        </button>
+        <div class="brand-logo">Safpedia</div>
+    </div>
+
+    <div class="sidebar-overlay" id="sidebar-overlay"></div>
+
+    <div class="dashboard-layout">
+        <aside class="sidebar-panel">
+            <div class="brand-logo">Safpedia</div>
+            <ul class="nav-group">
+                <li><a href="dashboard.html"><div class="nav-item-btn"><ion-icon name="grid-outline"></ion-icon><span class="nav-label">My Courses</span></div></a></li>
+                <li><a href="affiliate.html"><div class="nav-item-btn"><ion-icon name="cash-outline"></ion-icon><span class="nav-label">Referral Earnings</span></div></a></li>
+                <li><div class="nav-item-btn active"><ion-icon name="bag-handle-outline"></ion-icon><span class="nav-label">Marketplace Orders</span></div></li>
+                <li><a href="seller-dashboard.html"><div class="nav-item-btn"><ion-icon name="storefront-outline"></ion-icon><span class="nav-label">Sell on Safpedia</span></div></a></li>
+            </ul>
+            <div class="sidebar-footer">
+                <div class="student-profile-avatar" id="buyer-avatar-slot">U</div>
+                <div>
+                    <div id="buyer-display-email">Student Account</div>
+                    <a href="#" id="buyer-logout-trigger">Sign Out</a>
+                </div>
+            </div>
+        </aside>
+
+        <main class="main-workspace-view">
+            <section class="dashboard-section-card active-tab">
+                <h2>My Marketplace Orders</h2>
+                <p>Everything you've purchased from Safpedia vendors — separate from your course purchases.</p>
+
+                <div id="orders-list" class="data-table-frame">
+                    <div class="loading-placeholder">Loading your orders...</div>
+                </div>
+            </section>
+        </main>
+    </div>
+
+    <script type="module" src="js/marketplace-orders.js"></script>
+</body>
+</html>

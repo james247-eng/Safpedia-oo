@@ -11,17 +11,22 @@ const BATCH_LIMIT = 400; // stay comfortably under Firestore's 500-write batch c
  * the Hobby plan's 12-function-per-deployment cap. URL paths are unchanged
  * from the original standalone files, so no frontend calls need updating:
  *
- *   POST /api/admin/marketplace/suspend-product  -> handleSuspendProduct
- *   POST /api/admin/marketplace/suspend-vendor   -> handleSuspendVendor
+ *   POST /api/admin/marketplace/suspend-product    -> handleSuspendProduct
+ *   POST /api/admin/marketplace/suspend-vendor     -> handleSuspendVendor
+ *   GET  /api/admin/marketplace/get-platform-stats -> handleGetPlatformStats
+ *
+ * get-platform-stats is GET and computed via the Admin SDK deliberately —
+ * an unfiltered collectionGroup('sales') scan can't be proven safe by
+ * Firestore's client-side rule validator (it checks a query's *shape*
+ * against the rules, not the caller's actual identity), since our sales
+ * rule mixes isAdmin() with data-dependent buyerUid/vendorUid conditions
+ * and this query has no matching where() clause. Running it server-side
+ * sidesteps that entirely, since the Admin SDK bypasses rules altogether.
  *
  * Each handler's internal logic is preserved exactly as it was in its
  * original standalone file — only the routing/admin-check wrapper is shared.
  */
 module.exports = async (req, res) => {
-  if (req.method !== 'POST') {
-    return res.status(405).json({ error: 'Method not allowed' });
-  }
-
   const { action } = req.query;
 
   try {
@@ -29,6 +34,14 @@ module.exports = async (req, res) => {
     const db = admin.firestore();
 
     await requireAdmin(req, admin);
+
+    if (req.method === 'GET' && action === 'get-platform-stats') {
+      return await handleGetPlatformStats(req, res, admin, db);
+    }
+
+    if (req.method !== 'POST') {
+      return res.status(405).json({ error: 'Method not allowed' });
+    }
 
     switch (action) {
       case 'suspend-product':
@@ -44,6 +57,56 @@ module.exports = async (req, res) => {
     return res.status(err.statusCode || 500).json({ error: err.message });
   }
 };
+
+/**
+ * GET /api/admin/marketplace/get-platform-stats
+ * Admin only. Computes platform-wide totals by summing in memory rather
+ * than relying on the Admin SDK's aggregate() API, deliberately — avoids
+ * any risk of an aggregate-API version mismatch, at the cost of reading
+ * every sales/vendors doc. Fine for an infrequently-called admin report at
+ * current scale; worth revisiting with real aggregate queries or cached
+ * counters if the sales collection grows very large.
+ */
+async function handleGetPlatformStats(req, res, admin, db) {
+  const salesSnap = await db.collectionGroup('sales').get();
+
+  let totalVolume = 0;
+  let totalCommission = 0;
+  let saleCount = 0;
+
+  salesSnap.forEach((doc) => {
+    const s = doc.data();
+    totalVolume += s.amount || 0;
+    totalCommission += s.commissionAmount || 0;
+    saleCount += 1;
+  });
+
+  const vendorsSnap = await db.collection('vendors').get();
+
+  let totalPendingPayout = 0;
+  let totalAwaitingPayout = 0;
+  let totalPaidOut = 0;
+  let vendorCount = 0;
+
+  vendorsSnap.forEach((doc) => {
+    const v = doc.data();
+    totalPendingPayout += v.pendingPayout || 0;
+    totalAwaitingPayout += v.awaitingPayout || 0;
+    totalPaidOut += v.totalPaidOut || 0;
+    vendorCount += 1;
+  });
+
+  return res.status(200).json({
+    success: true,
+    totalVolume,
+    totalCommission,
+    saleCount,
+    totalPendingPayout,
+    totalAwaitingPayout,
+    totalPaidOut,
+    vendorCount
+  });
+}
 
 /**
  * POST /api/admin/marketplace/suspend-product

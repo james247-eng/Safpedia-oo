@@ -359,4 +359,365 @@ a {
         min-width: 560px;
         font-size: 0.85rem;
     }
+}/* css/admin-vendor-management.css */
+
+* {
+    box-sizing: border-box;
+}
+
+body {
+    margin: 0;
+    font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+    background: #f7f9fc;
+    color: #1a1f36;
+}
+
+.hidden {
+    display: none !important;
+}
+
+a {
+    text-decoration: none;
+    color: inherit;
+}
+
+/* ====================================================================
+   MOBILE TOP BAR — visible below 900px only
+==================================================================== */
+.mobile-topbar {
+    display: none;
+    align-items: center;
+    gap: 14px;
+    padding: 14px 18px;
+    background: #fff;
+    border-bottom: 1px solid #e5e9f0;
+    position: sticky;
+    top: 0;
+    z-index: 30;
+}
+
+.sidebar-toggle-btn {
+    background: none;
+    border: none;
+    cursor: pointer;
+    padding: 4px;
+    display: flex;
+    align-items: center;
+    font-size: 1.5rem;
+    color: #1a1f36;
+}
+
+.sidebar-toggle-btn .close-icon {
+    display: none;
+}
+.sidebar-toggle-btn.active .menu-icon {
+    display: none;
+}
+.sidebar-toggle-btn.active .close-icon {
+    display: inline;
+}
+
+.mobile-topbar .brand-logo {
+    font-weight: 700;
+    font-size: 1.1rem;
+}
+
+/* ====================================================================
+   SIDEBAR OVERLAY (mobile only)
+==================================================================== */
+.sidebar-overlay {
+    display: none;
+    position: fixed;
+    inset: 0;
+    background: rgba(0, 0, 0, 0.4);
+    z-index: 35;
+}
+.sidebar-overlay.visible {
+    display: block;
+}
+
+/* ====================================================================
+   LAYOUT
+==================================================================== */
+.dashboard-layout {
+    display: flex;
+    min-height: 100vh;
+}
+
+.sidebar-panel {
+    width: 240px;
+    flex-shrink: 0;
+    background: #fff;
+    border-right: 1px solid #e5e9f0;
+    display: flex;
+    flex-direction: column;
+    padding: 20px 16px;
+    position: sticky;
+    top: 0;
+    height: 100vh;
+}
+
+.sidebar-panel .brand-logo {
+    font-weight: 700;
+    font-size: 1.2rem;
+    margin-bottom: 24px;
+    padding: 0 8px;
+}
+
+.nav-group {
+    list-style: none;
+    margin: 0;
+    padding: 0;
+    flex: 1;
+}
+
+.nav-item-btn {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 11px 12px;
+    border-radius: 8px;
+    cursor: pointer;
+    color: #4b5563;
+    font-size: 0.95rem;
+    margin-bottom: 4px;
+    transition: background 0.15s ease, color 0.15s ease;
+}
+
+.nav-item-btn ion-icon {
+    font-size: 1.2rem;
+}
+
+.nav-item-btn:hover {
+    background: #f3f4f6;
+}
+
+.nav-item-btn.active {
+    background: #4a7dff;
+    color: #fff;
+}
+
+.sidebar-footer {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 12px 8px;
+    border-top: 1px solid #e5e9f0;
+}
+
+.admin-avatar {
+    width: 36px;
+    height: 36px;
+    border-radius: 50%;
+    background: #4a7dff;
+    color: #fff;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-weight: 700;
+    flex-shrink: 0;
+}
+
+.sidebar-footer #admin-display-email {
+    font-size: 0.85rem;
+    font-weight: 600;
+}
+
+.sidebar-footer a {
+    font-size: 0.8rem;
+    color: #6b7280;
+}
+
+.main-workspace-view {
+    flex: 1;
+    padding: 32px;
+    max-width: 100%;
+    overflow-x: hidden;
+}
+
+/* ====================================================================
+   DASHBOARD SECTIONS (tabs)
+==================================================================== */
+.dashboard-section-card {
+    display: none;
+}
+.dashboard-section-card.active-tab {
+    display: block;
+}
+
+.dashboard-section-card h2 {
+    margin: 0 0 6px;
+}
+
+.dashboard-section-card > p {
+    color: #6b7280;
+    margin: 0 0 20px;
+}
+
+/* ====================================================================
+   ACCESS DENIED
+==================================================================== */
+.access-denied {
+    text-align: center;
+    padding: 80px 20px;
+}
+.access-denied ion-icon {
+    font-size: 3rem;
+    color: #a92c2c;
+}
+
+/* ====================================================================
+   FILTER ROW
+==================================================================== */
+.filter-row {
+    display: flex;
+    gap: 12px;
+    margin-bottom: 18px;
+    flex-wrap: wrap;
+}
+
+.filter-row input,
+.filter-row select {
+    padding: 9px 12px;
+    border: 1px solid #d8dce1;
+    border-radius: 8px;
+    font-family: inherit;
+    font-size: 0.9rem;
+}
+
+.filter-row input {
+    flex: 1;
+    min-width: 200px;
+}
+
+/* ====================================================================
+   TABLES
+==================================================================== */
+.data-table-wrapper {
+    background: #fff;
+    border-radius: 12px;
+    border: 1px solid #e5e9f0;
+    overflow-x: auto;
+}
+
+.admin-table {
+    width: 100%;
+    border-collapse: collapse;
+    min-width: 640px;
+}
+
+.admin-table th {
+    text-align: left;
+    padding: 12px 16px;
+    background: #f7f9fc;
+    font-size: 0.8rem;
+    text-transform: uppercase;
+    letter-spacing: 0.03em;
+    color: #6b7280;
+    border-bottom: 1px solid #e5e9f0;
+}
+
+.admin-table td {
+    padding: 12px 16px;
+    border-bottom: 1px solid #f0f2f5;
+    font-size: 0.9rem;
+}
+
+.admin-table tr:last-child td {
+    border-bottom: none;
+}
+
+.status-badge {
+    display: inline-block;
+    padding: 3px 10px;
+    border-radius: 999px;
+    font-size: 0.78rem;
+    font-weight: 600;
+}
+.status-badge.active {
+    background: #eafaf0;
+    color: #1f7a44;
+}
+.status-badge.suspended {
+    background: #fdecec;
+    color: #a92c2c;
+}
+.status-badge.inactive {
+    background: #f1f2f4;
+    color: #6b7280;
+}
+
+.btn-action {
+    padding: 6px 14px;
+    border-radius: 6px;
+    border: 1px solid #d8dce1;
+    background: #fff;
+    cursor: pointer;
+    font-size: 0.85rem;
+    white-space: nowrap;
+}
+.btn-action:hover {
+    background: #f3f4f6;
+}
+.btn-action:disabled {
+    opacity: 0.6;
+    cursor: not-allowed;
+}
+
+/* ====================================================================
+   STATES
+==================================================================== */
+.loading-placeholder,
+.empty-state,
+.error-state {
+    padding: 40px 20px;
+    text-align: center;
+    color: #6b7280;
+}
+.error-state {
+    color: #a92c2c;
+}
+
+/* ====================================================================
+   RESPONSIVE — below 900px: sidebar becomes an off-canvas drawer
+==================================================================== */
+@media (max-width: 900px) {
+    .mobile-topbar {
+        display: flex;
+    }
+
+    .sidebar-panel {
+        position: fixed;
+        top: 0;
+        left: 0;
+        height: 100vh;
+        transform: translateX(-100%);
+        transition: transform 0.2s ease;
+        z-index: 40;
+        box-shadow: 2px 0 12px rgba(0, 0, 0, 0.1);
+    }
+
+    .sidebar-panel.sidebar-open {
+        transform: translateX(0);
+    }
+
+    .main-workspace-view {
+        padding: 20px 16px;
+    }
+
+    .filter-row {
+        flex-direction: column;
+    }
+
+    .filter-row input,
+    .filter-row select {
+        width: 100%;
+    }
+}
+
+@media (max-width: 480px) {
+    .admin-table {
+        min-width: 460px;
+        font-size: 0.45rem;
+    }
 }

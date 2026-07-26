@@ -1,0 +1,19 @@
+/* students/css/marketplace-orders.css */
+
+/*
+  Deliberately minimal — this page reuses .data-table-frame, .empty-state,
+  .error-state, .loading-placeholder, .nav-item-btn, .student-profile-avatar
+  etc. from student-dashboard.css. Only adding what's new below.
+*/
+
+.download-btn {
+    white-space: nowrap;
+}
+
+@media (max-width: 700px) {
+    .data-table-frame {
+        display: block;
+        overflow-x: auto;
+        white-space: nowrap;
+    }
+}
