@@ -7,7 +7,7 @@
 // ====================================================================
 
 import { auth, db } from '../../firebase-config.js';
-import { onAuthStateChanged } from 'https://www.gstatic.com/firebasejs/11.9.1/firebase-auth.js';
+import { onAuthStateChanged, signOut } from 'https://www.gstatic.com/firebasejs/11.9.1/firebase-auth.js';
 import { doc, getDoc, collection, getDocs, orderBy, query } from 'https://www.gstatic.com/firebasejs/11.9.1/firebase-firestore.js';
 import { showToast, showLoading } from '../../js/toast-notification.js';
 
@@ -22,7 +22,28 @@ onAuthStateChanged(auth, async (user) => {
     return;
   }
   currentUser = user;
+
+  // Sidebar footer wasn't being populated at all on this page — added so
+  // it matches dashboard.html / sellers-page.html instead of staying on
+  // the static placeholder text.
+  const emailEl = document.getElementById('user-display-email');
+  const avatarEl = document.getElementById('admin-avatar-slot');
+  if (emailEl) emailEl.textContent = user.email || 'Affiliate Account';
+  if (avatarEl) avatarEl.textContent = (user.email || 'U').charAt(0).toUpperCase();
+
   await loadAffiliateStatus();
+});
+
+// Sign Out — same pattern as dashboard.js/seller-dashboard.js, but this
+// page had no logout handler wired up at all.
+document.getElementById('user-logout-trigger')?.addEventListener('click', async (e) => {
+  e.preventDefault();
+  try {
+    await signOut(auth);
+    window.location.href = '../../sign-in.html';
+  } catch (error) {
+    console.error('Signout error:', error);
+  }
 });
 
 async function loadAffiliateStatus() {
@@ -246,7 +267,13 @@ async function loadCommissionHistory() {
     const snap = await getDocs(q);
 
     if (snap.empty) {
-      container.innerHTML = '<p class="empty-state" style="padding: 20px; text-align: center; color: #6b7280;">No sales yet — share your link to get started!</p>';
+      container.innerHTML = `
+        <div class="empty-state-block">
+          <div class="empty-icon"><ion-icon name="link-outline"></ion-icon></div>
+          <h3>No sales yet</h3>
+          <p>Share your referral link above — commission from every sale it brings in will show up here.</p>
+        </div>
+      `;
       return;
     }
 
@@ -274,7 +301,13 @@ async function loadPayoutHistory() {
     const snap = await getDocs(q);
 
     if (snap.empty) {
-      container.innerHTML = '<p class="empty-state" style="padding: 20px; text-align: center; color: #6b7280;">No payout requests yet.</p>';
+      container.innerHTML = `
+        <div class="empty-state-block">
+          <div class="empty-icon"><ion-icon name="time-outline"></ion-icon></div>
+          <h3>No payout requests yet</h3>
+          <p>Once you have an available balance, request a payout and it'll be tracked here.</p>
+        </div>
+      `;
       return;
     }
 

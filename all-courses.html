@@ -12,40 +12,54 @@
     <script nomodule src="https://unpkg.com/ionicons@7.1.0/dist/ionicons/ionicons.js"></script>
 </head>
 <body>
+    <!-- NAVIGATION -->
+    <nav class="navbar" id="navbar">
+      <div class="nav-container">
+        <div class="nav-logo">
+          <a href="index.html" class="brand-logo">SAFpedia</a>
+        </div>
 
-    <!-- MARKETPLACE HEADER -->
-    <header class="marketplace-header">
-        <div class="header-container">
-            <a href="index.html" class="brand-logo">Safpedia</a>
-
-            <nav class="main-nav">
-                <a href="index.html" class="nav-link">Home</a>
-                <a href="about-us.html" class="nav-link">About Safpedia</a>
-                <a href="all-courses.html" class="nav-link active">Digital libriary</a>
-                <a href="marketplace.html" class="nav-link">MarketPlace</a>
-            </nav>
-
-            <div class="header-actions">
-                <div class="user-action-area" id="auth-status-container">
-                    <!-- Injected dynamically by Auth listener (Login Button / Avatar Button) -->
-                    <a href="sign-in.html" class="btn btn-primary">Sign In</a>
-                </div>
-
-                <button class="mobile-menu-btn" id="mobile-menu-btn">
-                    <ion-icon name="menu-outline" class="menu-icon"></ion-icon>
-                    <ion-icon name="close-outline" class="close-icon"></ion-icon>
-                </button>
+        <ul class="nav-links" id="nav-links">
+          <li><a href="index.html" class="nav-link active">Home</a></li>
+          <li><a href="pages/how-it-works.html" class="nav-link">How It Works</a></li>
+          <li><a href="pages/pricing.html" class="nav-link">Pricing</a></li>
+          <li class="nav-dropdown">
+            <a href="#" class="nav-link nav-dropdown-toggle">
+              Library <ion-icon name="chevron-down-outline"></ion-icon>
+            </a>
+            <div class="nav-dropdown-menu">
+              <a href="all-courses.html">All Courses</a>
+              <a href="ebooks.html">Ebooks</a>
+              <a href="audio.html">Audio Courses</a>
+              <a href="Podcast.html">Podcasts</a>
             </div>
-        </div>
+          </li>
+          <li><a href="marketplace.html" class="nav-link">Marketplace</a></li>
+          <li><a href="pages/affiliate.html" class="nav-link">Refer & Earn</a></li>
+        </ul>
 
-        <!-- Mobile menu overlay -->
-        <div class="mobile-menu" id="mobile-menu">
-            <a href="index.html" class="mobile-nav-link">Home</a>
-            <a href="about-us.html" class="mobile-nav-link">About Safpedia</a>
-            <a href="all-courses.html" class="mobile-nav-link active">Digital libriary</a>
-            <a href="marketplace.html" class="mobile-nav-link">MarketPlace</a>
+        <div class="nav-right">
+          <a href="sign-in.html" class="nav-signin">
+            <!-- <ion-icon name="person-outline"></ion-icon> Log In -->
+          </a>
+          <div class="btn btn-primary btn-sm" id="profile-icon">Get Started</div>
+
+          <button class="mobile-menu-btn" id="mobile-menu-btn" aria-label="Toggle menu">
+            <ion-icon name="menu-outline" class="menu-icon"></ion-icon>
+            <ion-icon name="close-outline" class="close-icon" style="display:none;"></ion-icon>
+          </button>
         </div>
-    </header>
+      </div>
+    </nav>
+
+    <div class="mobile-menu" id="mobile-menu">
+      <a href="index.html" class="mobile-nav-link">Home</a>
+      <a href="pages/how-it-works.html" class="mobile-nav-link">How It Works</a>
+      <a href="pages/pricing.html" class="mobile-nav-link">Pricing</a>
+      <a href="all-courses.html" class="mobile-nav-link">Library</a>
+      <a href="marketplace.html" class="mobile-nav-link">Marketplace</a>
+      <a href="pages/affiliate.html" class="mobile-nav-link">Refer & Earn</a>
+    </div>
 
     <!-- HUB HERO SEARCH & FILTERS SECTION -->
     <main class="catalog-wrapper">
@@ -53,7 +67,15 @@
             <span class="section-badge">Safpedia Digital Libriary</span>
             <h1>Discover Premium <span class="accent-highlight">Digital Courses</span></h1>
             <p>Access high-tier engineering bootcamps,Human mind architectural blueprints, audio deep-dives, and live Interactive sessions.</p>
-            
+                       <!-- Browse other categories -->
+            <nav class="category-pill-nav" aria-label="Browse by category">
+                <a href="sermons.html" class="category-pill active">Sermons</a>
+                <a href="audio-books.html" class="category-pill">Audio Books</a>
+                <a href="podcasts.html" class="category-pill">Podcasts</a>
+                <a href="ebooks.html" class="category-pill">Ebooks</a>
+                <a href="newsletters.html" class="category-pill">Newsletters</a>
+                <a href="video-courses.html" class="category-pill">Video Courses</a>
+            </nav>
             <div class="search-filter-bar">
                 <div class="search-input-group">
                     <ion-icon name="search-outline"></ion-icon>
@@ -93,7 +115,7 @@
     <script type="module" src="js/course.js"></script>
         <script src="js/ref-tracker.js"></script>
 
-    <script src="js/mobile-nav.js"></script>
+    <script src="js/main.js"></script>
     <script type="module" src="https://unpkg.com/ionicons@8.0.13/dist/ionicons/ionicons.esm.js"></script>
 <script nomodule src="https://unpkg.com/ionicons@8.0.13/dist/ionicons/ionicons.js"></script>
 </body>

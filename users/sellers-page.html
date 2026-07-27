@@ -26,13 +26,23 @@
     <div class="dashboard-layout">
         <!-- SIDEBAR NAVIGATION -->
         <aside class="sidebar-panel">
-            <div class="brand-logo">Safpedia</div>
+            <div class="brand-logo">SAFpedia</div>
+            <div class="nav-section-label">Seller Tools</div>
             <ul class="nav-group">
                 <li><div class="nav-item-btn active" data-tab="products-pane"><ion-icon name="cube-outline"></ion-icon><span class="nav-label">My Products</span></div></li>
                 <li><div class="nav-item-btn" data-tab="add-product-pane"><ion-icon name="add-circle-outline"></ion-icon><span class="nav-label">Add Product</span></div></li>
                 <li><div class="nav-item-btn" data-tab="orders-pane"><ion-icon name="receipt-outline"></ion-icon><span class="nav-label">Orders</span></div></li>
                 <li><div class="nav-item-btn" data-tab="payouts-pane"><ion-icon name="cash-outline"></ion-icon><span class="nav-label">Balance &amp; Payouts</span></div></li>
-                <li><a href="dashboard.html"><div class="nav-item-btn"><ion-icon name="arrow-back-outline"></ion-icon><span class="nav-label">Back to My Courses</span></div></a></li>
+            </ul>
+            <div class="nav-section-label">Account</div>
+            <ul class="nav-group">
+                <li><a href="dashboard.html#library-pane"><div class="nav-item-btn"><ion-icon name="grid-outline"></ion-icon><span class="nav-label">My Courses</span></div></a></li>
+                <li><a href="dashboard.html#history-pane"><div class="nav-item-btn"><ion-icon name="receipt-outline"></ion-icon><span class="nav-label">Purchase History</span></div></a></li>
+                <li><a href="affiliate.html"><div class="nav-item-btn"><ion-icon name="cash-outline"></ion-icon><span class="nav-label">Referral Earnings</span></div></a></li>
+            </ul>
+            <div class="nav-section-label">Browse</div>
+            <ul class="nav-group">
+                <li><a href="../all-courses.html"><div class="nav-item-btn"><ion-icon name="book-outline"></ion-icon><span class="nav-label">Digital Library</span></div></a></li>
             </ul>
             <div class="sidebar-footer">
                 <div class="student-profile-avatar" id="seller-avatar-slot">U</div>
@@ -73,25 +83,7 @@
 
                     <div class="form-row">
                         <label for="product-category">Category</label>
-                        <select id="product-category" required>
-                            <option value="">Select Category</option>
-                            <option value="electronics">Electronics &amp; Gadgets</option>
-                            <option value="foodstuff">Foodstuff &amp; Provisions</option>
-                            <option value="clothing">Clothing &amp; Apparel</option>
-                            <option value="building">Plumbing &amp; Building Materials</option>
-                            <option value="ebooks">E-Books &amp; Guides</option>
-                            <option value="software">Software &amp; Templates</option>
-                            <option value="audio_media">Audio &amp; Music</option>
-                            <option value="courses_coaching">Digital Courses &amp; Resources</option>
-                            <option value="general">General Goods &amp; Services</option>
-                        </select>
-                    </div>
-
-                    <div class="form-row" id="unit-field-wrapper">
-                        <label for="product-unit">Unit of Measurement</label>
-                        <select id="product-unit" required>
-                            <option value="unit">Unit / Item</option>
-                        </select>
+                        <input type="text" id="product-category" placeholder="e.g. Fashion, Home & Living, E-books" required>
                     </div>
 
                     <div class="form-row">
@@ -180,7 +172,7 @@
 
         </main>
     </div>
-<script src="js/dashboard-nav.js"></script>
-    <script type="module" src="js/seller-dashboard.js"></script>
+
+    <script type="module" src="./js/seller-dashboard.js"></script>
 </body>
 </html>

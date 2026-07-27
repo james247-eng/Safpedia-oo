@@ -16,7 +16,7 @@
             <ion-icon name="menu-outline" class="menu-icon"></ion-icon>
             <ion-icon name="close-outline" class="close-icon"></ion-icon>
         </button>
-        <div class="brand-logo">Safpedia</div>
+        <div class="brand-logo">SAFpedia</div>
     </div>
 
     <!-- Overlay behind the drawer, closes it when tapped -->
@@ -25,19 +25,25 @@
     <div class="dashboard-layout">
         <!-- SIDEBAR NAVIGATION PANEL -->
         <aside class="sidebar-panel">
-            <div class="brand-logo">Safpedia</div>
+            <div class="brand-logo">SAFpedia</div>
             <ul class="nav-group">
-                <li><div class="nav-item-btn active" onclick="switchDashboardTab('library-pane', this)"><ion-icon name="grid-outline"></ion-icon><span class="nav-label">My Courses</span></div></li>
+                <li><div class="nav-item-btn active" data-tab="library-pane" onclick="switchDashboardTab('library-pane', this)"><ion-icon name="grid-outline"></ion-icon><span class="nav-label">My Courses</span></div></li>
+                <li><div class="nav-item-btn" data-tab="history-pane" onclick="switchDashboardTab('history-pane', this)"><ion-icon name="receipt-outline"></ion-icon><span class="nav-label">Purchase History</span></div></li>
+            </ul>
+            <div class="nav-section-label">Selling & Earning</div>
+            <ul class="nav-group">
                 <li><a href="affiliate.html"><div class="nav-item-btn"><ion-icon name="cash-outline"></ion-icon><span class="nav-label">Referral Earnings</span></div></a></li>
-                <li><a href="sellers-page.html"><div class="nav-item-btn"><ion-icon name="book-outline"></ion-icon><span class="nav-label">Publish your products</span></div></a></li>
-                <li><div class="nav-item-btn" onclick="switchDashboardTab('history-pane', this)"><ion-icon name="receipt-outline"></ion-icon><span class="nav-label">Purchase History</span></div></li>
-                <li><a href="../all-courses.html"><div class="nav-item-btn"><ion-icon name="book-outline"></ion-icon><span class="nav-label">Digital Libriary</span></div></a></li>
+                <li><a href="sellers-page.html"><div class="nav-item-btn"><ion-icon name="storefront-outline"></ion-icon><span class="nav-label">Sell on SAFpedia</span></div></a></li>
+            </ul>
+            <div class="nav-section-label">Browse</div>
+            <ul class="nav-group">
+                <li><a href="../all-courses.html"><div class="nav-item-btn"><ion-icon name="book-outline"></ion-icon><span class="nav-label">Digital Library</span></div></a></li>
             </ul>
             <div class="sidebar-footer">
                 <div class="student-profile-avatar" id="admin-avatar-slot">U</div>
                 <div>
                     <div id="user-display-email">User Account</div>
-                    <a href="#" id="student-logout-trigger">Sign Out</a>
+                    <a href="#" id="user-logout-trigger">Sign Out</a>
                 </div>
             </div>
         </aside>

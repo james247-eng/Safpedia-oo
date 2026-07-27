@@ -224,7 +224,18 @@ async function loadStudentDashboardData(userId) {
       const purchasesSnap = await getDocs(collection(db, 'user', userId, 'purchases'));
       
       if (purchasesSnap.empty) {
-        historyTable.innerHTML = `<tr><td colspan="4" style="text-align:center; color:#94a3b8;">No historical payment receipts tracked inside your profile.</td></tr>`;
+        historyTable.innerHTML = `
+          <tr class="table-empty-block">
+            <td colspan="4">
+              <div class="empty-state-block">
+                <div class="empty-icon"><ion-icon name="receipt-outline"></ion-icon></div>
+                <h3>No purchases yet</h3>
+                <p>Everything you buy on SAFpedia will show up here.</p>
+                <a href="../all-courses.html" class="btn btn-primary"><ion-icon name="search-outline"></ion-icon> Browse the Library</a>
+              </div>
+            </td>
+          </tr>
+        `;
       } else {
         purchasesSnap.forEach(pDoc => {
           const pData = pDoc.data();
@@ -403,7 +414,14 @@ async function generateCertificate(enrollment) {
 function showEmptyState() {
   const libraryGrid = document.getElementById('library-grid');
   if (!libraryGrid) return;
-  libraryGrid.innerHTML = `<div style="grid-column: 1/-1; color: #94a3b8; text-align: center; padding: 40px 0;">No purchased products or unlocked modules found inside your profile parameters.</div>`;
+  libraryGrid.innerHTML = `
+    <div class="empty-state-block">
+      <div class="empty-icon"><ion-icon name="school-outline"></ion-icon></div>
+      <h3>No courses yet</h3>
+      <p>You haven't enrolled in anything yet. Browse the library to find your first course.</p>
+      <a href="../all-courses.html" class="btn btn-primary"><ion-icon name="search-outline"></ion-icon> Browse the Library</a>
+    </div>
+  `;
 }
 
 function showError(message) {
@@ -434,3 +452,26 @@ document.addEventListener('visibilitychange', () => {
     loaduserDashboardData(currentUser.uid);
   }
 });
+
+// ====================================================================
+// DEEP-LINK TAB ROUTING (additive)
+// Lets other dashboard pages (affiliate.html, sellers-page.html) send a
+// user straight to a specific tab here — e.g. linking to
+// "dashboard.html#history-pane" opens Purchase History immediately
+// instead of landing on the default tab and making them click again.
+// Reuses the existing window.switchDashboardTab; no existing tab logic
+// is changed.
+// ====================================================================
+function openTabFromHash() {
+  const targetId = window.location.hash.slice(1);
+  if (!targetId) return;
+
+  const targetSection = document.getElementById(targetId);
+  if (!targetSection || !targetSection.classList.contains('dashboard-section-card')) return;
+
+  const targetBtn = document.querySelector(`.nav-item-btn[data-tab="${targetId}"]`);
+  window.switchDashboardTab(targetId, targetBtn);
+}
+
+window.addEventListener('DOMContentLoaded', openTabFromHash);
+window.addEventListener('hashchange', openTabFromHash);

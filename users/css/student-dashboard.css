@@ -166,6 +166,22 @@ ion-icon { vertical-align: middle; font-size: 1.15em; }
   gap: 12px;
 }
 
+/* The text block (email + sign out) must be allowed to shrink below its
+   content's natural width, or a long email forces the whole sidebar to
+   overflow — this is the fix for the email "shooting out" bug. */
+.sidebar-footer > div:last-child {
+  min-width: 0;
+  flex: 1;
+}
+
+#user-display-email,
+#seller-display-email {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  max-width: 100%;
+}
+
 .student-profile-avatar {
   width: 40px;
   height: 40px;
@@ -395,6 +411,65 @@ ion-icon { vertical-align: middle; font-size: 1.15em; }
   outline: none;
   font-size: 14px;
 }
+
+/* ---------- EMPTY STATE (icon + message + way forward) ---------- */
+.empty-state-block {
+  grid-column: 1 / -1;
+  text-align: center;
+  padding: 56px 24px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 10px;
+}
+.empty-state-block .empty-icon {
+  font-size: 44px;
+  color: var(--blue);
+  background: var(--blue-tint);
+  width: 76px;
+  height: 76px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin-bottom: 6px;
+}
+.empty-state-block.is-error .empty-icon {
+  color: var(--red);
+  background: var(--red-tint);
+}
+.empty-state-block h3 {
+  font-family: 'Space Grotesk', sans-serif;
+  font-size: 17px;
+  color: var(--ink);
+}
+.empty-state-block p {
+  font-size: 14px;
+  color: var(--ink-soft);
+  max-width: 340px;
+}
+.empty-state-block .btn {
+  margin-top: 8px;
+}
+
+/* Same treatment for table-based empty states (Purchase History, Orders) */
+.table-empty-block td {
+  padding: 48px 20px !important;
+}
+.table-empty-block .empty-state-block { padding: 0; }
+
+/* ---------- SIDEBAR NAV GROUPING ---------- */
+.nav-section-label {
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--ink-soft);
+  opacity: 0.7;
+  padding: 4px 14px;
+  margin-top: 8px;
+}
+.nav-group + .nav-section-label { margin-top: 18px; }
 
 @media (max-width: 640px) {
   .products-grid { grid-template-columns: repeat(2, 1fr); }
