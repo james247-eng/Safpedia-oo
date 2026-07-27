@@ -1,0 +1,117 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Podcasts - Safpedia</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@500;600;700;800&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="/css/marketplace.css">
+    <script type="module" src="https://unpkg.com/ionicons@7.1.0/dist/ionicons/ionicons.esm.js"></script>
+    <script nomodule src="https://unpkg.com/ionicons@7.1.0/dist/ionicons/ionicons.js"></script>
+</head>
+<body>
+
+  <!-- NAVIGATION (shared with homepage) -->
+  <nav class="navbar" id="navbar">
+    <div class="nav-container">
+      <div class="nav-logo">
+        <a href="/index.html" class="brand-logo">SAFpedia</a>
+      </div>
+.
+      <ul class="nav-links" id="nav-links">
+        <li><a href="/index.html" class="nav-link">Home</a></li>
+        <li><a href="how-it-works.html" class="nav-link">How It Works</a></li>
+        <li><a href="pricing.html" class="nav-link">Pricing</a></li>
+        <li class="nav-dropdown">
+          <a href="#" class="nav-link nav-dropdown-toggle">
+            Library <ion-icon name="chevron-down-outline"></ion-icon>
+          </a>
+          <div class="nav-dropdown-menu">
+            <a href="/all-courses.html">All Courses</a>
+            <a href="ebooks.html">Ebooks</a>
+            <a href="audio-books.html">Audio Books</a>
+            <a href="podcasts.html">Podcasts</a>
+            <a href="video-courses.html">Stand-alone video</a>
+            <a href="sermon.html">Sermon</a>
+            <a href="newsletters.html">News Letter</a>
+
+          </div>
+        </li> 
+        <li><a href="/marketplace.html" class="nav-link">Marketplace</a></li>
+        <li><a href="affiliate.html" class="nav-link">Refer & Earn</a></li>
+      </ul>
+
+      <div class="nav-right">
+        <div id="profile-icon" class="btn btn-primary btn-sm">Get Started</div>
+
+        <button class="mobile-menu-btn" id="mobile-menu-btn" aria-label="Toggle menu">
+          <ion-icon name="menu-outline" class="menu-icon"></ion-icon>
+          <ion-icon name="close-outline" class="close-icon" style="display:none;"></ion-icon>
+        </button>
+      </div>
+    </div>
+  </nav>
+
+  <div class="mobile-menu" id="mobile-menu">
+    <a href="/index.html" class="mobile-nav-link">Home</a>
+    <a href="how-it-works.html" class="mobile-nav-link">How It Works</a>
+    <a href="pricing.html" class="mobile-nav-link">Pricing</a>
+    <a href="/all-courses.html" class="mobile-nav-link">Library</a>
+    <a href="/marketplace.html" class="mobile-nav-link">Marketplace</a>
+    <a href="affiliate.html" class="mobile-nav-link">Refer & Earn</a>
+  </div>
+
+    <!-- HUB HERO SEARCH & FILTERS SECTION -->
+    <main class="catalog-wrapper">
+        <section class="filter-hero">
+            <span class="section-badge">Safpedia Digital Libriary</span>
+            <h1>Podcasts & <span class="accent-highlight">Video Discussions</span></h1>
+            <p>Episodes and discussions covering the topics that matter most to our community.</p>
+
+            <!-- Browse other categories -->
+            <nav class="category-pill-nav" aria-label="Browse by category">
+                <a href="sermons.html" class="category-pill">Sermons</a>
+                <a href="audio-books.html" class="category-pill">Audio Books</a>
+                <a href="podcasts.html" class="category-pill active">Podcasts</a>
+                <a href="ebooks.html" class="category-pill">Ebooks</a>
+                <a href="newsletters.html" class="category-pill">Newsletters</a>
+                <a href="video-courses.html" class="category-pill">Video Courses</a>
+            </nav>
+
+            <div class="search-filter-bar">
+                <div class="search-input-group">
+                    <ion-icon name="search-outline"></ion-icon>
+                    <input type="text" id="catalog-search" placeholder="Search podcasts">
+                </div>
+                <div class="select-group">
+                    <select id="filter-format">
+                        <option value="all">All Formats</option>
+                        <option value="video">Video Masterclasses</option>
+                        <option value="audio">Audio Deep Dives</option>
+                        <option value="pdf">E-Books & Handouts</option>
+                        <option value="live">Zoom Live Events</option>
+                    </select>
+                </div>
+            </div>
+        </section>
+
+        <!-- DYNAMIC CATEGORY GRID -->
+        <section class="products-grid-container">
+            <div id="catalog-grid" class="products-grid">
+                <div class="loading-placeholder">Fetching podcasts...</div>
+            </div>
+        </section>
+    </main>
+
+    <script>window.SAFPEDIA_CATEGORY = 'Podcast';</script>
+    <script type="module" src="js/category-catalog.js"></script>
+    <script type="module" src="/js/auth.js"></script>
+
+    <script src="js/ref-tracker.js"></script>
+    <script src="js/main.js"></script>
+    <script type="module" src="https://unpkg.com/ionicons@8.0.13/dist/ionicons/ionicons.esm.js"></script>
+    <script nomodule src="https://unpkg.com/ionicons@8.0.13/dist/ionicons/ionicons.js"></script>
+</body>
+</html>

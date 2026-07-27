@@ -2,85 +2,62 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <script>document.documentElement.classList.add('js-ready');</script>
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <meta name="description" content="Browse SAFpedia's digital library — video masterclasses, audio deep-dives, ebooks, and live sessions.">
-    <title>Digital Library — SAFpedia</title>
+    <title>Browse the Marketplace - Safpedia</title>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,wght@0,500;0,600;0,700;1,500&family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
-    <link rel="stylesheet" href="css/libriary.css">
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@500;600;700;800&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="css/marketplace.css">
     <script type="module" src="https://unpkg.com/ionicons@7.1.0/dist/ionicons/ionicons.esm.js"></script>
     <script nomodule src="https://unpkg.com/ionicons@7.1.0/dist/ionicons/ionicons.js"></script>
 </head>
 <body>
 
-    <!-- NAVIGATION (same structure as the rest of the site) -->
-    <nav class="navbar" id="navbar">
-      <div class="nav-container">
-        <div class="nav-logo">
-          <a href="index.html" class="brand-logo">SAFpedia</a>
-        </div>
+    <!-- MARKETPLACE HEADER -->
+    <header class="marketplace-header">
+        <div class="header-container">
+            <a href="index.html" class="brand-logo">Safpedia</a>
 
-        <ul class="nav-links" id="nav-links">
-          <li><a href="index.html" class="nav-link">Home</a></li>
-          <li><a href="pages/how-it-works.html" class="nav-link">How It Works</a></li>
-          <li><a href="pages/pricing.html" class="nav-link">Pricing</a></li>
-          <li class="nav-dropdown">
-            <a href="#" class="nav-link nav-dropdown-toggle active">
-              Library <ion-icon name="chevron-down-outline"></ion-icon>
-            </a>
-            <div class="nav-dropdown-menu">
-              <a href="all-courses.html" class="active">All Courses</a>
-              <a href="ebooks.html">Ebooks</a>
-              <a href="audio.html">Audio Courses</a>
-              <a href="Podcast.html">Podcasts</a>
+            <nav class="main-nav">
+                <a href="index.html" class="nav-link">Home</a>
+                <a href="about-us.html" class="nav-link">About Safpedia</a>
+                <a href="all-courses.html" class="nav-link active">Digital libriary</a>
+                <a href="marketplace.html" class="nav-link">MarketPlace</a>
+            </nav>
+
+            <div class="header-actions">
+                <div class="user-action-area" id="auth-status-container">
+                    <!-- Injected dynamically by Auth listener (Login Button / Avatar Button) -->
+                    <a href="sign-in.html" class="btn btn-primary">Sign In</a>
+                </div>
+
+                <button class="mobile-menu-btn" id="mobile-menu-btn">
+                    <ion-icon name="menu-outline" class="menu-icon"></ion-icon>
+                    <ion-icon name="close-outline" class="close-icon"></ion-icon>
+                </button>
             </div>
-          </li>
-          <li><a href="marketplace.html" class="nav-link">Marketplace</a></li>
-          <li><a href="pages/affiliate.html" class="nav-link">Refer & Earn</a></li>
-        </ul>
-
-        <div class="nav-right">
-          <!-- Preserved exactly: course.js injects an avatar here on sign-in -->
-          <div class="auth-status-container" id="auth-status-container">
-            <!-- <a href="sign-in.html" class="nav-signin"><ion-icon name="person-outline"></ion-icon> Log In</a> -->
-            <a href="#" class="btn btn-primary btn-sm">Get Started</a>
-          </div>
-
-          <button class="mobile-menu-btn" id="mobile-menu-btn" aria-label="Toggle menu">
-            <ion-icon name="menu-outline" class="menu-icon"></ion-icon>
-            <ion-icon name="close-outline" class="close-icon" style="display:none;"></ion-icon>
-          </button>
         </div>
-      </div>
 
-      <!-- Mobile menu overlay -->
-      <div class="mobile-menu" id="mobile-menu">
-        <a href="index.html" class="mobile-nav-link">Home</a>
-        <a href="how-it-works.html" class="mobile-nav-link">How It Works</a>
-        <a href="pricing.html" class="mobile-nav-link">Pricing</a>
-        <a href="all-courses.html" class="mobile-nav-link active">Library</a>
-        <a href="marketplace.html" class="mobile-nav-link">Marketplace</a>
-        <a href="refer-earn.html" class="mobile-nav-link">Refer & Earn</a>
-        <a href="sign-in.html" class="mobile-nav-link">Log In</a>
-        <a href="sign-up.html" class="mobile-nav-link">Get Started</a>
-        <!-- Hidden hook: course.js sets this href on sign-in; kept out of visual flow -->
-        <a id="student-portal-link" href="/users/dashboard.html" style="display:none;" aria-hidden="true"></a>
-      </div>
-    </nav>
+        <!-- Mobile menu overlay -->
+        <div class="mobile-menu" id="mobile-menu">
+            <a href="index.html" class="mobile-nav-link">Home</a>
+            <a href="about-us.html" class="mobile-nav-link">About Safpedia</a>
+            <a href="all-courses.html" class="mobile-nav-link active">Digital libriary</a>
+            <a href="marketplace.html" class="mobile-nav-link">MarketPlace</a>
+        </div>
+    </header>
 
     <!-- HUB HERO SEARCH & FILTERS SECTION -->
     <main class="catalog-wrapper">
         <section class="filter-hero">
-            <span class="section-badge">SAFpedia Digital Library</span>
+            <span class="section-badge">Safpedia Digital Libriary</span>
             <h1>Discover Premium <span class="accent-highlight">Digital Courses</span></h1>
-            <p>Access high-tier engineering bootcamps, human mind architecture blueprints, audio deep-dives, and live interactive sessions.</p>
-
+            <p>Access high-tier engineering bootcamps,Human mind architectural blueprints, audio deep-dives, and live Interactive sessions.</p>
+            
             <div class="search-filter-bar">
                 <div class="search-input-group">
                     <ion-icon name="search-outline"></ion-icon>
-                    <input type="text" id="catalog-search" placeholder="Search the library">
+                    <input type="text" id="catalog-search" placeholder="Search">
                 </div>
                 <div class="select-group">
                     <select id="filter-format">
@@ -91,147 +68,33 @@
                         <option value="live">Zoom Live Events</option>
                     </select>
                 </div>
-                <div class="select-group">
+                <div class="select-group" style="display: none;">
                     <select id="filter-category">
-                        <option value="all">All Specialties</option>
-                        <option value="web-development">Web Development</option>
-                        <option value="mobile-development">Mobile Development</option>
-                        <option value="data-analysis">Data Analysis</option>
-                        <option value="graphic-design">Graphic Design</option>
-                        <option value="digital-marketing">Digital Marketing</option>
-                        <option value="video-editing">Video Editing</option>
-                        <option value="cybersecurity">Cybersecurity</option>
+                        <option value="all">All Categories</option>
+                        <option value="Sermon">Sermon</option>
+                        <option value="audio-Book">Audio Book</option>
+                        <option value="Podcast">Podcast video</option>
+                        <option value="Ebook">Ebook</option>
+                        <option value="New-leter">News letter</option>
+                        <option value="video-Course">Video Course</option>
                     </select>
                 </div>
             </div>
         </section>
 
-        <!-- DYNAMIC MARKETPLACE GRID (rendered entirely by course.js — untouched) -->
+        <!-- DYNAMIC MARKETPLACE GRID -->
         <section class="products-grid-container">
             <div id="catalog-grid" class="products-grid">
+                <!-- Dynamic Content Render Target for Catalog Items -->
                 <div class="loading-placeholder">Fetching premium catalog files...</div>
             </div>
         </section>
     </main>
-
-    <!-- FOOTER (shared with rest of site) -->
-    <footer class="footer">
-      <div class="footer-container">
-        <div class="footer-grid">
-          <div class="footer-brand">
-            <h3>SAFpedia</h3>
-            <p>Learn. Sell. Refer & Earn. All in one place.</p>
-            <div class="social-links">
-              <a href="#" aria-label="Instagram"><ion-icon name="logo-instagram"></ion-icon></a>
-              <a href="#" aria-label="Facebook"><ion-icon name="logo-facebook"></ion-icon></a>
-              <a href="https://wa.me/+234xxxxxxx" aria-label="WhatsApp" target="_blank"><ion-icon name="logo-whatsapp"></ion-icon></a>
-            </div>
-          </div>
-
-          <div class="footer-links">
-            <h4>Quick Links</h4>
-            <ul>
-              <li><a href="pages/about-us.html">About Us</a></li>
-              <li><a href="all-courses.html">Library</a></li>
-              <li><a href="marketplace.html">Marketplace</a></li>
-              <li><a href="pages/how-it-works.html">How It Works</a></li>
-            </ul>
-          </div>
-
-          <div class="footer-links">
-            <h4>Popular</h4>
-            <ul>
-              <li><a href="audio.html">Audio Courses</a></li>
-              <li><a href="VideoCourses.html">Video Courses</a></li>
-              <li><a href="ebooks.html">Ebooks</a></li>
-              <li><a href="Podcast.html">Podcasts</a></li>
-            </ul>
-          </div>
-
-          <div class="footer-contact">
-            <h4>Contact Us</h4>
-            <div class="contact-item"><ion-icon name="call-outline"></ion-icon><span>+234 70xxxxxxx</span></div>
-            <div class="contact-item"><ion-icon name="mail-outline"></ion-icon><span>safpediaconcept@gmail.com</span></div>
-          </div>
-        </div>
-
-        <div class="footer-bottom">
-          <p>&copy; 2026 SAFpedia. All rights reserved.</p>
-          <div class="footer-bottom-links">
-            <a href="#">Privacy Policy</a>
-            <a href="#">Terms of Service</a>
-          </div>
-        </div>
-      </div>
-    </footer>
-
-    <!-- Scripts — untouched, same files/order as the original -->
     <script type="module" src="js/course.js"></script>
-    <script src="js/ref-tracker.js"></script>
-    <script>
-      // Preloader
-window.addEventListener('load', () => {
-  const pre = document.getElementById('preloader');
-  if (pre) setTimeout(() => pre.classList.add('hidden'), 300);
-});
+        <script src="js/ref-tracker.js"></script>
 
-// Mobile menu toggle
-const menuBtn = document.getElementById('mobile-menu-btn');
-const mobileMenu = document.getElementById('mobile-menu');
-if (menuBtn && mobileMenu) {
-  menuBtn.addEventListener('click', () => {
-    mobileMenu.classList.toggle('open');
-    const menuIcon = menuBtn.querySelector('.menu-icon');
-    const closeIcon = menuBtn.querySelector('.close-icon');
-    const isOpen = mobileMenu.classList.contains('open');
-    if (menuIcon) menuIcon.style.display = isOpen ? 'none' : 'block';
-    if (closeIcon) closeIcon.style.display = isOpen ? 'block' : 'none';
-  });
-  mobileMenu.querySelectorAll('a').forEach(a => {
-    a.addEventListener('click', () => mobileMenu.classList.remove('open'));
-  });
-}
-
-// Animated stat counters
-function animateCounter(el) {
-  const target = parseInt(el.dataset.count, 10);
-  const duration = 1400;
-  const start = performance.now();
-  function tick(now) {
-    const progress = Math.min((now - start) / duration, 1);
-    const eased = 1 - Math.pow(1 - progress, 3);
-    const value = Math.floor(eased * target);
-    el.textContent = value.toLocaleString() + (target === 98 ? '' : '+');
-    if (progress < 1) requestAnimationFrame(tick);
-    else el.textContent = target.toLocaleString() + (target === 98 ? '' : '+');
-  }
-  requestAnimationFrame(tick);
-}
-
-const statObserver = new IntersectionObserver((entries) => {
-  entries.forEach(entry => {
-    if (entry.isIntersecting) {
-      animateCounter(entry.target);
-      statObserver.unobserve(entry.target);
-    }
-  });
-}, { threshold: 0.4 });
-
-document.querySelectorAll('[data-count]').forEach(el => statObserver.observe(el));
-
-// Scroll reveal
-const revealObserver = new IntersectionObserver((entries) => {
-  entries.forEach(entry => {
-    if (entry.isIntersecting) {
-      entry.target.classList.add('in-view');
-      revealObserver.unobserve(entry.target);
-    }
-  });
-}, { threshold: 0.15 });
-
-document.querySelectorAll('.reveal').forEach(el => revealObserver.observe(el));
-    </script>
+    <script src="js/mobile-nav.js"></script>
     <script type="module" src="https://unpkg.com/ionicons@8.0.13/dist/ionicons/ionicons.esm.js"></script>
-    <script nomodule src="https://unpkg.com/ionicons@8.0.13/dist/ionicons/ionicons.js"></script>
+<script nomodule src="https://unpkg.com/ionicons@8.0.13/dist/ionicons/ionicons.js"></script>
 </body>
 </html>

@@ -1,0 +1,38 @@
+/* ====================================================================
+   CATEGORY PILL NAV
+   Lets visitors jump between the 6 category pages. Deliberately
+   self-contained (no dependency on marketplace.css variables) since
+   that file wasn't available to check against — safe to fold into
+   marketplace.css and restyle to match once it's handy.
+   ==================================================================== */
+
+.category-pill-nav {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+  margin: 20px 0 10px;
+}
+
+.category-pill {
+  display: inline-block;
+  padding: 8px 18px;
+  border-radius: 999px;
+  border: 1.5px solid #d7dae2;
+  color: #3a3f4b;
+  font-size: 14px;
+  font-weight: 600;
+  text-decoration: none;
+  background: #fff;
+  transition: all 0.2s ease;
+}
+
+.category-pill:hover {
+  border-color: #2954FF;
+  color: #2954FF;
+}
+
+.category-pill.active {
+  background: #2954FF;
+  border-color: #2954FF;
+  color: #fff;
+}

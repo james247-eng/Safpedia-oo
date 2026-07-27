@@ -371,6 +371,27 @@ function collectLessonsData() {
   return hasError ? null : lessons;
 }
 
+// The marketplace badge/filter needs one formatType per course, but content
+// type only ever lived per-lesson — roll the lessons up into whichever type
+// is most common so the badge/filter has something accurate to read.
+function deriveFormatType(lessons) {
+  const counts = {};
+  lessons.forEach((lesson) => {
+    const type = lesson.contentType || 'video';
+    counts[type] = (counts[type] || 0) + 1;
+  });
+
+  let dominant = 'video';
+  let highest = 0;
+  Object.entries(counts).forEach(([type, count]) => {
+    if (count > highest) {
+      dominant = type;
+      highest = count;
+    }
+  });
+  return dominant;
+}
+
 // Populate lessons in edit mode
 function populateLessons(lessons) {
   document.getElementById('lessons-container').innerHTML = '';
@@ -523,43 +544,59 @@ async function loadRecentSales() {
 async function loadCourses() {
   try {
     const snapshot = await getDocs(collection(db, 'courses'));
-    const tbody = document.getElementById('courses-table-body');
-    tbody.innerHTML = '';
-    
     allCourses = [];
-    
-    if (snapshot.empty) {
-      tbody.innerHTML = '<tr><td colspan="7" class="empty-state">No courses yet. Click "Add New Course" to create one.</td></tr>';
-      return;
-    }
-    
+
     snapshot.forEach(docSnap => {
-      const data = docSnap.data();
-      const courseWithId = { id: docSnap.id, ...data };
-      allCourses.push(courseWithId);
-      
-      const row = tbody.insertRow();
-      
-      row.innerHTML = `
-        <td><img src="${data.thumbnail || ''}" class="course-thumbnail" alt="${data.title}" onerror="this.src='https://via.placeholder.com/60x40'"></td>
-        <td><strong>${data.title}</strong></td>
-        <td style="text-transform:capitalize;">${(data.category || 'N/A').replace('-', ' ')}</td>
-        <td style="font-weight:600; color:#059669;">₦${(data.price || 0).toLocaleString()}</td>
-        <td>${data.enrolledCount || 0}</td>
-        <td><span class="status-badge ${data.isPublished ? 'status-published' : 'status-draft'}">${data.isPublished ? 'Published' : 'Draft'}</span></td>
-        <td>
-          <div class="action-buttons">
-            <button class="btn btn-secondary btn-sm" onclick="editCourse('${docSnap.id}')">Edit</button>
-            <button class="btn btn-danger btn-sm" onclick="deleteCourse('${docSnap.id}')">Delete</button>
-          </div>
-        </td>
-      `;
+      allCourses.push({ id: docSnap.id, ...docSnap.data() });
     });
+
+    renderCoursesTable(allCourses);
   } catch (error) {
     console.error('Error loading courses:', error);
     showAlert('Error loading courses: ' + error.message, 'error');
   }
 }
+
+// Renders a given list of courses into the admin courses table. Shared by
+// loadCourses() and the search filter below so both stay in sync.
+function renderCoursesTable(courses) {
+  const tbody = document.getElementById('courses-table-body');
+  tbody.innerHTML = '';
+
+  if (courses.length === 0) {
+    tbody.innerHTML = '<tr><td colspan="7" class="empty-state">No courses yet. Click "Add New Course" to create one.</td></tr>';
+    return;
+  }
+
+  courses.forEach(data => {
+    const row = tbody.insertRow();
+    row.innerHTML = `
+      <td><img src="${data.thumbnail || ''}" class="course-thumbnail" alt="${data.title}" onerror="this.src='https://via.placeholder.com/60x40'"></td>
+      <td><strong>${data.title}</strong></td>
+      <td style="text-transform:capitalize;">${(data.category || 'N/A').replace(/-/g, ' ')}</td>
+      <td style="font-weight:600; color:#059669;">₦${(data.price || 0).toLocaleString()}</td>
+      <td>${data.enrolledCount || 0}</td>
+      <td><span class="status-badge ${data.isPublished ? 'status-published' : 'status-draft'}">${data.isPublished ? 'Published' : 'Draft'}</span></td>
+      <td>
+        <div class="action-buttons">
+          <button class="btn btn-secondary btn-sm" onclick="editCourse('${data.id}')">Edit</button>
+          <button class="btn btn-danger btn-sm" onclick="deleteCourse('${data.id}')">Delete</button>
+        </div>
+      </td>
+    `;
+  });
+}
+
+// Live-filter the admin courses table by title or category as the admin
+// types — this input existed in the markup but was never wired up.
+document.getElementById('courses-search').addEventListener('input', (e) => {
+  const q = e.target.value.toLowerCase().trim();
+  const filtered = allCourses.filter(c =>
+    (c.title || '').toLowerCase().includes(q) ||
+    (c.category || '').toLowerCase().includes(q)
+  );
+  renderCoursesTable(filtered);
+});
 
 // ====================================================================
 // LOAD USERS
@@ -743,11 +780,12 @@ document.getElementById('course-form').addEventListener('submit', async (e) => {
   const courseData = {
     title: document.getElementById('course-title').value.trim(),
     category: document.getElementById('course-category').value,
+    formatType: deriveFormatType(lessons),
     shortDescription: document.getElementById('course-short-desc').value.trim(),
     description: document.getElementById('course-description').value.trim(),
     price: parseFloat(document.getElementById('course-price').value),
     thumbnail: document.getElementById('course-thumbnail').value.trim(),
-    instructor: document.getElementById('course-instructor').value.trim() || 'Tech Wizards Academy',
+    instructor: document.getElementById('course-instructor').value.trim() || 'Safpedia',
     level: document.getElementById('course-level').value,
     isPublished: document.getElementById('course-status').value === 'true',
     lessons: lessons,

@@ -1,4 +1,4 @@
-        import { initializeApp } from 'https://www.gstatic.com/firebasejs/11.9.1/firebase-app.js';
+import { initializeApp } from 'https://www.gstatic.com/firebasejs/11.9.1/firebase-app.js';
         import { getFirestore, collection, getDocs, query, where, orderBy } from 'https://www.gstatic.com/firebasejs/11.9.1/firebase-firestore.js';
         import { getAuth, onAuthStateChanged } from 'https://www.gstatic.com/firebasejs/11.9.1/firebase-auth.js';
 
@@ -82,7 +82,7 @@ apiKey: "AIzaSyAATExPAdi27kKvuvU0ujf6f2QqR8JWwTg",
                         ${displayBadge}
                     </div>
                     <div class="card-details">
-                        <span class="category-meta">${item.category?.replace('-', ' ').toUpperCase() || 'GENERAL'}</span>
+                        <span class="category-meta">${item.category?.replace(/-/g, ' ').toUpperCase() || 'GENERAL'}</span>
                         <h3 class="product-title">${item.title}</h3>
                         <p class="product-snippet">${item.shortDescription || ''}</p>
                         <div class="card-footer-row">
