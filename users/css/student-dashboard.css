@@ -458,6 +458,21 @@ ion-icon { vertical-align: middle; font-size: 1.15em; }
 }
 .table-empty-block .empty-state-block { padding: 0; }
 
+/* .error-state was referenced by dashboard.js, seller-dashboard.js,
+   marketplace-orders.js, course.js, and marketplace-store.js but had
+   zero definition anywhere in the dashboard styles — plain unstyled
+   text. */
+.error-state {
+  grid-column: 1 / -1;
+  text-align: center;
+  padding: 40px 24px;
+  background: var(--red-tint);
+  border: 1px solid rgba(255, 59, 92, 0.25);
+  border-radius: var(--radius-md);
+  color: #a92c2c;
+  font-size: 14px;
+}
+
 /* ---------- SIDEBAR NAV GROUPING ---------- */
 .nav-section-label {
   font-size: 11px;

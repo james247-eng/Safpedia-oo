@@ -80,7 +80,14 @@ function renderOrders(orders) {
     const container = document.getElementById('orders-list');
 
     if (!orders || orders.length === 0) {
-        container.innerHTML = '<div class="empty-state">You haven\'t purchased anything from the marketplace yet.</div>';
+        container.innerHTML = `
+          <div class="empty-state-block">
+            <div class="empty-icon"><ion-icon name="bag-handle-outline"></ion-icon></div>
+            <h3>No marketplace orders yet</h3>
+            <p>Anything you buy from a SAFpedia vendor's storefront will show up here.</p>
+            <a href="../marketplace.html" class="btn btn-primary"><ion-icon name="storefront-outline"></ion-icon> Browse the Marketplace</a>
+          </div>
+        `;
         return;
     }
 

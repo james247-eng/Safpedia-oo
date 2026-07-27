@@ -1,12 +1,14 @@
 /* students/css/seller-dashboard.css */
 
 /*
-  Deliberately only styles the classes introduced by seller-dashboard.html
-  that AREN'T already in student-dashboard.css (e.g. .product-card,
-  .products-grid, .data-table-frame, .badge-f, .btn/.btn-primary/.btn-secondary,
-  .empty-state, .error-state, .loading-placeholder are assumed to already
-  exist there and are intentionally left untouched here to avoid duplicate/
-  conflicting definitions).
+  Styles the classes introduced by sellers-page.html that AREN'T already
+  in student-dashboard.css: .product-card, .badge-f, .category-meta,
+  .card-banner, .card-details, .card-footer-row, .product-title,
+  .product-cost, .product-card-actions (see bottom of file).
+  .products-grid, .data-table-frame, .btn/.btn-primary/.btn-secondary,
+  .empty-state-block, .error-state, .loading-placeholder ARE already in
+  student-dashboard.css and are intentionally left untouched here to
+  avoid duplicate/conflicting definitions.
 */
 
 /* ---- Utility ---- */
@@ -143,3 +145,80 @@
         white-space: nowrap;
     }
 }
+
+/* ----------------------------------------------------------------
+   PRODUCT CARD (seller's "My Products" grid)
+   CORRECTION: the file header comment claimed .product-card, .badge-f,
+   .category-meta, etc. already existed in student-dashboard.css. They
+   don't — that file only styles .course-poster, a different component.
+   Adding the real thing here, where it belongs.
+   ---------------------------------------------------------------- */
+.product-card {
+    background: var(--white);
+    border: 1px solid var(--border);
+    border-radius: var(--radius-md);
+    overflow: hidden;
+    box-shadow: var(--shadow-card);
+    transition: transform .2s ease, box-shadow .2s ease;
+    display: flex;
+    flex-direction: column;
+}
+.product-card:hover { transform: translateY(-4px); box-shadow: var(--shadow-lift); }
+
+.card-banner {
+    position: relative;
+    aspect-ratio: 4 / 3;
+    background: var(--surface);
+    overflow: hidden;
+}
+.card-banner img { width: 100%; height: 100%; object-fit: cover; display: block; }
+
+.badge-f {
+    position: absolute;
+    top: 10px;
+    left: 10px;
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    font-size: 12px;
+    font-weight: 700;
+    padding: 5px 10px;
+    border-radius: 999px;
+    color: var(--white);
+    backdrop-filter: blur(4px);
+}
+.badge-f.video { background: rgba(41, 84, 255, 0.9); }   /* physical products, per marketplace-store.js */
+.badge-f.pdf   { background: rgba(255, 59, 92, 0.9); }   /* digital products / inactive status */
+.badge-f.live  { background: rgba(16, 185, 129, 0.92); } /* active status, per seller-dashboard.js */
+.badge-f ion-icon { font-size: 14px; }
+
+.card-details { padding: 16px; display: flex; flex-direction: column; flex: 1; }
+.category-meta {
+    font-size: 11px;
+    font-weight: 700;
+    letter-spacing: .05em;
+    color: var(--blue);
+    margin-bottom: 6px;
+}
+.product-title { font-size: 15px; font-weight: 700; color: var(--ink); margin-bottom: 6px; line-height: 1.35; }
+.product-snippet { font-size: 13px; color: var(--ink-soft); margin-bottom: 14px; flex: 1; }
+.card-footer-row {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 10px;
+    padding-top: 12px;
+    border-top: 1px solid var(--border);
+    font-size: 13px;
+    color: var(--ink-soft);
+}
+.product-cost { font-family: 'Space Grotesk', sans-serif; font-weight: 700; font-size: 15px; color: var(--ink); }
+.card-details > p { font-size: 12.5px; color: var(--ink-soft); margin: 8px 0; }
+
+.product-card-actions {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+    margin-top: 10px;
+}
+.product-card-actions .btn { flex: 1 1 auto; white-space: nowrap; }

@@ -4,7 +4,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>My Marketplace Orders | Safpedia</title>
+    <title>My Marketplace Orders | SAFpedia</title>
     <link rel="stylesheet" href="css/student-dashboard.css">
     <link rel="stylesheet" href="css/marketplace-orders.css">
     <script type="module" src="https://unpkg.com/ionicons@7.1.0/dist/ionicons/ionicons.esm.js"></script>
@@ -17,19 +17,28 @@
             <ion-icon name="menu-outline" class="menu-icon"></ion-icon>
             <ion-icon name="close-outline" class="close-icon"></ion-icon>
         </button>
-        <div class="brand-logo">Safpedia</div>
+        <div class="brand-logo">SAFpedia</div>
     </div>
 
     <div class="sidebar-overlay" id="sidebar-overlay"></div>
 
     <div class="dashboard-layout">
         <aside class="sidebar-panel">
-            <div class="brand-logo">Safpedia</div>
+            <div class="brand-logo">SAFpedia</div>
+            <div class="nav-section-label">Account</div>
             <ul class="nav-group">
-                <li><a href="dashboard.html"><div class="nav-item-btn"><ion-icon name="grid-outline"></ion-icon><span class="nav-label">My Courses</span></div></a></li>
+                <li><a href="dashboard.html#library-pane"><div class="nav-item-btn"><ion-icon name="grid-outline"></ion-icon><span class="nav-label">My Courses</span></div></a></li>
+                <li><a href="dashboard.html#history-pane"><div class="nav-item-btn"><ion-icon name="receipt-outline"></ion-icon><span class="nav-label">Purchase History</span></div></a></li>
+                <li><a href="marketplace-orders.html"><div class="nav-item-btn active"><ion-icon name="bag-handle-outline"></ion-icon><span class="nav-label">Marketplace Orders</span></div></a></li>
                 <li><a href="affiliate.html"><div class="nav-item-btn"><ion-icon name="cash-outline"></ion-icon><span class="nav-label">Referral Earnings</span></div></a></li>
-                <li><div class="nav-item-btn active"><ion-icon name="bag-handle-outline"></ion-icon><span class="nav-label">Marketplace Orders</span></div></li>
-                <li><a href="seller-dashboard.html"><div class="nav-item-btn"><ion-icon name="storefront-outline"></ion-icon><span class="nav-label">Sell on Safpedia</span></div></a></li>
+            </ul>
+            <div class="nav-section-label">Selling & Earning</div>
+            <ul class="nav-group">
+                <li><a href="sellers-page.html"><div class="nav-item-btn"><ion-icon name="storefront-outline"></ion-icon><span class="nav-label">Sell on SAFpedia</span></div></a></li>
+            </ul>
+            <div class="nav-section-label">Browse</div>
+            <ul class="nav-group">
+                <li><a href="../all-courses.html"><div class="nav-item-btn"><ion-icon name="book-outline"></ion-icon><span class="nav-label">Digital Library</span></div></a></li>
             </ul>
             <div class="sidebar-footer">
                 <div class="student-profile-avatar" id="buyer-avatar-slot">U</div>
@@ -43,7 +52,7 @@
         <main class="main-workspace-view">
             <section class="dashboard-section-card active-tab">
                 <h2>My Marketplace Orders</h2>
-                <p>Everything you've purchased from Safpedia vendors — separate from your course purchases.</p>
+                <p>Everything you've purchased from SAFpedia vendors — separate from your course purchases.</p>
 
                 <div id="orders-list" class="data-table-frame">
                     <div class="loading-placeholder">Loading your orders...</div>
@@ -51,7 +60,7 @@
             </section>
         </main>
     </div>
-<script src="js/dashboard-nav.js"></script>
     <script type="module" src="js/marketplace-orders.js"></script>
+    <script src="js/dashboard-nav.js"></script>
 </body>
 </html>
