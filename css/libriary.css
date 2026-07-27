@@ -1,5 +1,5 @@
 /* =============================================================
-   SAFpedia — Marketplace (self-contained stylesheet)
+   SAFpedia — Digital Library / All Courses (self-contained stylesheet)
    ============================================================= */
 :root {
   --color-blue: #2563EB;
@@ -224,13 +224,8 @@ input, select { font-family: inherit; font-size: inherit; color: inherit; }
 }
 .product-title {
   font-size: 17px; font-weight: 700; color: var(--color-text);
-  margin-bottom: 6px; line-height: 1.35;
+  margin-bottom: 8px; line-height: 1.35;
 }
-.product-vendor-link {
-  display: inline-block; font-size: 13px; font-weight: 600;
-  color: var(--color-blue); margin-bottom: 10px;
-}
-.product-vendor-link:hover { text-decoration: underline; }
 .product-snippet {
   font-size: 14px; color: var(--color-text-muted);
   margin-bottom: 18px; flex: 1;
