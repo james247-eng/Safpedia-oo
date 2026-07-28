@@ -1,44 +1,39 @@
 /* ============================================
-   TECH WIZARDS ACADEMY — AUTH PAGES
+   SAFPEDIA — AUTH PAGES
+   Single-column "library ticket" card: a stamped
+   catalog eyebrow + a book-spine edge are the one
+   signature move; everything else stays quiet.
    ============================================ */
 :root {
-  --color-primary: #16407E;
-  --color-primary-dark: #0B2A54;
-  --color-primary-mid: #2C63B0;
-  --color-primary-light: #E8EFFA;
+  /* Safpedia's actual palette (matches course-viewer / marketplace) */
+  --blue: #2954FF;
+  --blue-dark: #1E3FCC;
+  --blue-ink: #0B1120;
+  --blue-tint: #EEF2FF;
 
-  --color-secondary: #B4232C;
-  --color-secondary-dark: #8B1B22;
-  --color-secondary-light: #F7E7E7;
+  --red: #FF3B5C;
+  --red-dark: #D81F3E;
+  --red-tint: #FFF0F3;
 
-  --color-white: #FFFFFF;
-  --color-paper: #F6F8FB;
-  --color-ink: #10141C;
-  --color-slate: #58626E;
-  --color-line: #E3E8EF;
+  --white: #FFFFFF;
+  --ink: #0B1120;
+  --slate: #5B6472;
+  --line: #E7EAF2;
+  --paper: #F6F8FC;
 
   --font-display: 'Fraunces', Georgia, serif;
   --font-body: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
 
-  --radius-sm: 6px;
-  --radius-md: 10px;
-  --radius-lg: 16px;
+  --radius-sm: 8px;
+  --radius-md: 12px;
+  --radius-lg: 22px;
   --radius-full: 999px;
 
-  --shadow-md: 0 8px 24px rgba(11, 42, 84, 0.08);
-  --shadow-lg: 0 20px 48px rgba(11, 42, 84, 0.16);
-
-  --transition: 220ms ease;
+  --shadow-card: 0 30px 60px -20px rgba(11, 17, 32, 0.35), 0 10px 24px -8px rgba(11, 17, 32, 0.2);
+  --transition: 200ms ease;
 }
 
 * { margin: 0; padding: 0; box-sizing: border-box; }
-
-body.auth-body {
-  font-family: var(--font-body);
-  color: var(--color-ink);
-  background: var(--color-white);
-  min-height: 100vh;
-}
 
 img { max-width: 100%; display: block; }
 a { text-decoration: none; color: inherit; }
@@ -48,241 +43,340 @@ a:focus-visible,
 button:focus-visible,
 input:focus-visible,
 select:focus-visible {
-  outline: 2px solid var(--color-secondary);
+  outline: 2px solid var(--red);
   outline-offset: 2px;
+  border-radius: var(--radius-sm);
 }
 
 /* ============================================
-   SHELL — split screen
+   PAGE BACKDROP
+   Deep blue field with a faint catalog dot-grid
+   and one soft glow — sets a "reading room at
+   night" mood instead of flat white-on-white.
+   ============================================ */
+body.auth-body {
+  font-family: var(--font-body);
+  color: var(--ink);
+  min-height: 100vh;
+  background:
+    radial-gradient(680px circle at 18% 15%, rgba(41, 84, 255, 0.35), transparent 60%),
+   ;
+  background-attachment: fixed;
+}
+
+/* faint dot-grid texture, like ruled index-card paper */
+body.auth-body::before {
+  content: '';
+  position: fixed;
+  inset: 0;
+  background-image: radial-gradient(rgba(255, 255, 255, 0.09) 1px, transparent 1px);
+  background-size: 26px 26px;
+  pointer-events: none;
+  z-index: 0;
+}
+#course-selection{
+  display: none;
+}
+/* ============================================
+   SHELL — single centered column
    ============================================ */
 .auth-shell {
-  display: grid;
-  grid-template-columns: 1fr 1fr;
-  min-height: 100vh;
-}
-
-/* ---- Brand panel (left) ---- */
-.auth-brand {
   position: relative;
-  display: flex;
-  flex-direction: column;
-  justify-content: space-between;
-  padding: 3rem;
-  color: var(--color-white);
-  overflow: hidden;
-  background-image:
-    linear-gradient(165deg, rgba(11, 42, 84, 0.94) 0%, rgba(22, 64, 126, 0.90) 55%, rgba(44, 99, 176, 0.85) 100%),
-    url('../images/kal-visuals-square.jpg');
-  background-size: cover;
-  background-position: center;
-}
-
-.auth-brand-top { display: flex; align-items: center; gap: 0.75rem; }
-.auth-brand-top img { height: 38px; width: auto; filter: brightness(0) invert(1); }
-.auth-brand-top span { font-family: var(--font-display); font-weight: 600; font-size: 1.05rem; }
-
-.auth-brand-mid { max-width: 420px; }
-
-.auth-brand-seal {
-  display: inline-flex;
-  align-items: center;
-  gap: 0.5rem;
-  padding: 0.45rem 0.9rem;
-  background: rgba(255, 255, 255, 0.12);
-  border: 1px solid rgba(255, 255, 255, 0.25);
-  border-radius: var(--radius-full);
-  font-size: 0.8rem;
-  font-weight: 600;
-  margin-bottom: 1.5rem;
-}
-
-.auth-brand-seal ion-icon { color: var(--color-secondary-light); font-size: 1.1rem; }
-
-.auth-brand-mid h2 {
-  font-family: var(--font-display);
-  font-size: 2.1rem;
-  font-weight: 600;
-  line-height: 1.2;
-  margin-bottom: 1rem;
-}
-
-.auth-brand-mid p { opacity: 0.85; line-height: 1.7; font-size: 1rem; }
-
-.auth-brand-quote {
-  border-left: 3px solid var(--color-secondary);
-  padding-left: 1.25rem;
-  margin-top: 2.5rem;
-}
-
-.auth-brand-quote p {
-  font-style: italic;
-  opacity: 0.9;
-  margin-bottom: 0.6rem;
-  line-height: 1.6;
-}
-
-.auth-brand-quote cite {
-  font-style: normal;
-  font-weight: 600;
-  font-size: 0.85rem;
-  opacity: 0.75;
-}
-
-.auth-brand-bottom { font-size: 0.85rem; opacity: 0.6; }
-
-/* ---- Form panel (right) ---- */
-.auth-form-panel {
+  z-index: 1;
+  min-height: 100vh;
   display: flex;
   align-items: center;
   justify-content: center;
-  padding: 2.5rem;
-  background: var(--color-white);
+  padding: 3rem 1.5rem;
 }
 
-.auth-card { width: 100%; max-width: 420px; }
+.auth-form-panel {
+  width: 100%;
+  display: flex;
+  justify-content: center;
+}
 
+.auth-card {
+  position: relative;
+  width: 100%;
+  max-width: 460px;
+  background: var(--white);
+  border-radius: var(--radius-lg);
+  box-shadow: var(--shadow-card);
+  padding: 2.75rem 2.75rem 2.5rem 3.1rem;
+  overflow: hidden;
+  animation: cardEnter 0.55s ease both;
+}
+
+/* Signature: a book-spine edge down the left side of the card */
+.auth-card::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 10px;
+  height: 100%;
+  background: linear-gradient(180deg, var(--red) 0%, var(--red-dark) 100%);
+}
+.auth-card::after {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 10px;
+  width: 3px;
+  height: 100%;
+  background: rgba(11, 17, 32, 0.08);
+}
+
+@keyframes cardEnter {
+  from { opacity: 0; transform: translateY(14px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+/* ---- Brand mark row (replaces the old side-panel logo) ---- */
+.auth-card-brand {
+  display: flex;
+  align-items: center;
+  gap: 0.65rem;
+  margin-bottom: 1.6rem;
+}
+
+.auth-card-brand .mark {
+  flex-shrink: 0;
+  width: 34px;
+  height: 34px;
+  border-radius: 9px;
+  background: var(--blue);
+  color: var(--white);
+  font-family: var(--font-display);
+  font-weight: 700;
+  font-size: 1.05rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.auth-card-brand .eyebrow {
+  font-size: 0.7rem;
+  font-weight: 700;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+  color: var(--slate);
+  border-bottom: 1px dashed var(--line);
+  padding-bottom: 2px;
+}
+
+/* ---- Header ---- */
 .auth-header { margin-bottom: 1.75rem; }
 
 .auth-header h1 {
   font-family: var(--font-display);
-  font-size: 1.9rem;
+  font-size: 2rem;
   font-weight: 600;
-  color: var(--color-primary-dark);
-  margin-bottom: 0.5rem;
+  color: var(--blue-ink);
+  margin-bottom: 0.4rem;
+  letter-spacing: -0.01em;
 }
 
-.auth-header p { color: var(--color-slate); font-size: 0.98rem; }
+.auth-header p { color: var(--slate); font-size: 0.98rem; line-height: 1.5; }
 
-/* ---- Enrollment banner ---- */
-#enrollment-context ion-icon { color: var(--color-primary); }
-#enrollment-context h3 { font-family: var(--font-display); }
+/* ---- Enrollment banner (behavior unchanged — still toggled via its own
+   inline display:none — only the visual treatment is new) ---- */
+#enrollment-context {
+  background: var(--blue-tint);
+  border: 1.5px solid var(--blue);
+  border-radius: var(--radius-md);
+  padding: 1.25rem;
+  margin-bottom: 1.5rem;
+  text-align: center;
+  width: 100%;
+}
+#enrollment-context ion-icon { font-size: 2.25rem; color: var(--blue); margin-bottom: 0.5rem; }
+#enrollment-context h3 {
+  font-family: var(--font-display);
+  margin: 0 0 0.4rem;
+  color: var(--blue-ink);
+  font-size: 1.05rem;
+}
+#enrollment-context p { margin: 0; color: var(--slate); font-size: 0.88rem; }
 
-/* ---- Form fields ---- */
-.input-group { margin-bottom: 1rem; }
-.form-group { margin-bottom: 1rem; }
+/* ---- Form fields — floating labels ---- */
+.input-group,
+.form-group {
+  position: relative;
+  margin-bottom: 1.15rem;
+}
 
 .input-group input,
 .form-group input,
 .form-group select {
   width: 100%;
-  padding: 0.85rem 1rem;
-  border: 1px solid var(--color-line);
+  padding: 1.3rem 1rem 0.55rem;
+  border: 1.5px solid var(--line);
   border-radius: var(--radius-md);
-  font-size: 0.95rem;
+  font-size: 0.96rem;
   font-family: var(--font-body);
-  color: var(--color-ink);
-  background: var(--color-white);
+  color: var(--ink);
+  background: var(--white);
   transition: border-color var(--transition), box-shadow var(--transition);
 }
+
+.form-group select { padding: 0.9rem 1rem; }
 
 .input-group input:focus,
 .form-group input:focus,
 .form-group select:focus {
   outline: none;
-  border-color: var(--color-primary);
-  box-shadow: 0 0 0 3px rgba(22, 64, 126, 0.12);
+  border-color: var(--blue);
+  box-shadow: 0 0 0 4px var(--blue-tint);
+}
+
+.input-group label,
+.form-group > label {
+  position: absolute;
+  left: 1rem;
+  top: 1.15rem;
+  color: var(--slate);
+  font-size: 0.96rem;
+  background: var(--white);
+  padding: 0 4px;
+  pointer-events: none;
+  transition: all 0.15s ease;
+}
+
+.input-group input:focus + label,
+.input-group input:not(:placeholder-shown) + label,
+.form-group input:focus + label,
+.form-group input:not(:placeholder-shown) + label {
+  top: -0.55rem;
+  left: 0.85rem;
+  font-size: 0.72rem;
+  font-weight: 600;
+  color: var(--blue);
 }
 
 .name-row { display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; }
 
+/* ---- Checkboxes ---- */
 .rememberMe,
 .checkbox-group {
   display: flex;
   align-items: flex-start;
   gap: 0.6rem;
-  margin: 1rem 0;
+  margin: 0.9rem 0 1.3rem;
   font-size: 0.9rem;
-  color: var(--color-slate);
+  color: var(--slate);
 }
 
 .rememberMe input,
 .checkbox-group input {
   margin-top: 0.2rem;
-  accent-color: var(--color-primary);
+  width: 17px;
+  height: 17px;
+  accent-color: var(--blue);
+  flex-shrink: 0;
 }
 
-.checkbox-group a { color: var(--color-primary); font-weight: 600; }
-.checkbox-group a:hover { color: var(--color-secondary); }
+.checkbox-group a { color: var(--blue); font-weight: 600; }
+.checkbox-group a:hover { color: var(--red); }
 
 /* ---- Submit buttons ---- */
-.btn-container { display: flex; }
+.btn-container { display: flex; margin-top: 0.4rem; }
 
 .btn-container button,
 #signup-btn {
   width: 100%;
   padding: 0.95rem;
-  background: var(--color-primary);
-  color: var(--color-white);
+  background: var(--blue);
+  color: var(--white);
   border-radius: var(--radius-md);
   font-size: 1rem;
   font-weight: 600;
   transition: background var(--transition), transform var(--transition), box-shadow var(--transition);
-  box-shadow: 0 6px 18px rgba(22, 64, 126, 0.25);
+  box-shadow: 0 10px 24px -8px rgba(41, 84, 255, 0.5);
 }
 
 .btn-container button:hover:not(:disabled),
 #signup-btn:hover {
-  background: var(--color-primary-dark);
+  background: var(--blue-dark);
   transform: translateY(-2px);
 }
 
 .btn-container button:disabled { opacity: 0.6; cursor: not-allowed; transform: none; }
 
-/* ---- Links & messages ---- */
-.auth-links { text-align: center; margin-top: 1.25rem; font-size: 0.9rem; }
-.auth-links a { color: var(--color-primary); font-weight: 600; }
-.auth-links a:hover { color: var(--color-secondary); text-decoration: underline; }
+/* ---- Links & result messages ---- */
+.auth-links { text-align: center; margin-top: 1.5rem; font-size: 0.9rem; }
+.auth-links a { color: var(--blue); font-weight: 600; }
+.auth-links a:hover { color: var(--red); text-decoration: underline; }
 
-#login-result {
+#login-result,
+#signup-result {
   margin-top: 1rem;
   padding: 0.85rem;
   border-radius: var(--radius-md);
   text-align: center;
-  display: none;
   font-size: 0.9rem;
 }
 
 #login-result:not(:empty) {
   display: block;
-  background: var(--color-secondary-light);
-  color: var(--color-secondary-dark);
-  border: 1px solid rgba(180, 35, 44, 0.2);
+  background: var(--red-tint);
+  color: var(--red-dark);
+  border: 1px solid rgba(255, 59, 92, 0.25);
+}
+
+#login-result.success {
+  background: var(--blue-tint);
+  color: var(--blue-dark);
+  border: 1px solid rgba(41, 84, 255, 0.25);
 }
 
 #signup-result.success {
-  background: var(--color-primary-light);
-  color: var(--color-primary-dark);
-  border: 1px solid rgba(22, 64, 126, 0.2);
+  background: var(--blue-tint);
+  color: var(--blue-dark);
+  border: 1px solid rgba(41, 84, 255, 0.25);
 }
 
 #signup-result.error {
-  background: var(--color-secondary-light);
-  color: var(--color-secondary-dark);
-  border: 1px solid rgba(180, 35, 44, 0.2);
+  background: var(--red-tint);
+  color: var(--red-dark);
+  border: 1px solid rgba(255, 59, 92, 0.25);
+}
+
+/* ---- Card footer (copyright line) ---- */
+.auth-card-footer {
+  margin-top: 1.75rem;
+  padding-top: 1.25rem;
+  border-top: 1px solid var(--line);
+  text-align: center;
+  font-size: 0.78rem;
+  color: var(--slate);
 }
 
 /* ============================================
    RESPONSIVE
    ============================================ */
-@media (max-width: 900px) {
-  .auth-shell { grid-template-columns: 1fr; }
-
-  .auth-brand {
-    padding: 2rem;
-    min-height: 220px;
-    justify-content: flex-start;
-    gap: 1.5rem;
-  }
-
-  .auth-brand-quote,
-  .auth-brand-bottom { display: none; }
-
-  .auth-brand-mid h2 { font-size: 1.5rem; }
-  .auth-brand-mid p { font-size: 0.9rem; }
-
-  .auth-form-panel { padding: 2rem 1.5rem 3rem; }
+@media (max-width: 560px) {
+  .auth-shell { padding: 1.75rem 1rem; 
+  
+  position: relative;
+  z-index: 1;
+  min-height: 100vh;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0.5rem 0.5rem;
+}
+  .auth-card { padding: 2.25rem 1.75rem 2rem 2.1rem; }
+  .auth-header h1 { font-size: 1.65rem; }
 }
 
 @media (max-width: 480px) {
   .name-row { grid-template-columns: 1fr; gap: 0; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .auth-card { animation: none; }
+  .btn-container button:hover:not(:disabled),
+  #signup-btn:hover { transform: none; }
 }

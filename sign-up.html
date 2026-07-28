@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Sign Up | Tech Wizard Academy</title>
+  <title>Sign Up | Safpedia</title>
   <link rel="stylesheet" href="css/auth.css" />
 
   <!-- Favicon -->
@@ -11,7 +11,7 @@
   <link rel="icon" type="image/png" sizes="32x32" href="favicon/favicon-32x32.png">
   <link rel="icon" type="image/png" sizes="16x16" href="favicon/favicon-16x16.png">
   <link rel="manifest" href="favicon/site.webmanifest">
-  <meta name="theme-color" content="#16407E" />
+  <meta name="theme-color" content="#2954FF" />
 
   <!-- Fonts -->
   <link rel="preconnect" href="https://fonts.googleapis.com" />
@@ -28,68 +28,49 @@
 
   <main class="auth-shell">
 
-    <!-- BRAND PANEL -->
-    <section class="auth-brand">
-      <div class="auth-brand-top">
-        <img src="images/TECH_WIZARD_ACADEMY_LOGO-removebg-preview.png" alt="Tech Wizards Academy" />
-        <span>Tech Wizards Academy</span>
-      </div>
-
-      <div class="auth-brand-mid">
-        <div class="auth-brand-seal">
-          <ion-icon name="ribbon-outline"></ion-icon>
-          <span>Certified Digital Skills Training</span>
-        </div>
-        <h2>Join thousands of learners mastering in-demand skills.</h2>
-        <p>
-          Create your account to unlock hands-on courses, lifetime access,
-          and a Certificate on Completion.
-        </p>
-
-        <div class="auth-brand-quote">
-          <p>"The instructors were always there to help and guide me. Highly recommend!"</p>
-          Kemi Basit — Web Design & Graphic Design
-        </div>
-      </div>
-
-      <div class="auth-brand-bottom">© <span id="year"></span> Tech Wizards Academy | by Easblink NG</div>
-    </section>
-
     <!-- FORM PANEL -->
     <section class="auth-form-panel">
       <div class="auth-card">
 
+        <div class="auth-card-brand">
+          <span class="mark">S</span>
+          <span class="eyebrow">Safpedia · Member Access</span>
+        </div>
+
         <!-- ⭐ ENROLLMENT CONTEXT BANNER -->
-        <div id="enrollment-context" style="display:none; background:#EAF1FB; border:2px solid #16407E; border-radius:12px; padding:20px; margin-bottom:20px; text-align:center; width:100%;">
-          <ion-icon name="school-outline" style="font-size:2.5rem; color:#16407E; margin-bottom:10px;"></ion-icon>
-          <h3 style="margin:0 0 8px 0; color:#0B2A54;">Complete Your Enrollment</h3>
-          <p style="margin:0; color:#58626E; font-size:14px;">
-            Create an account to enroll in your selected course
-          </p>
+        <div id="enrollment-context" style="display:none;">
+          <ion-icon name="school-outline"></ion-icon>
+          <h3>Complete Your Enrollment</h3>
+          <p>Create an account to enroll in your selected course</p>
         </div>
 
         <div class="auth-header">
-          <h1>Create Your Account</h1>
-          <p>Join thousands of learners mastering in-demand skills</p>
+          <h1>Create your account</h1>
+          <p>Join Safpedia for sermons, ebooks, podcasts, and more.</p>
         </div>
 
         <form id="signup-form">
           <div class="name-row">
             <div class="form-group">
-              <input id="firstName" type="text" placeholder="First name" required />
+              <input id="firstName" type="text" placeholder=" " required />
+              <label for="firstName">First name</label>
             </div>
             <div class="form-group">
-              <input id="lastName" type="text" placeholder="Last name" required />
+              <input id="lastName" type="text" placeholder=" " required />
+              <label for="lastName">Last name</label>
             </div>
           </div>
           <div class="form-group">
-            <input id="email" type="email" placeholder="Email" required />
+            <input id="email" type="email" placeholder=" " required />
+            <label for="email">Email</label>
           </div>
           <div class="form-group">
-            <input id="password" type="password" placeholder="Password (min 6 characters)" required minlength="6" />
+            <input id="password" type="password" placeholder=" " required minlength="6" />
+            <label for="password">Password (min 6 characters)</label>
           </div>
           <div class="form-group">
-            <input id="phone" type="tel" placeholder="Phone" required />
+            <input id="phone" type="tel" placeholder=" " required />
+            <label for="phone">Phone</label>
           </div>
           <div class="form-group">
             <select id="course-selection">
@@ -120,6 +101,8 @@
 
         <!-- Error/Success Messages -->
         <div id="signup-result" style="margin-top:15px; padding:12px; border-radius:8px; display:none;"></div>
+
+        <div class="auth-card-footer">© <span id="year"></span> Safpedia |Powered by Easblink NG</div>
       </div>
     </section>
 
