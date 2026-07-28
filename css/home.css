@@ -229,7 +229,7 @@ button { font-family: inherit; cursor: pointer; border: none; background: none; 
   position: absolute; border-radius: 50%;
   filter: blur(70px); opacity: 0.28;
 }
-.orb-1 { width: 420px; height: 420px; background: var(--color-red); top: -140px; right: -100px; }
+.orb-1 { width: 420px; height: 420px; background: var(--color-blue); top: -140px; right: -100px; }
 .orb-2 { width: 320px; height: 320px; background: var(--color-gold); bottom: -100px; left: -80px; opacity: 0.22; }
 .orb-3 { width: 260px; height: 260px; background: var(--color-blue); top: 40%; left: 55%; opacity: 0.2; }
 
