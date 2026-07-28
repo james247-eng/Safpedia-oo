@@ -571,7 +571,7 @@ function renderCoursesTable(courses) {
   courses.forEach(data => {
     const row = tbody.insertRow();
     row.innerHTML = `
-      <td><img src="${data.thumbnail || ''}" class="course-thumbnail" alt="${data.title}" onerror="this.src='https://via.placeholder.com/60x40'"></td>
+      <td><img width=50px src="${data.thumbnail || ''}" class="course-thumbnail" alt="${data.title}" onerror="this.src='https://via.placeholder.com/60x40'"></td>
       <td><strong>${data.title}</strong></td>
       <td style="text-transform:capitalize;">${(data.category || 'N/A').replace(/-/g, ' ')}</td>
       <td style="font-weight:600; color:#059669;">₦${(data.price || 0).toLocaleString()}</td>
