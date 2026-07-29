@@ -95,7 +95,12 @@ document.getElementById('logout-btn').addEventListener('click', async () => {
 document.querySelectorAll('.nav-link').forEach(link => {
   link.addEventListener('click', (e) => {
     const section = e.currentTarget.dataset.section;
-    
+
+    // Real page-links (Blog, Vendors) have no data-section — let the
+    // browser navigate normally instead of trying to switch a tab that
+    // doesn't exist on this page.
+    if (!section) return;
+
     document.querySelectorAll('.nav-link').forEach(l => l.classList.remove('active'));
     e.currentTarget.classList.add('active');
     
@@ -571,7 +576,7 @@ function renderCoursesTable(courses) {
   courses.forEach(data => {
     const row = tbody.insertRow();
     row.innerHTML = `
-      <td><img width=50px src="${data.thumbnail || ''}" class="course-thumbnail" alt="${data.title}" onerror="this.src='https://via.placeholder.com/60x40'"></td>
+      <td><img src="${data.thumbnail || ''}" class="course-thumbnail" alt="${data.title}" onerror="this.src='https://via.placeholder.com/60x40'"></td>
       <td><strong>${data.title}</strong></td>
       <td style="text-transform:capitalize;">${(data.category || 'N/A').replace(/-/g, ' ')}</td>
       <td style="font-weight:600; color:#059669;">₦${(data.price || 0).toLocaleString()}</td>

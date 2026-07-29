@@ -545,6 +545,16 @@ tr:last-child td {
     border-radius: var(--radius-lg); 
     margin-bottom: 16px; 
     border: 1px solid var(--border-color);
+    transition: all 0.2s ease-in-out;
+}
+
+.lesson-card:hover {
+    border-color: #3b82f6;
+    box-shadow: 0 4px 12px rgba(59, 130, 246, 0.08);
+}
+
+.remove-lesson-btn:hover {
+    transform: scale(1.02);
 }
 
 .lesson-template-header {

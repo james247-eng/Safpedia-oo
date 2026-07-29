@@ -4,7 +4,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Vendor Management | Safpedia Admin</title>
+    <title>Vendor Management | SAFpedia Admin</title>
     <link rel="stylesheet" href="assets/css/admin-vendor-management.css">
     <script type="module" src="https://unpkg.com/ionicons@7.1.0/dist/ionicons/ionicons.esm.js"></script>
     <script nomodule src="https://unpkg.com/ionicons@7.1.0/dist/ionicons/ionicons.js"></script>
@@ -17,15 +17,16 @@
             <ion-icon name="menu-outline" class="menu-icon"></ion-icon>
             <ion-icon name="close-outline" class="close-icon"></ion-icon>
         </button>
-        <div class="brand-logo">Safpedia Admin</div>
+        <div class="brand-logo">SAFpedia Admin</div>
     </div>
 
     <div class="sidebar-overlay" id="sidebar-overlay"></div>
 
     <div class="dashboard-layout">
         <aside class="sidebar-panel" id="sidebar-panel">
-            <div class="brand-logo">Safpedia Admin</div>
+            <div class="brand-logo">SAFpedia Concept<span class="brand-subtitle">Admin Dashboard</span></div>
             <ul class="nav-group">
+                <li><a href="dashboard.html"><div class="nav-item-btn"><ion-icon name="grid-outline"></ion-icon><span class="nav-label">Main Dashboard</span></div></a></li>
                 <li><div class="nav-item-btn active" data-tab="overview-pane"><ion-icon name="stats-chart-outline"></ion-icon><span class="nav-label">Overview</span></div></li>
                 <li><div class="nav-item-btn" data-tab="vendors-pane"><ion-icon name="people-outline"></ion-icon><span class="nav-label">Vendors</span></div></li>
                 <li><div class="nav-item-btn" data-tab="products-pane"><ion-icon name="cube-outline"></ion-icon><span class="nav-label">Products</span></div></li>
@@ -65,7 +66,7 @@
                 <!-- TAB 1: VENDORS -->
                 <section id="vendors-pane" class="dashboard-section-card">
                     <h2>Vendors</h2>
-                    <p>Every seller on Safpedia's marketplace, with earnings and payout status.</p>
+                    <p>Every seller on SAFpedia's marketplace, with earnings and payout status.</p>
                     <div id="vendors-list" class="data-table-wrapper">
                         <div class="loading-placeholder">Loading vendors...</div>
                     </div>
