@@ -42,11 +42,15 @@ body {
 /* ====================================================================
    2. DASHBOARD SHELL LAYOUT (SIDEBAR & CONTENT WRAPPERS)
    ==================================================================== */
+
 .admin-container {
     display: flex;
     min-height: 100vh;
 }
 
+.admin-container img{
+    width: 50px;
+}
 .sidebar {
     width: 260px;
     background-color: var(--sidebar-bg);
