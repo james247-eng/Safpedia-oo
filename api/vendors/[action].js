@@ -2,6 +2,11 @@
 
 const { getFirebaseAdmin } = require('../../lib/firebase-admin');
 const { getAuthedUser } = require('../../lib/auth');
+const { sendEmail } = require('../utils/send-email');
+const { sendNotification } = require('../utils/send-notification');
+const { getRecipient } = require('../utils/recipient');
+
+const APP_URL = process.env.APP_URL || 'https://safpedia-oo.vercel.app';
 
 /**
  * Consolidated vendors router — one Vercel serverless function serving
@@ -220,6 +225,14 @@ async function handleRequestPayout(req, res, admin, db) {
     updatedAt: admin.firestore.Timestamp.now()
   }, { merge: true });
 
+  await notifyPayoutRequested({
+    admin,
+    db,
+    vendorUid: user.uid,
+    amount: requestAmount,
+    reference: payoutRef.id
+  });
+
   return res.status(200).json({
     success: true,
     payoutId: payoutRef.id,
@@ -316,6 +329,17 @@ async function handleUpdateOrderStatus(req, res, admin, db) {
   }
 
   await saleRef.set(update, { merge: true });
+
+  if (orderAction === 'shipped') {
+    await notifyBuyerOrderShipped({
+      admin,
+      db,
+      sale,
+      reference,
+      trackingNumber: update.trackingNumber,
+      carrier: update.carrier
+    });
+  }
 
   return res.status(200).json({ success: true, reference, fulfillmentStatus: orderAction });
 }
@@ -421,4 +445,63 @@ async function handleGetOrders(req, res, admin, db) {
   });
 
   return res.status(200).json({ success: true, orders });
+}
+
+async function notifyBuyerOrderShipped({ admin, db, sale, reference, trackingNumber, carrier }) {
+  try {
+    const buyer = await getRecipient(admin, db, sale.buyerUid, ['user']);
+    const orderLink = `${APP_URL}/users/dashboard.html`;
+    const trackingDetails = [carrier, trackingNumber].filter(Boolean).join(' / ');
+    const trackingMessage = trackingDetails ? ` Tracking: ${trackingDetails}.` : '';
+
+    await Promise.all([
+      sendEmail({
+        toEmail: buyer.email,
+        toName: buyer.name,
+        subject: `Order shipped: ${sale.productTitle}`,
+        headline: 'Your order is on the way',
+        bodyContent: `Order ${reference} for "${sale.productTitle}" has been marked as shipped.${trackingMessage}`,
+        actionUrl: orderLink,
+        actionText: 'View Order'
+      }),
+      sendNotification({
+        recipientUid: sale.buyerUid,
+        title: 'Order shipped',
+        message: `${sale.productTitle} is on the way.${trackingMessage}`,
+        link: orderLink,
+        type: 'order_shipped'
+      })
+    ]);
+  } catch (error) {
+    console.error('Order shipped notifications failed (non-blocking):', error.message);
+  }
+}
+
+async function notifyPayoutRequested({ admin, db, vendorUid, amount, reference }) {
+  try {
+    const vendor = await getRecipient(admin, db, vendorUid, ['user', 'vendors']);
+    const payoutLink = `${APP_URL}/seller-dashboard.html?tab=payouts`;
+
+    await sendEmail({
+      toEmail: vendor.email,
+      toName: vendor.name,
+      subject: 'Payout request submitted',
+      headline: 'Your payout request is processing',
+      bodyContent: `Your payout request for NGN ${amount.toLocaleString('en-NG')} was submitted successfully. Reference: ${reference}.`,
+      actionUrl: payoutLink,
+      actionText: 'View Payouts'
+    });
+
+    const admins = await db.collection('user').where('role', '==', 'admin').get();
+    const adminLink = `${APP_URL}/safpedia%20concept%20admin%20dashboard/dashboard.html`;
+    await Promise.all(admins.docs.map((adminDoc) => sendNotification({
+      recipientUid: adminDoc.id,
+      title: 'Vendor payout requested',
+      message: `${vendor.name} requested a payout of NGN ${amount.toLocaleString('en-NG')}.`,
+      link: adminLink,
+      type: 'vendor_payout_request'
+    })));
+  } catch (error) {
+    console.error('Payout request notifications failed (non-blocking):', error.message);
+  }
 }

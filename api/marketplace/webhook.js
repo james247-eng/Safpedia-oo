@@ -1,6 +1,11 @@
 // api/marketplace/webhook.js
 const crypto = require('crypto');
 const { getFirebaseAdmin } = require('../../lib/firebase-admin');
+const { sendEmail } = require('../utils/send-email');
+const { sendNotification } = require('../utils/send-notification');
+const { getRecipient } = require('../utils/recipient');
+
+const APP_URL = process.env.APP_URL || 'https://safpedia-oo.vercel.app';
 
 // Paystack signature verification needs the RAW request body.
 module.exports.config = {
@@ -113,6 +118,7 @@ async function handleChargeSuccess(data, admin, db, res, PAYSTACK_SECRET) {
   const vendorRef = db.collection('vendors').doc(vendorUid);
 
   let oversold = false;
+  let saleDetails = null;
 
   try {
     await db.runTransaction(async (tx) => {
@@ -127,8 +133,10 @@ async function handleChargeSuccess(data, admin, db, res, PAYSTACK_SECRET) {
         throw new Error(`Product ${productId} not found during fulfillment`);
       }
       const product = productSnap.data();
+      const productTitle = metadata.productTitle || product.title || 'Product';
 
       let fulfillmentStatus;
+      let stockRemaining = null;
 
       if (product.type === 'physical') {
         if (product.stock === null || product.stock < qty) {
@@ -141,6 +149,7 @@ async function handleChargeSuccess(data, admin, db, res, PAYSTACK_SECRET) {
           updatedAt: admin.firestore.Timestamp.now()
         }, { merge: true });
         fulfillmentStatus = 'pending_shipment';
+        stockRemaining = product.stock - qty;
       } else {
         tx.set(productRef, {
           totalSales: admin.firestore.FieldValue.increment(qty),
@@ -161,7 +170,7 @@ async function handleChargeSuccess(data, admin, db, res, PAYSTACK_SECRET) {
         productId,
         vendorUid,
         buyerUid,
-        productTitle: metadata.productTitle || product.title || 'Product',
+        productTitle,
         productType: product.type,
         quantity: qty,
         unit: product.unit || 'unit', // <-- SAVED TO SALE RECORD
@@ -173,6 +182,13 @@ async function handleChargeSuccess(data, admin, db, res, PAYSTACK_SECRET) {
         shippingAddress: product.type === 'physical' ? (metadata.shippingAddress || null) : null,
         createdAt: admin.firestore.Timestamp.now()
       });
+
+      saleDetails = {
+        productTitle,
+        productType: product.type,
+        unit: product.unit || 'unit',
+        stockRemaining
+      };
     });
   } catch (err) {
     console.error('Error processing marketplace charge.success:', err.message);
@@ -203,6 +219,20 @@ async function handleChargeSuccess(data, admin, db, res, PAYSTACK_SECRET) {
       console.error('❌ AUTOMATED REFUND FAILED — manual action required:', reference, refundErr.message);
     }
     return res.status(200).send('ok');
+  }
+
+  if (saleDetails) {
+    await notifyMarketplaceSale({
+      admin,
+      db,
+      buyerUid,
+      vendorUid,
+      reference,
+      qty,
+      amountNaira,
+      vendorAmount,
+      ...saleDetails
+    });
   }
 
   console.log(`✓ Marketplace sale recorded and vendor credited: ${reference}`);
@@ -271,10 +301,128 @@ async function handleTransferEvent(eventType, data, admin, db, res) {
       console.log('✗ Vendor payout failed/reversed, funds returned to balance:', reference);
     }
 
+    await notifyVendorTransfer({ admin, db, vendorUid, amount, eventType, reference });
+
     return res.status(200).send('ok');
 
   } catch (err) {
     console.error('Vendor transfer webhook error:', err);
     return res.status(500).json({ error: err.message });
+  }
+}
+
+async function notifyMarketplaceSale({
+  admin,
+  db,
+  buyerUid,
+  vendorUid,
+  reference,
+  qty,
+  amountNaira,
+  vendorAmount,
+  productTitle,
+  productType,
+  unit,
+  stockRemaining
+}) {
+  try {
+    const [buyer, vendor] = await Promise.all([
+      getRecipient(admin, db, buyerUid, ['user']),
+      getRecipient(admin, db, vendorUid, ['user', 'vendors'])
+    ]);
+    const orderLink = `${APP_URL}/users/dashboard.html`;
+    const vendorOrdersLink = `${APP_URL}/seller-dashboard.html?tab=orders`;
+
+    await Promise.all([
+      sendEmail({
+        toEmail: buyer.email,
+        toName: buyer.name,
+        subject: `Order confirmed: ${productTitle}`,
+        headline: 'Your marketplace order is confirmed',
+        bodyContent: `Order ${reference} for ${qty} ${unit}(s) of "${productTitle}" was successful. Total paid: NGN ${amountNaira.toLocaleString('en-NG')}.`,
+        actionUrl: orderLink,
+        actionText: 'View Order'
+      }),
+      sendNotification({
+        recipientUid: buyerUid,
+        title: 'Order confirmed',
+        message: `Your order for ${productTitle} was successful.`,
+        link: orderLink,
+        type: 'order_confirmation'
+      }),
+      sendEmail({
+        toEmail: vendor.email,
+        toName: vendor.name,
+        subject: `New order: ${productTitle}`,
+        headline: 'You received a new order',
+        bodyContent: `Order ${reference} includes ${qty} ${unit}(s) of "${productTitle}". NGN ${vendorAmount.toLocaleString('en-NG')} was credited to your pending payout balance.`,
+        actionUrl: vendorOrdersLink,
+        actionText: 'Manage Order'
+      }),
+      sendNotification({
+        recipientUid: vendorUid,
+        title: 'New marketplace order',
+        message: `${qty} ${unit}(s) of ${productTitle} was ordered.`,
+        link: vendorOrdersLink,
+        type: 'new_order'
+      })
+    ]);
+
+    if (productType === 'physical' && stockRemaining <= 2) {
+      const productsLink = `${APP_URL}/seller-dashboard.html?tab=products`;
+      await Promise.all([
+        sendEmail({
+          toEmail: vendor.email,
+          toName: vendor.name,
+          subject: `Low stock alert: ${productTitle}`,
+          headline: 'Inventory is running low',
+          bodyContent: `Only ${stockRemaining} unit(s) of "${productTitle}" remain in stock.`,
+          actionUrl: productsLink,
+          actionText: 'Update Inventory'
+        }),
+        sendNotification({
+          recipientUid: vendorUid,
+          title: 'Low stock warning',
+          message: `${productTitle} has ${stockRemaining} unit(s) remaining.`,
+          link: productsLink,
+          type: 'low_stock'
+        })
+      ]);
+    }
+  } catch (error) {
+    console.error('Marketplace sale notifications failed (non-blocking):', error.message);
+  }
+}
+
+async function notifyVendorTransfer({ admin, db, vendorUid, amount, eventType, reference }) {
+  try {
+    const vendor = await getRecipient(admin, db, vendorUid, ['user', 'vendors']);
+    const succeeded = eventType === 'transfer.success';
+    const payoutLink = `${APP_URL}/seller-dashboard.html?tab=payouts`;
+
+    await Promise.all([
+      sendEmail({
+        toEmail: vendor.email,
+        toName: vendor.name,
+        subject: succeeded ? 'Payout completed' : 'Payout failed',
+        headline: succeeded ? 'Your payout was successful' : 'Your payout could not be completed',
+        bodyContent: succeeded
+          ? `Your payout of NGN ${amount.toLocaleString('en-NG')} was transferred successfully. Reference: ${reference}.`
+          : `Your payout of NGN ${amount.toLocaleString('en-NG')} failed and the funds were returned to your available balance. Reference: ${reference}.`,
+        actionUrl: payoutLink,
+        actionText: 'View Payouts'
+      }),
+      sendNotification({
+        recipientUid: vendorUid,
+        title: succeeded ? 'Payout successful' : 'Payout failed',
+        message: succeeded
+          ? `NGN ${amount.toLocaleString('en-NG')} was paid to your bank account.`
+          : `Your NGN ${amount.toLocaleString('en-NG')} payout failed. Funds were returned to your balance.`,
+        link: payoutLink,
+        type: succeeded ? 'payout_success' : 'payout_failed'
+      })
+    ]);
+  } catch (error) {
+    console.error('Vendor payout notifications failed (non-blocking):', error.message);
   }
 }

@@ -1,5 +1,10 @@
 const crypto = require('crypto');
 const { getFirebaseAdmin } = require('../../lib/firebase-admin');
+const { sendEmail } = require('../utils/send-email');
+const { sendNotification } = require('../utils/send-notification');
+const { getRecipient } = require('../utils/recipient');
+
+const APP_URL = process.env.APP_URL || 'https://safpedia-oo.vercel.app';
 
 // Paystack signature verification needs the RAW request body.
 // Disabling Vercel's default JSON body parsing so we can read the exact bytes.
@@ -136,6 +141,7 @@ module.exports = async (req, res) => {
       paid_at: paidAt,
       createdAt: admin.firestore.Timestamp.now()
     };
+    let creditedAffiliate = null;
 
     // ---- Affiliate commission crediting ----
     // Re-validates status here too (not just trusting create-transaction's check),
@@ -172,6 +178,8 @@ module.exports = async (req, res) => {
             createdAt: admin.firestore.Timestamp.now()
           });
 
+          creditedAffiliate = { affiliateUid, commission };
+
           console.log(`✓ Credited ₦${commission} commission to affiliate ${affiliateUid}`);
         } else {
           console.warn('Referral affiliate not found or not approved at payment time:', affiliateUid);
@@ -201,6 +209,25 @@ module.exports = async (req, res) => {
       console.warn('Could not update enrolledCount:', err.message);
     }
 
+    await notifyCourseEnrollment({
+      userId,
+      studentName,
+      studentEmail,
+      courseId,
+      courseTitle,
+      reference
+    });
+
+    if (creditedAffiliate) {
+      await notifyAffiliateCommission({
+        admin,
+        db,
+        courseTitle,
+        reference,
+        ...creditedAffiliate
+      });
+    }
+
     console.log('✅ Purchase recorded successfully:', reference);
 
     return res.status(200).json({
@@ -215,6 +242,59 @@ module.exports = async (req, res) => {
     return res.status(500).json({ error: err.message });
   }
 };
+
+async function notifyCourseEnrollment({ userId, studentName, studentEmail, courseId, courseTitle, reference }) {
+  try {
+    const dashboardLink = `${APP_URL}/users/dashboard.html#course-${encodeURIComponent(courseId)}`;
+    await Promise.all([
+      sendEmail({
+        toEmail: studentEmail,
+        toName: studentName,
+        subject: `Enrollment confirmed: ${courseTitle}`,
+        headline: 'Your course is ready',
+        bodyContent: `Payment reference ${reference} was successful and you are now enrolled in "${courseTitle}".`,
+        actionUrl: dashboardLink,
+        actionText: 'Start Learning'
+      }),
+      sendNotification({
+        recipientUid: userId,
+        title: 'Course enrollment confirmed',
+        message: `You are now enrolled in ${courseTitle}.`,
+        link: dashboardLink,
+        type: 'course_enrollment'
+      })
+    ]);
+  } catch (error) {
+    console.error('Course enrollment notifications failed (non-blocking):', error.message);
+  }
+}
+
+async function notifyAffiliateCommission({ admin, db, affiliateUid, commission, courseTitle, reference }) {
+  try {
+    const affiliate = await getRecipient(admin, db, affiliateUid, ['user', 'affiliates']);
+    const affiliateLink = `${APP_URL}/affiliate-dashboard.html`;
+    await Promise.all([
+      sendEmail({
+        toEmail: affiliate.email,
+        toName: affiliate.name,
+        subject: 'You earned an affiliate commission',
+        headline: 'New commission earned',
+        bodyContent: `You earned NGN ${commission.toLocaleString('en-NG')} from a sale of "${courseTitle}". Reference: ${reference}.`,
+        actionUrl: affiliateLink,
+        actionText: 'View Commissions'
+      }),
+      sendNotification({
+        recipientUid: affiliateUid,
+        title: 'Commission earned',
+        message: `You earned NGN ${commission.toLocaleString('en-NG')} from ${courseTitle}.`,
+        link: affiliateLink,
+        type: 'affiliate_commission'
+      })
+    ]);
+  } catch (error) {
+    console.error('Affiliate commission notifications failed (non-blocking):', error.message);
+  }
+}
 
 /**
  * Settles a payoutRequests doc once Paystack confirms the transfer's final state.
