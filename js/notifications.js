@@ -9,7 +9,7 @@ import {
   setDoc,
   where,
   writeBatch
-} from 'https://www.gstatic.com/firebasejs/11.9.1/firebase-firestore.js';
+} from 'https://www.gstatic.com/firebasejs/12.17.1/firebase-firestore.js';
 
 function getNotificationsCollection(userUid) {
   return collection(db, 'users', userUid, 'notifications');

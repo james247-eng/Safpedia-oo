@@ -6,8 +6,8 @@
 // Import Firebase modules
 import { auth, db } from '../../../firebase-config.js';
 import '../../../js/notification-center.js';
-import { onAuthStateChanged, signOut } from 'https://www.gstatic.com/firebasejs/11.9.1/firebase-auth.js';
-import { collection, getDocs, addDoc, updateDoc, deleteDoc, doc, query, where, orderBy, limit, Timestamp, getDoc } from 'https://www.gstatic.com/firebasejs/11.9.1/firebase-firestore.js';
+import { onAuthStateChanged, signOut } from 'https://www.gstatic.com/firebasejs/12.17.1/firebase-auth.js';
+import { collection, getDocs, addDoc, updateDoc, deleteDoc, doc, query, where, orderBy, limit, Timestamp, getDoc } from 'https://www.gstatic.com/firebasejs/12.17.1/firebase-firestore.js';
 
 // ====================================================================
 // GLOBAL VARIABLES

@@ -1,7 +1,7 @@
 import { auth, db } from '/firebase-config.js'; // Centralized shared instance
-import { getAnalytics } from "https://www.gstatic.com/firebasejs/11.9.1/firebase-analytics.js";
-import { doc, setDoc, getDoc } from "https://www.gstatic.com/firebasejs/11.9.1/firebase-firestore.js";
-import { createUserWithEmailAndPassword, signInWithEmailAndPassword, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/11.9.1/firebase-auth.js";
+import { getAnalytics } from "https://www.gstatic.com/firebasejs/12.17.1/firebase-analytics.js";
+import { doc, setDoc, getDoc } from "https://www.gstatic.com/firebasejs/12.17.1/firebase-firestore.js";
+import { createUserWithEmailAndPassword, signInWithEmailAndPassword, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/12.17.1/firebase-auth.js";
 import { showToast, showLoading } from './toast-notification.js';
 import './notification-center.js';
 
@@ -56,9 +56,9 @@ if (signupForm && signupBtn) {
 
       try {
         await setDoc(doc(db, 'user', user.uid), userData);
-        console.log('✅ User profile created:', user.uid);
+        console.log(' User profile created:', user.uid);
       } catch (fireErr) {
-        console.error('❌ Failed to write user doc:', fireErr);
+        console.error(' Failed to write user doc:', fireErr);
         
         // Try to clean up auth user
         try {

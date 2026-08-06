@@ -5,8 +5,8 @@
 
 import { auth, db } from '../../firebase-config.js';
 import '../../js/notification-center.js';
-import { onAuthStateChanged, signOut } from 'https://www.gstatic.com/firebasejs/11.9.1/firebase-auth.js';
-import { doc, getDoc, collection, getDocs, updateDoc } from 'https://www.gstatic.com/firebasejs/11.9.1/firebase-firestore.js';
+import { onAuthStateChanged, signOut } from 'https://www.gstatic.com/firebasejs/12.17.1/firebase-auth.js';
+import { doc, getDoc, collection, getDocs, updateDoc } from 'https://www.gstatic.com/firebasejs/12.17.1/firebase-firestore.js';
 
 // ====================================================================
 // GLOBAL STATE VARIABLES

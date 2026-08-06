@@ -1,5 +1,5 @@
 import { auth } from '../firebase-config.js';
-import { onAuthStateChanged } from 'https://www.gstatic.com/firebasejs/11.9.1/firebase-auth.js';
+import { onAuthStateChanged } from 'https://www.gstatic.com/firebasejs/12.17.1/firebase-auth.js';
 import {
   listenToUnreadNotifications,
   markAllNotificationsAsRead

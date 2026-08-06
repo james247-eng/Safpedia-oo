@@ -2,9 +2,9 @@
 import emailjs from 'https://cdn.jsdelivr.net/npm/@emailjs/browser@4/dist/email.min.js';
 
 // Configuration constants - Replace with your actual EmailJS IDs
-const EMAILJS_SERVICE_ID = 'YOUR_SERVICE_ID';
-const EMAILJS_TEMPLATE_ID = 'YOUR_TEMPLATE_ID';
-const EMAILJS_PUBLIC_KEY = 'YOUR_PUBLIC_KEY';
+const EMAILJS_SERVICE_ID = 'service_121xb34';
+const EMAILJS_TEMPLATE_ID = 'template_und2q98';
+const EMAILJS_PUBLIC_KEY = '1CglFCDiNLYkK41a-';
 
 // Initialize EmailJS
 emailjs.init(EMAILJS_PUBLIC_KEY);
@@ -85,7 +85,7 @@ export async function sendPayoutStatusAlert({ vendorEmail, vendorName, amount, s
         toEmail: vendorEmail,
         toName: vendorName,
         subject: isSuccess ? `Payout Processed: ₦${amount.toLocaleString()}` : `Payout Update: Action Required`,
-        headline: isSuccess ? `Withdrawal Successful! 💳` : `Payout Issue Alert`,
+        headline: isSuccess ? `Withdrawal Successful! ` : `Payout Issue Alert`,
         bodyContent: message || (isSuccess 
             ? `Your payout of ₦${amount.toLocaleString()} has been successfully transferred to your bank account.`
             : `Your payout request of ₦${amount.toLocaleString()} could not be processed. Funds have been returned to your balance.`),
