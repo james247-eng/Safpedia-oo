@@ -1,3 +1,8 @@
+// Load the authenticated notification center on every page using this shared entry point.
+import('/js/notification-center.js').catch((error) => {
+  console.error('Could not load the notification center:', error);
+});
+
 // Preloader
 window.addEventListener('load', () => {
   const pre = document.getElementById('preloader');
