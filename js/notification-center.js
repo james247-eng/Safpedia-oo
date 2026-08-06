@@ -69,9 +69,17 @@ function renderNotifications(container, notifications) {
   });
 }
 
-function mountNotificationCenter() {
+export function mountNotificationCenter() {
   const navRight = document.querySelector('#navbar .nav-right');
-  if (!navRight || navRight.querySelector('.notification-center')) return;
+  const userDashboardTarget = document.querySelector(
+    '.dashboard-layout .main-workspace-view, .dashboard-header, .top-nav'
+  );
+  const adminDashboardTarget = document.querySelector(
+    'header.header .user-info, .admin-container'
+  );
+  const mountTarget = navRight || userDashboardTarget || adminDashboardTarget;
+
+  if (!mountTarget || document.querySelector('.notification-center')) return;
 
   addNotificationStyles();
 
@@ -103,8 +111,14 @@ function mountNotificationCenter() {
   `;
 
   center.append(bell, panel);
-  const profileIcon = navRight.querySelector('#profile-icon');
-  navRight.insertBefore(center, profileIcon || navRight.firstChild);
+  if (navRight) {
+    const profileIcon = navRight.querySelector('#profile-icon');
+    navRight.insertBefore(center, profileIcon || navRight.firstChild);
+  } else if (mountTarget.matches('.main-workspace-view, .dashboard-header, .top-nav')) {
+    mountTarget.prepend(center);
+  } else {
+    mountTarget.append(center);
+  }
 
   const list = panel.querySelector('.notification-list');
   const markAllButton = panel.querySelector('.notification-mark-all');
