@@ -43,10 +43,9 @@
         </ul>
 
         <div class="nav-right">
-          <a href="sign-in.html" class="nav-signin">
-            <!-- <ion-icon name="person-outline"></ion-icon> Log In -->
+          <a href="#" class="nav-signin">
+            <div class="btn btn-primary btn-sm" id="profile-icon">Get Started</div>
           </a>
-          <div class="btn btn-primary btn-sm" id="profile-icon">Get Started</div>
 
           <button class="mobile-menu-btn" id="mobile-menu-btn" aria-label="Toggle menu">
             <ion-icon name="menu-outline" class="menu-icon"></ion-icon>
@@ -158,9 +157,8 @@
       </div>
     </footer>
 
-    <!-- marketplace-store.js is untouched. Old nav script (mobile-nav.js) dropped
-         per your note — js/main.js (shared across the rest of the site) now
-         handles the mobile menu toggle instead. -->
+
+    <script type="module" src="js/auth.js"></script>
     <script type="module" src="js/marketplace-store.js"></script>
     <script src="js/main.js"></script>
     <script type="module" src="https://unpkg.com/ionicons@8.0.13/dist/ionicons/ionicons.esm.js"></script>
