@@ -1,0 +1,102 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Sign In | Safpedia</title>
+
+  <!-- Favicon -->
+  <link rel="apple-touch-icon" sizes="180x180" href="favicon/apple-touch-icon.png">
+  <link rel="icon" type="image/png" sizes="32x32" href="favicon/favicon-32x32.png">
+  <link rel="icon" type="image/png" sizes="16x16" href="favicon/favicon-16x16.png">
+  <link rel="manifest" href="favicon/site.webmanifest">
+  <meta name="theme-color" content="#2954FF" />
+
+  <!-- Fonts -->
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link
+    href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,500;0,9..144,600;0,9..144,700;1,9..144,500&family=Inter:wght@400;500;600;700;800&display=swap"
+    rel="stylesheet"
+  />
+
+  <!-- Ionicons -->
+  <script type="module" src="https://unpkg.com/ionicons@7.1.0/dist/ionicons/ionicons.esm.js"></script>
+
+  <link rel="stylesheet" href="/css/auth.css" />
+</head>
+
+<body class="auth-body">
+
+  <main class="auth-shell">
+
+    <!-- FORM PANEL -->
+    <section class="auth-form-panel">
+      <div class="auth-card">
+
+        <div class="auth-card-brand">
+          <span class="mark">S</span>
+          <span class="eyebrow">Safpedia · Member Access</span>
+        </div>
+
+        <!-- ⭐ ENROLLMENT CONTEXT BANNER -->
+        <div id="enrollment-context" style="display:none;">
+          <ion-icon name="school-outline"></ion-icon>
+          <h3>Complete Your Enrollment</h3>
+          <p>Login to continue enrolling in your selected course</p>
+        </div>
+
+        <div class="auth-header">
+          <h1>Welcome back</h1>
+          <p>Sign in to pick up your library where you left off.</p>
+        </div>
+
+        <form id="login-form" role="form">
+          <div class="input-group">
+            <input id="log-in-email" type="email" placeholder=" " required />
+            <label for="log-in-email">Email</label>
+          </div>
+
+          <div class="input-group">
+            <input id="log-in-password" type="password" placeholder=" " required />
+            <label for="log-in-password">Password</label>
+          </div>
+
+          <div class="rememberMe">
+            <input id="rememberMe" type="checkbox" />
+            <label for="rememberMe">Remember me</label>
+          </div>
+
+          <div class="btn-container">
+            <button id="login-btn" type="submit">Sign in</button>
+          </div>
+        </form>
+
+        <!-- Error/Success Messages -->
+        <div id="login-result"></div>
+
+        <!-- ⭐ SIGNUP LINK -->
+        <div class="auth-links">
+          <a href="sign-up.html" id="signup-link">Don't have an account? Sign up</a>
+        </div>
+
+        <div class="auth-card-footer">© <span id="year"></span> Safpedia</div>
+      </div>
+    </section>
+
+  </main>
+
+  <!-- ⭐ MODAL CONTAINER -->
+  <div id="enrollment-success-modal" style="display:none;"></div>
+
+  <script>
+    document.getElementById("year").textContent = new Date().getFullYear();
+  </script>
+
+  <script type="module" src="pages/js/pagesAuth.js"></script>
+      <script src="/js/ref-tracker.js"></script>
+
+
+</body>
+</html>
