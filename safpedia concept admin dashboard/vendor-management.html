@@ -1,4 +1,3 @@
-<!-- admin-vendor-management.html -->
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -44,7 +43,22 @@
 
         <main class="main-workspace-view">
 
-            <!-- ACCESS DENIED (shown/hidden by JS) -->
+            <!-- Page header: title + notification mount + avatar (desktop) -->
+<!-- Page header: title + notification mount + avatar -->
+<header class="header page-header">
+    <div class="header-left-wrapper">
+        <button type="button" class="sidebar-toggle-btn desktop-toggle" id="desktop-sidebar-toggle" aria-label="Toggle sidebar">
+            <ion-icon name="menu-outline"></ion-icon>
+        </button>
+        <h1 class="page-title">Vendor Management</h1>
+    </div>
+    <div class="user-info" id="navbar">
+        <div class="nav-right">
+            <!-- notification-center mounts here via #navbar .nav-right -->
+        </div>
+    </div>
+</header>
+            <!-- ACCESS DENIED -->
             <div id="access-denied" class="access-denied hidden">
                 <ion-icon name="lock-closed-outline"></ion-icon>
                 <h2>Admin access required</h2>

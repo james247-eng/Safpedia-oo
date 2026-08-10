@@ -1,27 +1,12 @@
 // js/admin-vendor-management.js
 
-import { initializeApp } from 'https://www.gstatic.com/firebasejs/12.17.1/firebase-app.js';
+import { auth, db } from '../../../firebase-config.js';
+import '../../../js/notification-center.js';
 import {
-    getFirestore, collection, collectionGroup, doc, getDoc, getDocs,
+    collection, collectionGroup, doc, getDoc, getDocs,
     query, where, orderBy, limit
 } from 'https://www.gstatic.com/firebasejs/12.17.1/firebase-firestore.js';
-import { getAuth, onAuthStateChanged, signOut } from 'https://www.gstatic.com/firebasejs/12.17.1/firebase-auth.js';
-
-// NOTE: mirrors course.js's inline Firebase init since this project's shared
-// firebase-config.js exports weren't available to confirm against.
-  const firebaseConfig = {
-    apiKey: "AIzaSyDxAQPzgKw6XjTg2f64vsvBcOo1u3eQGBU",
-    authDomain: "safpedia-concept.firebaseapp.com",
-    projectId: "safpedia-concept",
-    storageBucket: "safpedia-concept.firebasestorage.app",
-    messagingSenderId: "1052529581680",
-    appId: "1:1052529581680:web:a1fceadc99da90dc17deb5",
-    measurementId: "G-2MFWN6K7ZX"
-  };
-
-const app = initializeApp(firebaseConfig);
-const db = getFirestore(app);
-const auth = getAuth(app);
+import { onAuthStateChanged, signOut } from 'https://www.gstatic.com/firebasejs/12.17.1/firebase-auth.js';
 
 let currentUser = null;
 let allProducts = [];
@@ -30,21 +15,32 @@ let vendorSummaries = [];
 const sidebarPanel = document.getElementById('sidebar-panel');
 const sidebarOverlay = document.getElementById('sidebar-overlay');
 const sidebarToggleBtn = document.getElementById('sidebar-toggle-btn');
+const desktopToggleBtn = document.getElementById('desktop-sidebar-toggle');
 
 function openSidebar() {
     sidebarPanel.classList.add('sidebar-open');
-    sidebarOverlay.classList.add('visible');
-    sidebarToggleBtn.classList.add('active');
+    if (sidebarOverlay) sidebarOverlay.classList.add('visible');
+    if (sidebarToggleBtn) sidebarToggleBtn.classList.add('active');
 }
 function closeSidebar() {
     sidebarPanel.classList.remove('sidebar-open');
-    sidebarOverlay.classList.remove('visible');
-    sidebarToggleBtn.classList.remove('active');
+    if (sidebarOverlay) sidebarOverlay.classList.remove('visible');
+    if (sidebarToggleBtn) sidebarToggleBtn.classList.remove('active');
 }
-sidebarToggleBtn.addEventListener('click', () => {
+
+function toggleSidebar() {
     sidebarPanel.classList.contains('sidebar-open') ? closeSidebar() : openSidebar();
-});
-sidebarOverlay.addEventListener('click', closeSidebar);
+}
+
+if (sidebarToggleBtn) {
+    sidebarToggleBtn.addEventListener('click', toggleSidebar);
+}
+if (desktopToggleBtn) {
+    desktopToggleBtn.addEventListener('click', toggleSidebar);
+}
+if (sidebarOverlay) {
+    sidebarOverlay.addEventListener('click', closeSidebar);
+}
 
 document.querySelectorAll('.nav-item-btn[data-tab]').forEach((btn) => {
     btn.addEventListener('click', () => {
@@ -74,8 +70,15 @@ onAuthStateChanged(auth, async (user) => {
             return;
         }
 
-        document.getElementById('admin-avatar-slot').textContent = (user.email || 'A').charAt(0).toUpperCase();
-        document.getElementById('admin-display-email').textContent = user.email || 'Admin Account';
+        const initial = (user.email || 'A').charAt(0).toUpperCase();
+        const avatarSlot = document.getElementById('admin-avatar-slot');
+        const headerAvatar = document.getElementById('header-admin-avatar');
+        const emailEl = document.getElementById('admin-display-email');
+
+        if (avatarSlot) avatarSlot.textContent = initial;
+        if (headerAvatar) headerAvatar.textContent = initial;
+        if (emailEl) emailEl.textContent = user.email || 'Admin Account';
+
         document.getElementById('dashboard-content').classList.remove('hidden');
 
         loadOverviewStats();
@@ -88,7 +91,7 @@ onAuthStateChanged(auth, async (user) => {
     }
 });
 
-document.getElementById('admin-logout-trigger').addEventListener('click', async (e) => {
+document.getElementById('admin-logout-trigger')?.addEventListener('click', async (e) => {
     e.preventDefault();
     await signOut(auth);
     window.location.href = '/sign-in.html';

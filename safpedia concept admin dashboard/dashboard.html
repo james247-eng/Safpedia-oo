@@ -7,12 +7,8 @@
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
   <link rel="icon" type="image/x-icon" href="favicon.ico">
   <link rel="stylesheet" href="assets/css/admin.css">
-  <!-- Ionicons -->
   <script type="module" src="https://unpkg.com/ionicons@7.1.0/dist/ionicons/ionicons.esm.js"></script>
   <script nomodule src="https://unpkg.com/ionicons@7.1.0/dist/ionicons/ionicons.js"></script>
-  <!--===============================-->
-  <!--favicon starts from here-->
-
   <link rel="apple-touch-icon" sizes="180x180" href="/favicon/apple-touch-icon.png">
   <link rel="icon" type="image/png" sizes="32x32" href="/favicon/favicon-32x32.png">
   <link rel="icon" type="image/png" sizes="16x16" href="/favicon/favicon-16x16.png">
@@ -20,7 +16,10 @@
 </head>
 <body>
   <div class="admin-container">
-    <!-- Sidebar -->
+    <!-- Sidebar overlay (closes drawer when clicked) -->
+    <div class="sidebar-overlay" id="sidebar-overlay"></div>
+
+    <!-- Sidebar (hidden by default, slides in) -->
     <aside class="sidebar" id="sidebar">
       <div class="sidebar-header">
         <h2>SAFpedia</h2>
@@ -70,7 +69,6 @@
               <span>Vendors</span>
             </a>
           </li>
-    
         </ul>
       </nav>
     </aside>
@@ -80,10 +78,11 @@
       <!-- Header -->
       <header class="header">
         <div class="header-left-wrapper">
-          <button class="mobile-menu-btn" id="mobile-menu-btn">☰</button>
+          <button class="mobile-menu-btn" id="mobile-menu-btn" aria-label="Toggle sidebar">☰</button>
           <h1 id="page-title">Dashboard Overview</h1>
         </div>
-        <div class="user-info">
+        <div class="user-info top-nav">
+          <!-- notification-center.js mounts the bell here (header.header .user-info) -->
           <div class="user-avatar" id="user-avatar">A</div>
           <button class="logout-btn" id="logout-btn">Logout</button>
         </div>
@@ -132,7 +131,6 @@
           </div>
         </div>
 
-        <!-- Recent Sales -->
         <div class="card">
           <div class="card-header">
             <h2 class="card-title">Recent Sales</h2>
@@ -218,6 +216,7 @@
           </div>
         </div>
       </section>
+
       <!-- Sales Section -->
       <section class="content-section" id="sales-section">
         <div class="card">
@@ -257,16 +256,12 @@
         </div>
 
         <div class="card">
-          <div class="card-header">
-            <!-- <h2 class="card-title">Top 5 Courses by Revenue</h2> -->
-          </div>
+          <div class="card-header"></div>
           <div id="top-courses-chart"></div>
         </div>
 
         <div class="card">
-          <div class="card-header">
-            <!-- <h2 class="card-title">Top 5 Courses by Enrollments</h2> -->
-          </div>
+          <div class="card-header"></div>
           <div id="enrollment-stats"></div>
         </div>
       </section>
@@ -322,7 +317,6 @@
     </main>
   </div>
 
-
 <!-- Add/Edit Course Modal with Lessons Support -->
 <div class="modal" id="course-modal">
   <div class="modal-content">
@@ -333,7 +327,6 @@
     <form id="course-form">
       <input type="hidden" id="course-id">
       
-      <!-- Basic Course Info -->
       <div class="form-row">
         <div class="form-group">
           <label class="form-label">Course Title *</label>
@@ -397,7 +390,6 @@
         </select>
       </div>
 
-      <!-- LESSONS SECTION -->
       <div class="lessons-section-wrapper">
         <div class="lessons-section-header">
           <h3>Course Lessons</h3>
@@ -407,7 +399,6 @@
         </div>
 
         <div id="lessons-container">
-          <!-- Lessons will be added here dynamically -->
         </div>
       </div>
 
@@ -550,26 +541,45 @@
   </div>
 
   <script type="module" src="assets/js/admin.js"></script>
-  <!-- Put this right above your script type="module" line in dashboard.html -->
   <script>
     document.addEventListener("DOMContentLoaded", function() {
       const menuBtn = document.getElementById("mobile-menu-btn");
       const sidebar = document.getElementById("sidebar");
-      
+      const overlay = document.getElementById("sidebar-overlay");
+
+      function openSidebar() {
+        sidebar.classList.add("active");
+        if (overlay) overlay.classList.add("open");
+      }
+
+      function closeSidebar() {
+        sidebar.classList.remove("active");
+        if (overlay) overlay.classList.remove("open");
+      }
+
       if (menuBtn && sidebar) {
         menuBtn.addEventListener("click", function(e) {
           e.stopPropagation();
-          sidebar.classList.toggle("active");
-        });
-        
-        // Close sidebar when clicking outside on mobile viewports
-        document.addEventListener("click", function(e) {
-          if (!sidebar.contains(e.target) && e.target !== menuBtn) {
-            sidebar.classList.remove("active");
+          if (sidebar.classList.contains("active")) {
+            closeSidebar();
+          } else {
+            openSidebar();
           }
         });
       }
+
+      if (overlay) {
+        overlay.addEventListener("click", closeSidebar);
+      }
+
+      // Close after choosing a nav item
+      document.querySelectorAll(".nav-link").forEach(function(link) {
+        link.addEventListener("click", function() {
+          // Only close for in-page section switches; external links navigate away
+          if (link.dataset.section) closeSidebar();
+        });
+      });
     });
   </script>
-  </body>
+</body>
 </html>

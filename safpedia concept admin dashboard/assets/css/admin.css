@@ -51,6 +51,8 @@ body {
 .admin-container img{
     width: 50px;
 }
+
+/* Sidebar — hidden by default, slides in smoothly */
 .sidebar {
     width: 260px;
     background-color: var(--sidebar-bg);
@@ -63,7 +65,27 @@ body {
     left: 0;
     top: 0;
     z-index: 100;
-    transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    transform: translateX(-100%);
+    transition: transform 0.28s cubic-bezier(0.4, 0, 0.2, 1);
+    box-shadow: none;
+}
+
+.sidebar.active {
+    transform: translateX(0);
+    box-shadow: 8px 0 24px rgba(15, 23, 42, 0.12);
+}
+
+/* Overlay when sidebar is open */
+.sidebar-overlay {
+    display: none;
+    position: fixed;
+    inset: 0;
+    background: rgba(15, 23, 42, 0.35);
+    z-index: 90;
+}
+
+.sidebar-overlay.open {
+    display: block;
 }
 
 .sidebar-header {
@@ -124,11 +146,13 @@ body {
     font-size: 18px;
 }
 
+/* Main content — full width (sidebar is overlay, not push) */
 .main-content {
     flex: 1;
-    margin-left: 260px;
-    padding: 40px 48px;
-    max-width: 1400px;
+    margin-left: 0;
+    padding: 32px 40px 48px;
+    max-width: 100%;
+    width: 100%;
 }
 
 /* ====================================================================
@@ -138,39 +162,57 @@ body {
     display: flex;
     justify-content: space-between;
     align-items: center;
-    margin-bottom: 40px;
+    margin-bottom: 32px;
     padding-bottom: 20px;
     border-bottom: 1px solid var(--border-color);
+    gap: 16px;
 }
 
 .header-left-wrapper {
     display: flex; 
     align-items: center; 
-    gap: 15px;
+    gap: 14px;
+    min-width: 0;
 }
 
 #page-title {
-    font-size: 26px;
+    font-size: 24px;
     font-weight: 700;
     color: var(--text-main);
     letter-spacing: -0.5px;
 }
 
+/* Toggle always visible */
 .mobile-menu-btn {
-    display: none;
-    background: none;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: var(--bg-secondary);
     border: 1px solid var(--border-color);
     padding: 8px 12px;
     border-radius: var(--radius-md);
     font-size: 18px;
     cursor: pointer;
-    background-color: var(--bg-secondary);
+    color: var(--text-main);
+    flex-shrink: 0;
+    transition: background 0.15s ease, border-color 0.15s ease;
 }
 
+.mobile-menu-btn:hover {
+    background: var(--bg-primary);
+    border-color: #cbd5e1;
+}
+
+/* Right side: notification + avatar + logout */
 .user-info {
     display: flex;
     align-items: center;
-    gap: 16px;
+    gap: 12px;
+    flex-shrink: 0;
+}
+
+.user-info .notification-center {
+    display: block;
 }
 
 .user-avatar {
@@ -184,6 +226,7 @@ body {
     justify-content: center;
     font-weight: 700;
     font-size: 15px;
+    flex-shrink: 0;
 }
 
 .logout-btn {
@@ -254,7 +297,6 @@ body {
     font-size: 18px;
 }
 
-/* Clean Contextual Multi-format Stat Colors */
 .stat-blue { background-color: #eff6ff; color: #1e40af; }
 .stat-blue-deep { background-color: #dbeafe; color: #1d4ed8; }
 .stat-neutral { background-color: #f8fafc; color: #475569; }
@@ -522,7 +564,6 @@ tr:last-child td {
     resize: vertical;
 }
 
-/* Content Highlighting Contextual Modules */
 .lessons-section-wrapper {
     margin-top: 32px; 
     padding-top: 32px; 
@@ -586,25 +627,12 @@ tr:last-child td {
 }
 
 /* ====================================================================
-   8. MEDIA QUERIES (RESPONSIVE WRAPPERS)
+   8. MEDIA QUERIES
    ==================================================================== */
-@media (max-width: 1024px) {
-    .sidebar {
-        transform: translateX(-100%);
-    }
-    .sidebar.active {
-        transform: translateX(0);
-    }
-    .main-content {
-        margin-left: 0;
-        padding: 32px 24px;
-    }
-    .mobile-menu-btn {
-        display: block;
-    }
-}
-
 @media (max-width: 768px) {
+    .main-content {
+        padding: 24px 16px 40px;
+    }
     .form-row {
         grid-template-columns: 1fr;
         gap: 24px;
@@ -623,5 +651,8 @@ tr:last-child td {
     .header-actions-group .search-box, 
     .header-actions-group .btn {
         width: 100%;
+    }
+    #page-title {
+        font-size: 20px;
     }
 }
