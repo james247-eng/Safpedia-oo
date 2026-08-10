@@ -47,6 +47,26 @@ onAuthStateChanged(auth, async (user) => {
 // ====================================================================
 // CORE ENGINE & METRICS ROUTER
 // ====================================================================
+
+// Figures out which lesson the "Start Course"/"Continue Learning" button
+// will actually open next, mirroring loadFirstAvailableLesson() in
+// course-viewer.js: resume the last-accessed lesson, or if that one's
+// already completed, jump to the first uncompleted lesson instead.
+function getNextLessonForCard(courseData, activeEnrollment) {
+  const lessons = courseData.lessons || [];
+  if (lessons.length === 0) return null;
+
+  const completed = activeEnrollment.completedLessons || [];
+  let index = activeEnrollment.lastAccessedLesson || 0;
+
+  if (completed.includes(index)) {
+    const nextUncompleted = lessons.findIndex((_, i) => !completed.includes(i));
+    if (nextUncompleted !== -1) index = nextUncompleted;
+  }
+
+  return lessons[index] || null;
+}
+
 async function loadStudentDashboardData(userId) {
   if (isLoadingCourses) {
     console.log('⏳ Already loading inventory data, skipping...');
@@ -174,6 +194,8 @@ async function loadStudentDashboardData(userId) {
         const progress = activeEnrollment.progress || 0;
         const totalLessons = courseData.totalLessons || courseData.lessons?.length || 0;
         const completedLessons = activeEnrollment.completedLessons?.length || 0;
+        const nextLesson = getNextLessonForCard(courseData, activeEnrollment);
+        const isLiveNext = nextLesson?.contentType === 'live';
 
         card.innerHTML = `
           <div style="position: relative; width: 100%; height: 160px; overflow: hidden; background: #e2e8f5;">
@@ -196,8 +218,8 @@ async function loadStudentDashboardData(userId) {
 
               <div style="margin-top: auto; display: flex; flex-direction: column; gap: 8px; pt: 8px;">
                 <button class="nav-item-btn active" onclick="continueCourse('${courseDoc.id}')" style="width: 100%; justify-content: center; font-size: 14px; padding: 10px;">
-                    <ion-icon name="${progress > 0 ? 'play' : 'play-circle'}-outline"></ion-icon>
-                    ${progress > 0 ? 'Continue Learning' : 'Start Course'}
+                    <ion-icon name="${isLiveNext ? 'radio-outline' : (progress > 0 ? 'play-outline' : 'play-circle-outline')}"></ion-icon>
+                    ${isLiveNext ? 'Join Live' : (progress > 0 ? 'Continue Learning' : 'Start Course')}
                 </button>
                 ${activeEnrollment.isCompleted ? `
                   <button class="nav-item-btn" onclick="viewCertificate('${courseDoc.id}')" style="width: 100%; justify-content: center; font-size: 14px; padding: 10px; background: #14b8a6; color: #fff;">

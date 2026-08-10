@@ -552,6 +552,16 @@ else if (videoUrl.includes('drive.google.com')) {
     const modifiedUrl = videoUrl.replace('dl=0', 'raw=1');
     playerHTML = `<video controls autoplay style="width:100%; height:100%;"><source src="${modifiedUrl}" type="video/mp4">Your browser does not support the video tag.</video>`;
   }
+  // Cloudinary-hosted video (uploaded directly through the admin dashboard).
+  // Always route to the native <video> tag regardless of file extension —
+  // an upload can legitimately end in .mov/.mkv/.avi/etc, and we know for
+  // certain a res.cloudinary.com URL is real, directly playable video, so
+  // there's no need to gate it behind the extension check below (which
+  // would otherwise send anything non-mp4/webm/ogg/mov into the generic
+  // iframe branch, where raw video files don't render reliably).
+  else if (videoUrl.includes('res.cloudinary.com')) {
+    playerHTML = `<video controls autoplay controlsList="nodownload" style="width:100%; height:100%;"><source src="${videoUrl}">Your browser does not support the video tag.</video>`;
+  }
   // Direct video files (.mp4, .webm, .ogg, .mov)
   else if (/\.(mp4|webm|ogg|mov)(\?|$)/i.test(videoUrl)) {
     playerHTML = `<video controls autoplay controlsList="nodownload" style="width:100%; height:100%;"><source src="${videoUrl}" type="video/mp4">Your browser does not support the video tag.</video>`;
