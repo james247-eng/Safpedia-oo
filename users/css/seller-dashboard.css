@@ -144,6 +144,13 @@
         overflow-x: auto;
         white-space: nowrap;
     }
+
+
+    products-grid {
+        display: block;
+        overflow-x: auto;
+        white-space: nowrap;
+    }
 }
 
 /* ----------------------------------------------------------------
@@ -153,7 +160,14 @@
    don't — that file only styles .course-poster, a different component.
    Adding the real thing here, where it belongs.
    ---------------------------------------------------------------- */
-.product-card {
+.products-grid{
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+    gap: 16px;
+}
+
+
+   .product-card {
     background: var(--white);
     border: 1px solid var(--border);
     border-radius: var(--radius-md);
