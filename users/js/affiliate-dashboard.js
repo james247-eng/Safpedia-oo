@@ -7,6 +7,7 @@
 // ====================================================================
 
 import { auth, db } from '../../firebase-config.js';
+import '../../js/notification-center.js';
 import { onAuthStateChanged, signOut } from 'https://www.gstatic.com/firebasejs/12.17.1/firebase-auth.js';
 import { doc, getDoc, collection, getDocs, orderBy, query } from 'https://www.gstatic.com/firebasejs/12.17.1/firebase-firestore.js';
 import { showToast, showLoading } from '../../js/toast-notification.js';
@@ -33,9 +34,6 @@ onAuthStateChanged(auth, async (user) => {
   }
   currentUser = user;
 
-  // Sidebar footer wasn't being populated at all on this page — added so
-  // it matches dashboard.html / sellers-page.html instead of staying on
-  // the static placeholder text.
   const emailEl = document.getElementById('user-display-email');
   const avatarEl = document.getElementById('admin-avatar-slot');
   if (emailEl) emailEl.textContent = user.email || 'Affiliate Account';
@@ -44,8 +42,6 @@ onAuthStateChanged(auth, async (user) => {
   await loadAffiliateStatus();
 });
 
-// Sign Out — same pattern as dashboard.js/seller-dashboard.js, but this
-// page had no logout handler wired up at all.
 document.getElementById('user-logout-trigger')?.addEventListener('click', async (e) => {
   e.preventDefault();
   try {
@@ -110,7 +106,6 @@ function renderApproved(data) {
   document.getElementById('stat-awaiting-payout').textContent = `₦${(data.awaitingPayout || 0).toLocaleString()}`;
   document.getElementById('stat-total-paid').textContent = `₦${(data.totalPaidOut || 0).toLocaleString()}`;
   
-  // FIXED: Optional check so it won't crash if the HTML element doesn't exist
   const salesStatEl = document.getElementById('stat-total-sales');
   if (salesStatEl) {
     salesStatEl.textContent = data.totalSales || 0;

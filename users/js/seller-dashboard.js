@@ -1,25 +1,9 @@
 // students/js/seller-dashboard.js
 
-import { initializeApp } from 'https://www.gstatic.com/firebasejs/12.17.1/firebase-app.js';
-import { getFirestore, collection, doc } from 'https://www.gstatic.com/firebasejs/12.17.1/firebase-firestore.js';
-import { getAuth, onAuthStateChanged, signOut } from 'https://www.gstatic.com/firebasejs/12.17.1/firebase-auth.js';
-
-// NOTE: mirrors course.js's inline Firebase init since this project's shared
-// firebase-config.js exports weren't available to confirm against. If you've
-// centralized this elsewhere, swap these three lines for that shared import.
-const firebaseConfig = {
-  apiKey: "AIzaSyDxAQPzgKw6XjTg2f64vsvBcOo1u3eQGBU",
-  authDomain: "safpedia-concept.firebaseapp.com",
-  projectId: "safpedia-concept",
-  storageBucket: "safpedia-concept.firebasestorage.app",
-  messagingSenderId: "1052529581680",
-  appId: "1:1052529581680:web:a1fceadc99da90dc17deb5",
-  measurementId: "G-2MFWN6K7ZX"
-};
-
-const app = initializeApp(firebaseConfig);
-const db = getFirestore(app);
-const auth = getAuth(app);
+import { auth, db } from '../../firebase-config.js';
+import '../../js/notification-center.js';
+import { collection, doc } from 'https://www.gstatic.com/firebasejs/12.17.1/firebase-firestore.js';
+import { onAuthStateChanged, signOut } from 'https://www.gstatic.com/firebasejs/12.17.1/firebase-auth.js';
 
 let currentUser = null;
 
