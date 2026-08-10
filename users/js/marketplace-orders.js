@@ -32,13 +32,15 @@ onAuthStateChanged(auth, (user) => {
     }
     currentUser = user;
 
-    document.getElementById('buyer-avatar-slot').textContent = (user.email || 'U').charAt(0).toUpperCase();
-    document.getElementById('buyer-display-email').textContent = user.email || 'Student Account';
+    const avatarEl = document.getElementById('buyer-avatar-slot');
+    const emailEl = document.getElementById('buyer-display-email');
+    if (avatarEl) avatarEl.textContent = (user.email || 'U').charAt(0).toUpperCase();
+    if (emailEl) emailEl.textContent = user.email || 'Student Account';
 
     loadOrders();
 });
 
-document.getElementById('buyer-logout-trigger').addEventListener('click', async (e) => {
+document.getElementById('buyer-logout-trigger')?.addEventListener('click', async (e) => {
     e.preventDefault();
     await signOut(auth);
     window.location.href = '/sign-in.html';

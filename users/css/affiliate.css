@@ -126,31 +126,85 @@
 }
 
 /* ============================================
-   REFERRAL BOX
+   REFERRAL BOX (compact)
    ============================================ */
 .referral-box {
   background: var(--blue-tint);
   border: 1px dashed var(--blue);
   border-radius: var(--radius-sm);
-  padding: 20px;
-  margin-bottom: 25px;
+  padding: 14px 16px;
+  margin-bottom: 24px;
 }
 
-.referral-box code {
-  display: block;
-  background: var(--white);
-  padding: 10px 14px;
-  border-radius: 6px;
-  margin-top: 8px;
-  word-break: break-all;
-  font-size: 14px;
+.referral-code-row {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-bottom: 6px;
+}
+
+.referral-label {
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--ink-soft);
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+}
+
+.referral-code-row strong {
+  font-family: 'Space Grotesk', sans-serif;
+  font-size: 15px;
+  font-weight: 700;
   color: var(--ink);
 }
 
-.referral-box > p {
-  margin-top: 10px;
+.referral-hint {
   font-size: 13px;
   color: var(--ink-soft);
+  margin: 0 0 10px;
+}
+
+.referral-link-row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  background: var(--white);
+  border-radius: 8px;
+  padding: 8px 10px;
+  border: 1px solid var(--border);
+}
+
+.referral-link-row code {
+  flex: 1;
+  font-size: 13px;
+  color: var(--ink);
+  word-break: break-all;
+  background: transparent;
+  padding: 0;
+  margin: 0;
+}
+
+.copy-link-btn {
+  flex-shrink: 0;
+  width: 36px;
+  height: 36px;
+  display: grid;
+  place-items: center;
+  border: none;
+  border-radius: 8px;
+  background: var(--blue-tint);
+  color: var(--blue);
+  cursor: pointer;
+  transition: background 0.15s ease, color 0.15s ease;
+}
+
+.copy-link-btn:hover {
+  background: var(--blue);
+  color: var(--white);
+}
+
+.copy-link-btn ion-icon {
+  font-size: 18px;
 }
 
 /* ============================================
@@ -259,4 +313,5 @@
   .courses-section { padding: 20px; }
   .section-header { flex-direction: column; align-items: flex-start; }
   .commission-row { flex-direction: column; align-items: flex-start; }
+  .referral-link-row { flex-wrap: wrap; }
 }

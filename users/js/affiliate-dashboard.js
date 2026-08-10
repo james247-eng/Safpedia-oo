@@ -14,6 +14,16 @@ import { showToast, showLoading } from '../../js/toast-notification.js';
 let currentUser = null;
 
 // ====================================================================
+// HELPER: mask account number (show only last 4 digits)
+// ====================================================================
+function maskAccountNumber(accountNumber) {
+  if (!accountNumber || typeof accountNumber !== 'string') return '••••';
+  const digits = accountNumber.replace(/\D/g, '');
+  if (digits.length <= 4) return '••••' + digits;
+  return '••••••' + digits.slice(-4);
+}
+
+// ====================================================================
 // AUTH + INITIAL LOAD
 // ====================================================================
 onAuthStateChanged(auth, async (user) => {
@@ -110,9 +120,10 @@ function renderApproved(data) {
   const payoutSection = document.getElementById('payout-section');
 
   if (data.bankAccount && data.bankAccount.recipientCode) {
+    const masked = maskAccountNumber(data.bankAccount.accountNumber);
     bankSection.innerHTML = `
       <p style="margin-bottom: 8px;"><strong>Bank Name/Owner:</strong> ${data.bankAccount.accountName}</p>
-      <p style="margin-bottom: 12px;"><strong>Account Number:</strong> ${data.bankAccount.accountNumber}</p>
+      <p style="margin-bottom: 12px;"><strong>Account Number:</strong> ${masked}</p>
       <button class="btn btn-secondary" id="change-bank-btn">Change Bank Account</button>
     `;
     document.getElementById('change-bank-btn').addEventListener('click', showBankForm);

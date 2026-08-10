@@ -450,7 +450,7 @@ if (logoutTrigger) {
 // Page visibility tracking updates
 document.addEventListener('visibilitychange', () => {
   if (!document.hidden && currentUser && !isLoadingCourses) {
-    loaduserDashboardData(currentUser.uid);
+    loadStudentDashboardData(currentUser.uid);
   }
 });
 

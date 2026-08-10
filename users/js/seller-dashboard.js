@@ -49,8 +49,10 @@ onAuthStateChanged(auth, (user) => {
     }
     currentUser = user;
 
-    document.getElementById('seller-avatar-slot').textContent = (user.email || 'U').charAt(0).toUpperCase();
-    document.getElementById('seller-display-email').textContent = user.email || 'Seller Account';
+    const avatarEl = document.getElementById('seller-avatar-slot');
+    const emailEl = document.getElementById('seller-display-email');
+    if (avatarEl) avatarEl.textContent = (user.email || 'U').charAt(0).toUpperCase();
+    if (emailEl) emailEl.textContent = user.email || 'Seller Account';
     document.getElementById('my-storefront-link').href = `/vendor-store.html?vendor=${user.uid}`;
 
     loadVendorProfile();
@@ -58,7 +60,7 @@ onAuthStateChanged(auth, (user) => {
     loadOrders();
 });
 
-document.getElementById('seller-logout-trigger').addEventListener('click', async (e) => {
+document.getElementById('seller-logout-trigger')?.addEventListener('click', async (e) => {
     e.preventDefault();
     await signOut(auth);
     window.location.href = '/sign-in.html';
@@ -79,6 +81,16 @@ function clearStatus() {
     el.textContent = '';
     el.classList.add('hidden');
     el.classList.remove('status-error');
+}
+
+// ====================================================================
+// HELPER: mask account number (show only last 4 digits)
+// ====================================================================
+function maskAccountNumber(accountNumber) {
+    if (!accountNumber || typeof accountNumber !== 'string') return '••••';
+    const digits = accountNumber.replace(/\D/g, '');
+    if (digits.length <= 4) return '••••' + digits;
+    return '••••••' + digits.slice(-4);
 }
 
 // ====================================================================
@@ -117,9 +129,10 @@ function renderBankAccount(bankAccount) {
         el.innerHTML = '<p class="empty-state">No bank account on file yet.</p>';
         return;
     }
+    const masked = maskAccountNumber(bankAccount.accountNumber);
     el.innerHTML = `
         <p><strong>${bankAccount.accountName}</strong></p>
-        <p>${bankAccount.accountNumber} — Bank code ${bankAccount.bankCode}</p>
+        <p>${masked} — Bank code ${bankAccount.bankCode}</p>
     `;
 }
 

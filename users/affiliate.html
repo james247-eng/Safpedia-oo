@@ -8,7 +8,6 @@
   <link rel="stylesheet" href="./css/affiliate.css">
   <script type="module" src="https://unpkg.com/ionicons@7.1.0/dist/ionicons/ionicons.esm.js"></script>
   <script nomodule src="https://unpkg.com/ionicons@7.1.0/dist/ionicons/ionicons.js"></script>
-
 </head>
 <body>
 
@@ -42,17 +41,30 @@
             <ul class="nav-group">
                 <li><a href="../all-courses.html"><div class="nav-item-btn"><ion-icon name="book-outline"></ion-icon><span class="nav-label">Digital Library</span></div></a></li>
             </ul>
-            <div class="sidebar-footer">
-                <div class="student-profile-avatar" id="admin-avatar-slot">U</div>
-                <div>
-                    <div id="user-display-email">Affiliate Account</div>
-                    <a href="#" id="user-logout-trigger">Sign Out</a>
-                </div>
-            </div>
         </aside>
 
         <!-- MAIN WORKSPACE -->
         <main class="main-workspace-view">
+
+            <!-- DASHBOARD TOP BAR (notification + avatar) -->
+            <header class="dashboard-header top-nav">
+                <div class="topbar-spacer"></div>
+                <div class="topbar-right" id="navbar">
+                    <div class="nav-right">
+                        <!-- notification-center.js mounts the bell here -->
+                        <div class="user-menu">
+                            <button type="button" class="user-avatar-btn" id="admin-avatar-slot" aria-label="Account menu" aria-expanded="false">
+                                U
+                            </button>
+                            <div class="user-dropdown" id="user-dropdown" hidden>
+                                <div class="user-dropdown-email" id="user-display-email">Affiliate Account</div>
+                                <a href="#" id="user-logout-trigger" class="user-dropdown-logout">Sign Out</a>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </header>
+
             <section class="dashboard-section-card active-tab">
 
                 <div class="affiliate-header">
@@ -94,9 +106,17 @@
                 <!-- STATE: Approved -->
                 <div data-view="approved" class="is-hidden">
                     <div class="referral-box">
-                        <strong>Your referral code:</strong> <span id="referral-code"></span>
-                        <p>Share this link — you earn commission on every purchase made through it:</p>
-                        <code id="referral-link"></code>
+                        <div class="referral-code-row">
+                            <span class="referral-label">Your referral code</span>
+                            <strong id="referral-code"></strong>
+                        </div>
+                        <p class="referral-hint">Share this link — you earn commission on every purchase made through it</p>
+                        <div class="referral-link-row">
+                            <code id="referral-link"></code>
+                            <button type="button" class="copy-link-btn" id="copy-referral-btn" aria-label="Copy referral link" title="Copy link">
+                                <ion-icon name="copy-outline"></ion-icon>
+                            </button>
+                        </div>
                     </div>
 
                     <div class="stats-grid">
@@ -146,5 +166,43 @@
 
     <script type="module" src="js/affiliate-dashboard.js"></script>
     <script src="js/dashboard-nav.js"></script>
+    <script>
+      // Avatar dropdown toggle (email + logout only on click)
+      (function () {
+        const avatarBtn = document.getElementById('admin-avatar-slot');
+        const dropdown = document.getElementById('user-dropdown');
+        if (!avatarBtn || !dropdown) return;
+
+        avatarBtn.addEventListener('click', (e) => {
+          e.stopPropagation();
+          const isOpen = !dropdown.hidden;
+          dropdown.hidden = isOpen;
+          avatarBtn.setAttribute('aria-expanded', String(!isOpen));
+        });
+
+        document.addEventListener('click', () => {
+          dropdown.hidden = true;
+          avatarBtn.setAttribute('aria-expanded', 'false');
+        });
+
+        dropdown.addEventListener('click', (e) => e.stopPropagation());
+      })();
+
+      // Copy referral link
+      document.getElementById('copy-referral-btn')?.addEventListener('click', async () => {
+        const linkEl = document.getElementById('referral-link');
+        if (!linkEl || !linkEl.textContent) return;
+        try {
+          await navigator.clipboard.writeText(linkEl.textContent.trim());
+          const btn = document.getElementById('copy-referral-btn');
+          btn.innerHTML = '<ion-icon name="checkmark-outline"></ion-icon>';
+          setTimeout(() => {
+            btn.innerHTML = '<ion-icon name="copy-outline"></ion-icon>';
+          }, 1800);
+        } catch (err) {
+          console.error('Copy failed:', err);
+        }
+      });
+    </script>
 </body>
 </html>

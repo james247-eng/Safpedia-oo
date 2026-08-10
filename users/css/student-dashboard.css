@@ -157,55 +157,120 @@ ion-icon { vertical-align: middle; font-size: 1.15em; }
 .nav-item-btn:hover { background: var(--blue-tint); color: var(--blue); }
 .nav-item-btn.active { background: var(--blue); color: var(--white); box-shadow: var(--shadow-lift); }
 
-.sidebar-footer {
-  margin-top: auto;
-  padding-top: 20px;
-  border-top: 1px solid var(--border);
+/* Sidebar footer removed — avatar/email now live in the top bar */
+
+/* ---------- MAIN WORKSPACE ---------- */
+.main-workspace-view { padding: 0 20px 60px; overflow-y: auto; }
+@media (min-width: 900px) { .main-workspace-view { padding: 0 44px 80px; } }
+
+/* ---------- DASHBOARD TOP BAR (notification + avatar) ---------- */
+.dashboard-header.top-nav {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 12px;
+  padding: 16px 0 20px;
+  position: sticky;
+  top: 0;
+  z-index: 50;
+  background: var(--surface);
+}
+
+.topbar-spacer { flex: 1; }
+
+.topbar-right,
+#navbar {
   display: flex;
   align-items: center;
   gap: 12px;
 }
 
-/* The text block (email + sign out) must be allowed to shrink below its
-   content's natural width, or a long email forces the whole sidebar to
-   overflow — this is the fix for the email "shooting out" bug. */
-.sidebar-footer > div:last-child {
-  min-width: 0;
-  flex: 1;
+.nav-right {
+  display: flex;
+  align-items: center;
+  gap: 12px;
 }
 
-#user-display-email,
-#seller-display-email {
-  overflow: hidden;
-  text-overflow: ellipsis;
-  white-space: nowrap;
-  max-width: 100%;
+/* Notification center mounts inside .nav-right — keep it aligned */
+.nav-right .notification-center {
+  display: block;
 }
 
-.student-profile-avatar {
+.user-menu {
+  position: relative;
+  display: flex;
+  align-items: center;
+}
+
+.user-avatar-btn {
   width: 40px;
   height: 40px;
   border-radius: 50%;
+  border: none;
+  background: var(--blue);
+  color: var(--white);
+  font-family: 'Space Grotesk', sans-serif;
+  font-weight: 700;
+  font-size: 15px;
+  cursor: pointer;
   display: flex;
   align-items: center;
   justify-content: center;
-  font-weight: 700;
   flex-shrink: 0;
+  transition: transform .15s ease, box-shadow .15s ease;
 }
 
-#admin-avatar-slot {
-  background: var(--blue) !important;
-  color: var(--white);
-  font-family: 'Space Grotesk', sans-serif;
+.user-avatar-btn:hover,
+.user-avatar-btn:focus-visible {
+  transform: scale(1.05);
+  box-shadow: 0 0 0 3px rgba(41, 84, 255, 0.25);
+  outline: none;
 }
 
-#user-display-email { color: var(--ink); font-size: 13px; font-weight: 600; }
+.user-dropdown {
+  position: absolute;
+  top: calc(100% + 10px);
+  right: 0;
+  min-width: 200px;
+  background: var(--white);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  box-shadow: 0 12px 32px rgba(15, 23, 42, 0.14);
+  padding: 12px 14px;
+  z-index: 80;
+}
 
-#student-logout-trigger { color: var(--red) !important; font-weight: 600; }
+.user-dropdown-email {
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--ink);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  max-width: 220px;
+  margin-bottom: 8px;
+  padding-bottom: 8px;
+  border-bottom: 1px solid var(--border);
+}
 
-/* ---------- MAIN WORKSPACE ---------- */
-.main-workspace-view { padding: 24px 20px 60px; overflow-y: auto; }
-@media (min-width: 900px) { .main-workspace-view { padding: 40px 44px 80px; } }
+.user-dropdown-logout {
+  display: block;
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--red) !important;
+  padding: 4px 0;
+}
+
+.user-dropdown-logout:hover {
+  opacity: 0.85;
+}
+
+/* Mobile: keep top bar under the mobile brand bar */
+@media (max-width: 899px) {
+  .dashboard-header.top-nav {
+    padding: 12px 0 16px;
+  }
+}
 
 .dashboard-section-card {
   display: none;

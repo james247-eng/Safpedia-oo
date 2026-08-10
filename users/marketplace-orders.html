@@ -1,4 +1,3 @@
-<!-- students/marketplace-orders.html -->
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -40,16 +39,29 @@
             <ul class="nav-group">
                 <li><a href="../all-courses.html"><div class="nav-item-btn"><ion-icon name="book-outline"></ion-icon><span class="nav-label">Digital Library</span></div></a></li>
             </ul>
-            <div class="sidebar-footer">
-                <div class="student-profile-avatar" id="buyer-avatar-slot">U</div>
-                <div>
-                    <div id="buyer-display-email">Student Account</div>
-                    <a href="#" id="buyer-logout-trigger">Sign Out</a>
-                </div>
-            </div>
         </aside>
 
         <main class="main-workspace-view">
+
+            <!-- DASHBOARD TOP BAR (notification + avatar) -->
+            <header class="dashboard-header top-nav">
+                <div class="topbar-spacer"></div>
+                <div class="topbar-right" id="navbar">
+                    <div class="nav-right">
+                        <!-- notification-center.js mounts the bell here -->
+                        <div class="user-menu">
+                            <button type="button" class="user-avatar-btn" id="buyer-avatar-slot" aria-label="Account menu" aria-expanded="false">
+                                U
+                            </button>
+                            <div class="user-dropdown" id="user-dropdown" hidden>
+                                <div class="user-dropdown-email" id="buyer-display-email">Student Account</div>
+                                <a href="#" id="buyer-logout-trigger" class="user-dropdown-logout">Sign Out</a>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </header>
+
             <section class="dashboard-section-card active-tab">
                 <h2>My Marketplace Orders</h2>
                 <p>Everything you've purchased from SAFpedia vendors — separate from your course purchases.</p>
@@ -62,5 +74,27 @@
     </div>
     <script type="module" src="js/marketplace-orders.js"></script>
     <script src="js/dashboard-nav.js"></script>
+    <script>
+      // Avatar dropdown toggle (email + logout only on click)
+      (function () {
+        const avatarBtn = document.getElementById('buyer-avatar-slot');
+        const dropdown = document.getElementById('user-dropdown');
+        if (!avatarBtn || !dropdown) return;
+
+        avatarBtn.addEventListener('click', (e) => {
+          e.stopPropagation();
+          const isOpen = !dropdown.hidden;
+          dropdown.hidden = isOpen;
+          avatarBtn.setAttribute('aria-expanded', String(!isOpen));
+        });
+
+        document.addEventListener('click', () => {
+          dropdown.hidden = true;
+          avatarBtn.setAttribute('aria-expanded', 'false');
+        });
+
+        dropdown.addEventListener('click', (e) => e.stopPropagation());
+      })();
+    </script>
 </body>
 </html>
