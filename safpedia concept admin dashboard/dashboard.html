@@ -441,10 +441,14 @@
       </div>
     </div>
 
-    <!-- VIDEO -->
+    <!-- VIDEO (Cloudinary upload, URL kept as fallback for YouTube/Vimeo/external links) -->
     <div class="form-group lesson-video-fields">
-      <label class="form-label">Video URL *</label>
-      <input type="url" class="form-input lesson-video-url" placeholder="YouTube or Vimeo link">
+      <label class="form-label">Video File</label>
+      <input type="file" class="lesson-video-file" accept="video/*">
+      <button type="button" class="btn btn-secondary btn-sm lesson-video-upload-btn" style="margin-top:8px; display:block;">Upload Video</button>
+      <p class="lesson-video-status" style="font-size:12px; color:#9ca3af; margin-top:6px;"></p>
+      <label class="form-label" style="margin-top:16px; display:block;">Video URL (or upload above) *</label>
+      <input type="url" class="form-input lesson-video-url" placeholder="YouTube, Vimeo link, or filled automatically after upload">
     </div>
 
     <!-- AUDIO (Cloudinary upload) -->

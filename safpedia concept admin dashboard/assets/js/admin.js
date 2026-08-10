@@ -171,6 +171,32 @@ function wireLessonCard(root) {
     updateLessonNumbers();
   });
 
+  // Video Upload Click Handler
+  root.querySelector('.lesson-video-upload-btn')?.addEventListener('click', async (e) => {
+    const container = e.target.closest('.lesson-video-fields');
+    const fileInput = container ? container.querySelector('.lesson-video-file') : null;
+    const statusEl = container ? container.querySelector('.lesson-video-status') : null;
+    const urlInput = container ? container.querySelector('.lesson-video-url') : null;
+
+    if (!fileInput || !fileInput.files[0]) {
+      showAlert('Choose a video file first', 'error');
+      return;
+    }
+
+    statusEl.textContent = 'Uploading... this can take a while for large videos';
+    statusEl.style.color = '#9ca3af';
+
+    try {
+      const url = await uploadToCloudinary(fileInput.files[0], 'course-video');
+      if (urlInput) urlInput.value = url;
+      statusEl.textContent = 'Uploaded ✓';
+      statusEl.style.color = '#059669';
+    } catch (error) {
+      statusEl.textContent = 'Upload failed: ' + error.message;
+      statusEl.style.color = '#ef4444';
+    }
+  });
+
   // PDF Upload Click Handler
   root.querySelector('.lesson-pdf-upload-btn')?.addEventListener('click', async (e) => {
     const container = e.target.closest('.lesson-pdf-fields');
