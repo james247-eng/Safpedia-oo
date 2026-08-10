@@ -435,7 +435,7 @@ function renderOrders(orders) {
         return;
     }
 
-    const rows = orders.map((o) => {
+    const rows = orders.map((o, index) => {
         const date = o.createdAt && o.createdAt._seconds
             ? new Date(o.createdAt._seconds * 1000).toLocaleDateString()
             : '';
@@ -458,9 +458,10 @@ function renderOrders(orders) {
                 <td>${o.productTitle}</td>
                 <td>${o.quantity}</td>
                 <td>₦${(o.vendorAmount || 0).toLocaleString()}</td>
-                <td>${o.fulfillmentStatus}</td>
+                <td>${o.productType === 'physical' ? 'Physical' : 'Digital'}</td>
                 <td>${date}</td>
                 <td>${actionCell}</td>
+                <td><button type="button" class="btn btn-sm btn-secondary view-order-details-btn" data-order-index="${index}">View Details</button></td>
             </tr>
         `;
     }).join('');
@@ -472,14 +473,19 @@ function renderOrders(orders) {
                     <th>Product</th>
                     <th>Qty</th>
                     <th>Your Cut</th>
-                    <th>Status</th>
+                    <th>Type</th>
                     <th>Date</th>
-                    <th>Action</th>
+                    <th>Status / Action</th>
+                    <th>Details</th>
                 </tr>
             </thead>
             <tbody>${rows}</tbody>
         </table>
     `;
+
+    container.querySelectorAll('.view-order-details-btn').forEach((btn) => {
+        btn.addEventListener('click', () => openOrderDetails(orders[btn.dataset.orderIndex]));
+    });
 
     container.querySelectorAll('.mark-shipped-btn').forEach((btn) => {
         btn.addEventListener('click', () => updateOrderStatus(btn.dataset.productId, btn.dataset.reference, 'shipped'));
@@ -488,6 +494,55 @@ function renderOrders(orders) {
         btn.addEventListener('click', () => updateOrderStatus(btn.dataset.productId, btn.dataset.reference, 'delivered'));
     });
 }
+
+function openOrderDetails(order) {
+    const modal = document.getElementById('order-detail-modal');
+    const shippingPanel = document.getElementById('shipping-details-panel');
+    const digitalPanel = document.getElementById('digital-details-panel');
+
+    document.getElementById('order-detail-reference').textContent = order.reference || '—';
+    document.getElementById('order-detail-product-title').textContent = order.productTitle || '—';
+    document.getElementById('order-detail-quantity').textContent = order.quantity || '—';
+    document.getElementById('order-detail-amount').textContent = `₦${(order.vendorAmount || 0).toLocaleString()}`;
+    document.getElementById('order-detail-type').textContent = order.productType === 'physical' ? 'Physical' : 'Digital';
+    document.getElementById('order-detail-status').textContent = order.fulfillmentStatus || 'Unknown';
+    document.getElementById('order-detail-date').textContent = order.createdAt && order.createdAt._seconds
+        ? new Date(order.createdAt._seconds * 1000).toLocaleDateString()
+        : '—';
+
+    if (order.shippingAddress) {
+        shippingPanel.classList.remove('hidden');
+        digitalPanel.classList.add('hidden');
+        document.getElementById('order-detail-fullname').textContent = order.shippingAddress.fullName || '—';
+        document.getElementById('order-detail-phone').textContent = order.shippingAddress.phone || '—';
+        document.getElementById('order-detail-address').textContent = order.shippingAddress.address || '—';
+        document.getElementById('order-detail-city').textContent = order.shippingAddress.city || '—';
+        document.getElementById('order-detail-state').textContent = order.shippingAddress.state || '—';
+    } else {
+        shippingPanel.classList.add('hidden');
+        digitalPanel.classList.remove('hidden');
+    }
+
+    modal.classList.add('active');
+    document.body.style.overflow = 'hidden';
+}
+
+function closeOrderDetails() {
+    const modal = document.getElementById('order-detail-modal');
+    modal.classList.remove('active');
+    document.body.style.overflow = '';
+}
+
+const closeOrderDetailBtn = document.getElementById('close-order-detail-modal');
+if (closeOrderDetailBtn) {
+    closeOrderDetailBtn.addEventListener('click', closeOrderDetails);
+}
+
+document.getElementById('order-detail-modal')?.addEventListener('click', (event) => {
+    if (event.target === event.currentTarget) {
+        closeOrderDetails();
+    }
+});
 
 async function updateOrderStatus(productId, reference, action) {
     try {

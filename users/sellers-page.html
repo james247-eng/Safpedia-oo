@@ -185,6 +185,39 @@
         </main>
     </div>
 
+    <div class="modal-overlay" id="order-detail-modal">
+        <div class="modal-card">
+            <div class="modal-header">
+                <h2>Order details</h2>
+                <button type="button" class="modal-close-btn" id="close-order-detail-modal" aria-label="Close order details">&times;</button>
+            </div>
+            <div class="modal-body">
+                <div class="order-detail-section">
+                    <p class="order-detail-section-title">Order summary</p>
+                    <div class="order-detail-row"><div class="order-detail-label">Reference</div><div class="order-detail-value" id="order-detail-reference">—</div></div>
+                    <div class="order-detail-row"><div class="order-detail-label">Product</div><div class="order-detail-value" id="order-detail-product-title">—</div></div>
+                    <div class="order-detail-row"><div class="order-detail-label">Quantity</div><div class="order-detail-value" id="order-detail-quantity">—</div></div>
+                    <div class="order-detail-row"><div class="order-detail-label">Amount</div><div class="order-detail-value" id="order-detail-amount">—</div></div>
+                    <div class="order-detail-row"><div class="order-detail-label">Type</div><div class="order-detail-value" id="order-detail-type">—</div></div>
+                    <div class="order-detail-row"><div class="order-detail-label">Status</div><div class="order-detail-value" id="order-detail-status">—</div></div>
+                    <div class="order-detail-row"><div class="order-detail-label">Date</div><div class="order-detail-value" id="order-detail-date">—</div></div>
+                </div>
+                <div class="order-detail-section" id="shipping-details-panel">
+                    <p class="order-detail-section-title">Shipping details</p>
+                    <div class="order-detail-row"><div class="order-detail-label">Full name</div><div class="order-detail-value" id="order-detail-fullname">—</div></div>
+                    <div class="order-detail-row"><div class="order-detail-label">Phone</div><div class="order-detail-value" id="order-detail-phone">—</div></div>
+                    <div class="order-detail-row"><div class="order-detail-label">Address</div><div class="order-detail-value" id="order-detail-address">—</div></div>
+                    <div class="order-detail-row"><div class="order-detail-label">City</div><div class="order-detail-value" id="order-detail-city">—</div></div>
+                    <div class="order-detail-row"><div class="order-detail-label">State</div><div class="order-detail-value" id="order-detail-state">—</div></div>
+                </div>
+                <div class="order-detail-section hidden" id="digital-details-panel">
+                    <p class="order-detail-section-title">Digital order</p>
+                    <p class="order-detail-empty">This order does not require shipping. Buyer contact details are available from the order record if provided at checkout.</p>
+                </div>
+            </div>
+        </div>
+    </div>
+
     <script type="module" src="js/seller-dashboard.js"></script>
     <script src="js/dashboard-nav.js"></script>
     <script>
