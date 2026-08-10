@@ -7,76 +7,165 @@
 .product-details-wrapper {
     max-width: 1100px;
     margin: 0 auto;
-    padding: 32px 20px 80px;
+    padding: 28px 18px 72px;
+    color: #111827;
+    overflow: hidden;
 }
 
 .product-details-grid {
     display: grid;
-    grid-template-columns: 1fr 1fr;
-    gap: 40px;
+    grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+    gap: 36px;
+    align-items: start;
+    min-width: 0;
 }
 
-@media (max-width: 800px) {
+.product-gallery,
+.product-info-panel {
+    min-width: 0;
+}
+
+.product-gallery {
+    overflow: hidden;
+}
+
+.product-info-panel {
+    display: flex;
+    flex-direction: column;
+    gap: 18px;
+}
+
+@media (max-width: 860px) {
+    .product-details-wrapper {
+        padding: 24px 16px 60px;
+    }
     .product-details-grid {
         grid-template-columns: 1fr;
+        gap: 24px;
+    }
+}
+
+@media (max-width: 520px) {
+    .product-details-wrapper {
+        padding: 20px 14px 48px;
+    }
+    .product-details-grid {
+        gap: 20px;
+    }
+    .product-info-panel h1 {
+        font-size: clamp(1.7rem, 7vw, 2rem);
+    }
+    .product-price-row .product-cost {
+        font-size: clamp(1.7rem, 7vw, 2rem);
+    }
+    .product-full-description {
+        font-size: 0.95rem;
+        line-height: 1.7;
     }
 }
 
 /* ---- Gallery ---- */
 .gallery-main {
-    border-radius: 12px;
+    border-radius: 18px;
     overflow: hidden;
     background: #f4f5f7;
     aspect-ratio: 1 / 1;
+    min-width: 0;
+    max-width: 100%;
 }
 
 .gallery-main img {
     width: 100%;
     height: 100%;
     object-fit: cover;
+    display: block;
+    max-width: 100%;
 }
 
 .gallery-thumbs {
     display: flex;
     gap: 10px;
-    margin-top: 12px;
+    margin-top: 14px;
     flex-wrap: wrap;
+    align-items: center;
 }
 
 .gallery-thumb {
     width: 64px;
     height: 64px;
     object-fit: cover;
-    border-radius: 8px;
+    border-radius: 12px;
     cursor: pointer;
     border: 2px solid transparent;
-    transition: border-color 0.15s ease;
+    transition: border-color 0.18s ease, transform 0.18s ease;
 }
 
-.gallery-thumb:hover {
+.gallery-thumb:hover,
+.gallery-thumb.active {
     border-color: #4a7dff;
+    transform: translateY(-1px);
+}
+
+@media (max-width: 520px) {
+    .gallery-thumbs {
+        gap: 8px;
+    }
+    .gallery-thumb {
+        width: 52px;
+        height: 52px;
+    }
 }
 
 /* ---- Info panel ---- */
 .product-info-panel h1 {
-    margin: 6px 0 4px;
-    font-size: 1.8rem;
+    margin: 6px 0 10px;
+    font-size: clamp(1.85rem, 5vw, 2.4rem);
+    line-height: 1.08;
+    letter-spacing: -0.03em;
+    max-width: 720px;
+}
+
+.category-meta {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    padding: 8px 12px;
+    border-radius: 999px;
+    background: #eef2ff;
+    color: #1d4ed8;
+    font-size: 0.82rem;
+    font-weight: 700;
+    letter-spacing: .04em;
+    text-transform: uppercase;
 }
 
 .product-vendor {
     color: #6b7280;
-    margin-bottom: 16px;
+    margin-bottom: 18px;
+    font-size: 0.96rem;
 }
 
 .product-price-row {
     display: flex;
-    align-items: center;
-    gap: 12px;
-    margin-bottom: 10px;
+    align-items: flex-end;
+    flex-wrap: wrap;
+    gap: 14px;
+    margin-bottom: 16px;
 }
 
 .product-price-row .product-cost {
-    font-size: 1.5rem;
+    font-size: clamp(1.85rem, 5vw, 2.1rem);
+    font-weight: 800;
+    letter-spacing: -0.02em;
+}
+
+#product-type-badge.physical,
+#product-type-badge.digital {
+    border-radius: 999px;
+    padding: 8px 14px;
+    text-transform: uppercase;
+    letter-spacing: .04em;
+    font-size: 0.78rem;
     font-weight: 700;
 }
 
@@ -91,16 +180,24 @@
 }
 
 .stock-note {
-    font-size: 0.9rem;
-    color: #6b7280;
-    margin-bottom: 16px;
+    font-size: 0.95rem;
+    color: #54616f;
+    margin-bottom: 18px;
 }
 
 .product-full-description {
-    line-height: 1.6;
-    color: #374151;
-    margin-bottom: 20px;
+    line-height: 1.75;
+    color: #334155;
+    margin-bottom: 24px;
     white-space: pre-wrap;
+    font-size: 0.98rem;
+    max-width: 100%;
+}
+
+@media (max-width: 520px) {
+    .product-info-panel h1 {
+        margin-top: 0;
+    }
 }
 
 /* ---- Quantity ---- */
@@ -108,41 +205,55 @@
     display: flex;
     align-items: center;
     gap: 10px;
-    margin-bottom: 16px;
+    margin-bottom: 18px;
+    flex-wrap: wrap;
 }
 
 .quantity-row input {
-    width: 80px;
-    padding: 8px 10px;
+    width: 84px;
+    min-width: 72px;
+    padding: 10px 12px;
     border: 1px solid #d8dce1;
-    border-radius: 8px;
+    border-radius: 10px;
+    font-family: inherit;
+}
+
+@media (max-width: 520px) {
+    .quantity-row {
+        flex-direction: column;
+        align-items: stretch;
+    }
+    .quantity-row input {
+        width: 100%;
+    }
 }
 
 /* ---- Shipping form ---- */
 .shipping-form {
-    margin: 10px 0 20px;
-    padding: 16px;
-    border-radius: 10px;
-    background: #f7f9fc;
-    border: 1px solid #e5e9f0;
+    margin: 12px 0 24px;
+    padding: 20px;
+    border-radius: 18px;
+    background: #f8fafc;
+    border: 1px solid #e2e8f0;
 }
 
 .shipping-form h3 {
     margin-top: 0;
-    margin-bottom: 12px;
-    font-size: 1rem;
+    margin-bottom: 14px;
+    font-size: 1.05rem;
+    letter-spacing: -0.02em;
 }
 
 .shipping-form .form-row {
     display: flex;
     flex-direction: column;
-    gap: 4px;
-    margin-bottom: 12px;
+    gap: 6px;
+    margin-bottom: 14px;
 }
 
 .shipping-form .form-row-inline {
     display: flex;
-    gap: 12px;
+    gap: 14px;
 }
 
 .shipping-form .form-row-inline .form-row {
@@ -150,10 +261,16 @@
 }
 
 .shipping-form input {
-    padding: 9px 11px;
+    padding: 11px 13px;
     border: 1px solid #d8dce1;
-    border-radius: 8px;
+    border-radius: 12px;
     font-family: inherit;
+}
+
+@media (max-width: 600px) {
+    .shipping-form .form-row-inline {
+        flex-direction: column;
+    }
 }
 
 /* ---- Buy button + status ---- */
@@ -161,15 +278,22 @@
     width: 100%;
     padding: 14px;
     font-size: 1rem;
+    border-radius: 14px;
+    transition: transform 0.15s ease, box-shadow 0.15s ease;
+}
+
+.buy-now-btn:hover {
+    transform: translateY(-1px);
 }
 
 .purchase-status {
     margin-top: 12px;
     padding: 10px 14px;
-    border-radius: 8px;
+    border-radius: 10px;
     background: #eef3ff;
     color: #274690;
-    font-size: 0.9rem;
+    font-size: 0.95rem;
+    line-height: 1.5;
 }
 
 .purchase-status.status-error {
