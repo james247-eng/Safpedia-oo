@@ -228,6 +228,19 @@ function wireLessonCard(root) {
   const zoomStartDisplay = root.querySelector('.lesson-zoom-start-display');
   const zoomMeetingIdInput = root.querySelector('.lesson-zoom-meeting-id');
   const createZoomButton = root.querySelector('.lesson-create-zoom-btn');
+  // NOTE: these must be cached here (at wire-time) rather than looked up
+  // inside the click handlers below. `root` is a DocumentFragment while
+  // wireLessonCard() runs, but once the card is appended to the live DOM
+  // via appendChild(), the fragment's children are MOVED out and `root`
+  // becomes empty. Any `root.querySelector(...)` called later (i.e. inside
+  // an event handler) then returns null. Caching the references now avoids
+  // querying the now-empty fragment later.
+  const lessonTitleInput = root.querySelector('.lesson-title');
+  const liveDatetimeInput = root.querySelector('.lesson-live-datetime');
+  const liveDurationInput = root.querySelector('.lesson-live-duration');
+  const zoomJoinUrlHidden = root.querySelector('.lesson-zoom-join-url');
+  const zoomStartUrlHidden = root.querySelector('.lesson-zoom-start-url');
+  const zoomStatusEl = root.querySelector('.lesson-zoom-status');
 
   function refreshZoomMeetingState() {
     const hasMeeting = zoomMeetingIdInput.value.trim().length > 0 ||
@@ -262,39 +275,38 @@ function wireLessonCard(root) {
 
   function updateZoomMeetingInfo(meeting) {
     if (meeting.joinUrl) {
-      root.querySelector('.lesson-zoom-join-url').value = meeting.joinUrl;
+      zoomJoinUrlHidden.value = meeting.joinUrl;
       zoomJoinDisplay.value = meeting.joinUrl;
     }
     if (meeting.startUrl) {
-      root.querySelector('.lesson-zoom-start-url').value = meeting.startUrl;
+      zoomStartUrlHidden.value = meeting.startUrl;
       zoomStartDisplay.value = meeting.startUrl;
     }
     if (meeting.meetingId) {
       zoomMeetingIdInput.value = meeting.meetingId;
     }
     if (meeting.startTime) {
-      root.querySelector('.lesson-zoom-status').textContent = `Meeting scheduled ${new Date(meeting.startTime).toLocaleString()} ✓ (ID: ${meeting.meetingId})`;
+      zoomStatusEl.textContent = `Meeting scheduled ${new Date(meeting.startTime).toLocaleString()} ✓ (ID: ${meeting.meetingId})`;
     } else {
-      root.querySelector('.lesson-zoom-status').textContent = `Meeting created ✓ (ID: ${meeting.meetingId})`;
+      zoomStatusEl.textContent = `Meeting created ✓ (ID: ${meeting.meetingId})`;
     }
-    root.querySelector('.lesson-zoom-status').style.color = '#059669';
+    zoomStatusEl.style.color = '#059669';
     refreshZoomMeetingState();
   }
 
   // Create Zoom meeting for a live lesson
-  root.querySelector('.lesson-create-zoom-btn').addEventListener('click', async () => {
-    const statusEl = root.querySelector('.lesson-zoom-status');
-    const topic = root.querySelector('.lesson-title').value.trim() || 'Live Class Session';
-    const startTime = root.querySelector('.lesson-live-datetime').value;
-    const durationMinutes = parseInt(root.querySelector('.lesson-live-duration').value) || 60;
+  createZoomButton.addEventListener('click', async () => {
+    const topic = lessonTitleInput.value.trim() || 'Live Class Session';
+    const startTime = liveDatetimeInput.value;
+    const durationMinutes = parseInt(liveDurationInput.value) || 60;
 
     if (!startTime) {
       showAlert('Set a session date & time first', 'error');
       return;
     }
 
-    statusEl.textContent = 'Creating Zoom meeting...';
-    statusEl.style.color = '#9ca3af';
+    zoomStatusEl.textContent = 'Creating Zoom meeting...';
+    zoomStatusEl.style.color = '#9ca3af';
 
     try {
       const idToken = await auth.currentUser.getIdToken();
@@ -306,15 +318,15 @@ function wireLessonCard(root) {
       const json = await res.json();
 
       if (!res.ok) {
-        statusEl.textContent = 'Error: ' + (json.error || 'Could not create meeting');
-        statusEl.style.color = '#ef4444';
+        zoomStatusEl.textContent = 'Error: ' + (json.error || 'Could not create meeting');
+        zoomStatusEl.style.color = '#ef4444';
         return;
       }
 
       updateZoomMeetingInfo(json);
     } catch (error) {
-      statusEl.textContent = 'Error: ' + error.message;
-      statusEl.style.color = '#ef4444';
+      zoomStatusEl.textContent = 'Error: ' + error.message;
+      zoomStatusEl.style.color = '#ef4444';
     }
   });
 
