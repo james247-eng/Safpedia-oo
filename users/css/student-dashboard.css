@@ -30,6 +30,70 @@ body {
 
 ion-icon { vertical-align: middle; font-size: 1.15em; }
 
+
+
+
+
+
+
+
+
+.btn {
+  padding: 12px 24px;
+  border: none;
+  border-radius: 8px;
+  font-size: 15px;
+  font-weight: 600;
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  transition: all 0.3s;
+}
+
+.btn ion-icon {
+  font-size: 20px;
+}
+
+.btn-primary {
+  background: var(--blue);
+  color: white;
+}
+
+.btn-primary:hover {
+  background: var(--blue-dark);
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(41, 84, 255, 0.3);
+}
+
+.btn-secondary {
+  background: transparent;
+  color: var(--blue);
+  border: 1.5px solid var(--blue);
+}
+
+.btn-secondary:hover {
+  background: var(--blue-tint);
+}
+
+.btn-success {
+  background: #10b981;
+  color: white;
+  width: 100%;
+  justify-content: center;
+}
+
+.btn-success:hover {
+  background: #059669;
+}
+
+
+
+
+
+
+
+
 /* ---------- LAYOUT ---------- */
 .dashboard-layout {
   display: grid;
