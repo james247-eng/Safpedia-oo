@@ -1,6 +1,9 @@
 const { getFirebaseAdmin } = require('../../lib/firebase-admin');
 const { requireAdmin } = require('../../lib/auth');
 
+let cachedZoomAccessToken = null;
+let cachedZoomAccessTokenExpiresAt = 0;
+
 /**
  * Zoom Server-to-Server OAuth token exchange.
  * Requires a Server-to-Server OAuth app created in the Zoom Marketplace
@@ -15,6 +18,10 @@ async function getZoomAccessToken() {
     throw new Error('Zoom credentials not configured (ZOOM_ACCOUNT_ID / ZOOM_CLIENT_ID / ZOOM_CLIENT_SECRET)');
   }
 
+  if (cachedZoomAccessToken && Date.now() < cachedZoomAccessTokenExpiresAt - 60000) {
+    return cachedZoomAccessToken;
+  }
+
   const basicAuth = Buffer.from(`${clientId}:${clientSecret}`).toString('base64');
 
   const tokenRes = await fetch(
@@ -27,9 +34,14 @@ async function getZoomAccessToken() {
 
   const tokenJson = await tokenRes.json();
   if (!tokenJson.access_token) {
-    throw new Error(tokenJson.reason || 'Could not obtain Zoom access token');
+    throw new Error(tokenJson.reason || tokenJson.error || 'Could not obtain Zoom access token');
   }
-  return tokenJson.access_token;
+
+  cachedZoomAccessToken = tokenJson.access_token;
+  const expiresIn = Number(tokenJson.expires_in) || 3600;
+  cachedZoomAccessTokenExpiresAt = Date.now() + expiresIn * 1000;
+
+  return cachedZoomAccessToken;
 }
 
 /**
@@ -52,6 +64,11 @@ module.exports = async (req, res) => {
       return res.status(400).json({ error: 'Missing topic or startTime' });
     }
 
+    const parsedStartTime = new Date(startTime);
+    if (Number.isNaN(parsedStartTime.getTime())) {
+      return res.status(400).json({ error: 'Invalid startTime value' });
+    }
+
     const accessToken = await getZoomAccessToken();
 
     const meetingRes = await fetch('https://api.zoom.us/v2/users/me/meetings', {
@@ -61,11 +78,11 @@ module.exports = async (req, res) => {
         'Content-Type': 'application/json'
       },
       body: JSON.stringify({
-        topic,
+        topic: String(topic).trim(),
         type: 2, // scheduled meeting
-        start_time: new Date(startTime).toISOString(),
-        duration: durationMinutes || 60,
-        timezone: 'Africa/Lagos',
+        start_time: parsedStartTime.toISOString(),
+        duration: Number(durationMinutes) || 60,
+        timezone: process.env.ZOOM_TIMEZONE || 'Africa/Lagos',
         settings: {
           join_before_host: false,
           waiting_room: true,

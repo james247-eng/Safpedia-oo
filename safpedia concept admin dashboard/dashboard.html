@@ -479,6 +479,18 @@
       </div>
       <button type="button" class="btn btn-secondary btn-sm lesson-create-zoom-btn">Create Zoom Meeting</button>
       <p class="lesson-zoom-status" style="font-size:12px; color:#9ca3af; margin-top:8px;"></p>
+      <div class="lesson-zoom-links" style="display:none; margin-top:12px;">
+        <div class="form-group">
+          <label class="form-label">Zoom Join Link</label>
+          <input type="text" readonly class="form-input lesson-zoom-join-display" placeholder="Join URL will appear here">
+          <button type="button" class="btn btn-secondary btn-sm lesson-copy-join-link-btn" style="margin-top:8px;">Copy Join Link</button>
+        </div>
+        <div class="form-group" style="margin-top:10px;">
+          <label class="form-label">Host Start Link</label>
+          <input type="text" readonly class="form-input lesson-zoom-start-display" placeholder="Host start URL will appear here">
+          <button type="button" class="btn btn-secondary btn-sm lesson-copy-start-link-btn" style="margin-top:8px;">Copy Host Link</button>
+        </div>
+      </div>
       <input type="hidden" class="lesson-zoom-join-url">
       <input type="hidden" class="lesson-zoom-start-url">
       <input type="hidden" class="lesson-zoom-meeting-id">

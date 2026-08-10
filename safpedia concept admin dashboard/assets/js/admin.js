@@ -223,6 +223,64 @@ function wireLessonCard(root) {
     }
   });
 
+  const zoomInfoPanel = root.querySelector('.lesson-zoom-links');
+  const zoomJoinDisplay = root.querySelector('.lesson-zoom-join-display');
+  const zoomStartDisplay = root.querySelector('.lesson-zoom-start-display');
+  const zoomMeetingIdInput = root.querySelector('.lesson-zoom-meeting-id');
+  const createZoomButton = root.querySelector('.lesson-create-zoom-btn');
+
+  function refreshZoomMeetingState() {
+    const hasMeeting = zoomMeetingIdInput.value.trim().length > 0 ||
+      zoomJoinDisplay.value.trim().length > 0 ||
+      zoomStartDisplay.value.trim().length > 0;
+    createZoomButton.disabled = hasMeeting;
+    createZoomButton.textContent = hasMeeting ? 'Zoom meeting created' : 'Create Zoom Meeting';
+    zoomInfoPanel.style.display = hasMeeting ? 'block' : 'none';
+  }
+
+  async function copyMeetingLink(value, label) {
+    if (!value) {
+      showAlert(`No ${label} available to copy`, 'error');
+      return;
+    }
+    try {
+      await navigator.clipboard.writeText(value);
+      showAlert(`${label} copied to clipboard`, 'success');
+    } catch (copyError) {
+      console.error('Copy failed:', copyError);
+      showAlert(`Unable to copy ${label}`, 'error');
+    }
+  }
+
+  root.querySelector('.lesson-copy-join-link-btn')?.addEventListener('click', () => {
+    copyMeetingLink(zoomJoinDisplay.value.trim(), 'Zoom join link');
+  });
+
+  root.querySelector('.lesson-copy-start-link-btn')?.addEventListener('click', () => {
+    copyMeetingLink(zoomStartDisplay.value.trim(), 'Host start link');
+  });
+
+  function updateZoomMeetingInfo(meeting) {
+    if (meeting.joinUrl) {
+      root.querySelector('.lesson-zoom-join-url').value = meeting.joinUrl;
+      zoomJoinDisplay.value = meeting.joinUrl;
+    }
+    if (meeting.startUrl) {
+      root.querySelector('.lesson-zoom-start-url').value = meeting.startUrl;
+      zoomStartDisplay.value = meeting.startUrl;
+    }
+    if (meeting.meetingId) {
+      zoomMeetingIdInput.value = meeting.meetingId;
+    }
+    if (meeting.startTime) {
+      root.querySelector('.lesson-zoom-status').textContent = `Meeting scheduled ${new Date(meeting.startTime).toLocaleString()} ✓ (ID: ${meeting.meetingId})`;
+    } else {
+      root.querySelector('.lesson-zoom-status').textContent = `Meeting created ✓ (ID: ${meeting.meetingId})`;
+    }
+    root.querySelector('.lesson-zoom-status').style.color = '#059669';
+    refreshZoomMeetingState();
+  }
+
   // Create Zoom meeting for a live lesson
   root.querySelector('.lesson-create-zoom-btn').addEventListener('click', async () => {
     const statusEl = root.querySelector('.lesson-zoom-status');
@@ -253,16 +311,14 @@ function wireLessonCard(root) {
         return;
       }
 
-      root.querySelector('.lesson-zoom-join-url').value = json.joinUrl;
-      root.querySelector('.lesson-zoom-start-url').value = json.startUrl;
-      root.querySelector('.lesson-zoom-meeting-id').value = json.meetingId;
-      statusEl.textContent = `Meeting created ✓ (ID: ${json.meetingId})`;
-      statusEl.style.color = '#059669';
+      updateZoomMeetingInfo(json);
     } catch (error) {
       statusEl.textContent = 'Error: ' + error.message;
       statusEl.style.color = '#ef4444';
     }
   });
+
+  refreshZoomMeetingState();
 }
 
 // Uploads a file to Cloudinary via a signed request
@@ -428,9 +484,14 @@ function populateLessons(lessons) {
         const localIso = new Date(dt.getTime() - dt.getTimezoneOffset() * 60000).toISOString().slice(0, 16);
         clone.querySelector('.lesson-live-datetime').value = localIso;
       }
-      if (lesson.zoomMeetingId) {
+
+      if (lesson.zoomMeetingId || lesson.zoomJoinUrl) {
+        clone.querySelector('.lesson-zoom-join-display').value = lesson.zoomJoinUrl || '';
+        clone.querySelector('.lesson-zoom-start-display').value = lesson.zoomStartUrl || '';
         const statusEl = clone.querySelector('.lesson-zoom-status');
-        statusEl.textContent = `Meeting exists (ID: ${lesson.zoomMeetingId})`;
+        statusEl.textContent = lesson.zoomMeetingId
+          ? `Meeting exists (ID: ${lesson.zoomMeetingId})`
+          : 'Zoom meeting already configured';
         statusEl.style.color = '#059669';
       }
     }
