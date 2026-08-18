@@ -32,9 +32,20 @@
 .product-info-panel {
     display: flex;
     flex-direction: column;
-    gap: 18px;
+    gap: 8px;
 }
 
+.product-price-row .product-cost {
+
+    font-size: 0.85rem, ;
+    font-weight: 800;
+    letter-spacing: -0.02em;
+    color: #08d173;
+}
+
+.product-price-row{
+display: flex;
+}
 @media (max-width: 860px) {
     .product-details-wrapper {
         padding: 24px 16px 60px;
@@ -52,7 +63,7 @@
     .product-details-grid {
         gap: 20px;
     }
-    .product-info-panel h1 {
+    .product-info-panel h3 {
         font-size: clamp(1.7rem, 7vw, 2rem);
     }
     .product-price-row .product-cost {
