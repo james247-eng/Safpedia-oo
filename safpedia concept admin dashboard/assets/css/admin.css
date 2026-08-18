@@ -701,4 +701,7 @@ tr:last-child td {
     #page-title {
         font-size: 20px;
     }
+    .stats-grid{
+        grid-template-columns: repeat(2, 1fr);
+    }
 }

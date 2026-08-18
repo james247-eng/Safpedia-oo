@@ -1196,7 +1196,6 @@ document.getElementById('create-affiliate-form').addEventListener('submit', asyn
     showAlert('Enter a valid commission rate between 1 and 100', 'error');
     return;
   }
-
   try {
     const idToken = await auth.currentUser.getIdToken();
     const res = await fetch('/api/affiliates/create-account', {
