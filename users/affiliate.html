@@ -79,11 +79,11 @@
                 <div class="courses-section is-hidden" data-view="apply">
                     <h2>Apply to become an affiliate</h2>
                     <p>Tell us a bit about how you plan to share our courses.</p>
-                    <label class="field-label" for="apply-reason">Why do you want to join? (optional)</label>
+                    <label class="field-label" for="apply-reason">Why do you want to join? <span>(Optional)</span></label>
                     <textarea id="apply-reason" rows="3" class="form-field"></textarea>
                     <label class="field-label" for="apply-social-link">Your social/website link (optional)</label>
-                    <input type="text" id="apply-social-link" placeholder="https://instagram.com/yourhandle" class="form-field">
-                    <button class="btn btn-primary" id="apply-btn">Submit Application</button>
+                    <input type="url" id="apply-social-link" placeholder="https://instagram.com/yourhandle" class="form-field" autocomplete="url">
+                    <div class="application-submit"><span>Your application is usually reviewed within 2 business days.</span><button class="btn btn-primary" id="apply-btn">Submit Application</button></div>
                 </div>
 
                 <!-- STATE: Pending -->
@@ -120,7 +120,7 @@
                         </div>
                     </div>
 
-                    <div class="stats-grid">
+                    <div class="stats-grid" aria-label="Affiliate performance summary">
                         <div class="stat-card">
                             <div class="stat-icon stat-icon--earned"><ion-icon name="cash-outline"></ion-icon></div>
                             <div class="stat-info"><h3 id="stat-total-earned">₦0</h3><p>Total Earned</p></div>

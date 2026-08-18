@@ -129,6 +129,11 @@
   transition: border-color .18s ease, box-shadow .18s ease;
 }
 
+/* Application and metric hierarchy */
+.field-label span{color:var(--ink-soft);font-weight:400}.application-submit{display:flex;align-items:center;justify-content:space-between;gap:18px;padding-top:16px;border-top:1px solid var(--border)}.application-submit>span{max-width:360px;color:var(--ink-soft);font-size:12px;line-height:1.45}
+.stat-card{position:relative;min-height:112px}.stat-card::after{content:"";position:absolute;left:0;top:18px;bottom:18px;width:3px;border-radius:3px;background:var(--blue);opacity:.75}.stat-card:nth-child(1)::after{background:#087f5b}.stat-card:nth-child(3)::after{background:#d97706}.stat-card:nth-child(4)::after{background:#4f46e5}.stat-info h3{font-variant-numeric:tabular-nums}.stat-info p{margin-top:3px}
+@media(max-width:640px){.application-submit{align-items:stretch;flex-direction:column}.application-submit .btn{width:100%;justify-content:center}}
+
 .form-field:focus {
   outline: none;
   border-color: var(--blue);

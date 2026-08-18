@@ -84,14 +84,16 @@
                 <p>List a physical or digital product. No approval needed — it goes live immediately.</p>
 
                 <form id="add-product-form" class="seller-form">
+                    <div class="form-intro"><strong>Product information</strong><span>Fields marked required must be completed before publishing.</span></div>
                     <div class="form-row">
-                        <label for="product-title">Title</label>
+                        <label for="product-title">Title <span class="required-mark">Required</span></label>
                         <input type="text" id="product-title" maxlength="120" required>
                     </div>
 
                     <div class="form-row">
                         <label for="product-description">Description</label>
-                        <textarea id="product-description" rows="4" maxlength="5000"></textarea>
+                        <textarea id="product-description" rows="4" maxlength="5000" placeholder="Describe what the buyer will receive..."></textarea>
+                        <small class="field-hint">Use a clear description with key details, delivery expectations, and requirements.</small>
                     </div>
 
                     <div class="form-row">
@@ -129,7 +131,7 @@
 
                     <div id="upload-progress" class="upload-progress hidden"></div>
 
-                    <button type="submit" id="submit-product-btn" class="btn btn-primary">Publish Product</button>
+                    <div class="form-submit-row"><span class="form-submit-note">Your listing will be visible immediately after publishing.</span><button type="submit" id="submit-product-btn" class="btn btn-primary">Publish Product</button></div>
                 </form>
             </section>
 
@@ -161,7 +163,7 @@
                     </div>
                 </div>
 
-                <button type="button" id="request-payout-btn" class="btn btn-primary">Request Payout</button>
+                <div class="payout-action"><div><strong>Ready to withdraw?</strong><span>Requests are reviewed before transfer.</span></div><button type="button" id="request-payout-btn" class="btn btn-primary">Request Payout</button></div>
                 <h3>Bank Account</h3>
                 <div id="bank-account-display" class="bank-account-display"></div>
 

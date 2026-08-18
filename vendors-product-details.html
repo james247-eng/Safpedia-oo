@@ -72,7 +72,8 @@
 
 
     <main class="product-details-wrapper">
-        <div id="product-loading" class="loading-placeholder">Loading product...</div>
+        <nav class="product-breadcrumb" aria-label="Breadcrumb"><a href="marketplace.html">Marketplace</a><ion-icon name="chevron-forward-outline"></ion-icon><span>Product details</span></nav>
+        <div id="product-loading" class="product-loading-state" role="status" aria-live="polite"><div class="product-loading-image"></div><div class="product-loading-copy"><span></span><span></span><span></span></div><span class="sr-only">Loading product...</span></div>
         <div id="product-error" class="error-state hidden"></div>
 
         <div id="product-content" class="product-details-grid hidden">
@@ -99,6 +100,7 @@
                 <p id="product-stock-note" class="stock-note hidden"></p>
 
                 <p id="product-description" class="product-full-description"></p>
+                <div class="purchase-benefits" aria-label="Purchase benefits"><span><ion-icon name="shield-checkmark-outline"></ion-icon> Secure Paystack checkout</span><span><ion-icon name="receipt-outline"></ion-icon> Order confirmation provided</span></div>
 
                 <div class="quantity-row" id="quantity-row">
                     <label for="quantity-input">Quantity</label>
@@ -110,29 +112,30 @@
                     <h3>Shipping Details</h3>
                     <div class="form-row">
                         <label for="ship-fullname">Full Name</label>
-                        <input type="text" id="ship-fullname" required>
+                        <input type="text" id="ship-fullname" autocomplete="name" required>
                     </div>
                     <div class="form-row">
                         <label for="ship-phone">Phone Number</label>
-                        <input type="tel" id="ship-phone" required>
+                        <input type="tel" id="ship-phone" autocomplete="tel" inputmode="tel" required>
                     </div>
                     <div class="form-row">
                         <label for="ship-address">Address</label>
-                        <input type="text" id="ship-address" required>
+                        <input type="text" id="ship-address" autocomplete="street-address" required>
                     </div>
                     <div class="form-row-inline">
                         <div class="form-row">
                             <label for="ship-city">City</label>
-                            <input type="text" id="ship-city" required>
+                            <input type="text" id="ship-city" autocomplete="address-level2" required>
                         </div>
                         <div class="form-row">
                             <label for="ship-state">State</label>
-                            <input type="text" id="ship-state" required>
+                            <input type="text" id="ship-state" autocomplete="address-level1" required>
                         </div>
                     </div>
                 </div>
 
                 <button id="buy-now-btn" class="btn btn-primary buy-now-btn">Buy Now</button>
+                <p class="checkout-note"><ion-icon name="lock-closed-outline"></ion-icon> Payment details are handled securely by Paystack.</p>
                 <p id="purchase-status" class="purchase-status hidden"></p>
             </section>
         </div>

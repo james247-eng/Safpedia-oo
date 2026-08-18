@@ -205,6 +205,12 @@
     }
 }
 
+/* Workflow hierarchy */
+.form-intro{display:flex;align-items:flex-start;justify-content:space-between;gap:18px;padding-bottom:16px;border-bottom:1px solid var(--border)}
+.form-intro strong{color:var(--ink);font-size:15px}.form-intro span,.field-hint,.form-submit-note{color:var(--ink-soft);font-size:12px;line-height:1.45}.required-mark{margin-left:6px;color:var(--red);font-size:10px;font-weight:700;text-transform:uppercase}.form-submit-row{display:flex;align-items:center;justify-content:space-between;gap:20px;padding-top:18px;border-top:1px solid var(--border)}.form-submit-note{max-width:360px}
+.balance-card:first-child{border-color:rgba(41,84,255,.3);background:var(--blue-tint)}.balance-card:first-child .balance-value{color:var(--blue)}.balance-value{font-variant-numeric:tabular-nums}.payout-action{display:flex;align-items:center;justify-content:space-between;gap:18px;padding:18px 20px;margin-bottom:28px;border:1px solid var(--border);border-radius:var(--radius-md);background:var(--white)}.payout-action>div{display:grid;gap:4px}.payout-action strong{color:var(--ink);font-size:14px}.payout-action span{color:var(--ink-soft);font-size:12px}
+@media(max-width:640px){.form-intro,.form-submit-row,.payout-action{align-items:stretch;flex-direction:column}.form-submit-row .btn,.payout-action .btn{width:100%}}
+
 /* Foundation alignment for the seller workflow */
 .seller-form { max-width: 720px; gap: 20px; padding: 24px; background: var(--white); border: 1px solid var(--border); border-radius: var(--radius-md); }
 .seller-form .form-row { gap: 8px; }

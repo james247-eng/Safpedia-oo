@@ -499,6 +499,9 @@ tr:last-child td {
   .modal-content { width: 100%; max-height: 94vh; border-radius: 16px 16px 0 0; }
 }
 
+/* Dense admin data remains readable and actionable. */
+.stat-card{position:relative;overflow:hidden}.stat-card::before{content:"";position:absolute;left:0;top:0;bottom:0;width:3px;background:var(--color-primary)}.stat-value{font-variant-numeric:tabular-nums;letter-spacing:-.03em}.table-container{border:1px solid var(--border-color);border-radius:var(--radius-lg);overflow:auto}.table-container table{min-width:720px}.table-container thead{position:sticky;top:0;z-index:2}.table-container tbody tr{transition:background .15s ease}.table-container tbody tr:hover{background:#f8fafc}.empty-state{padding:46px 20px!important;color:var(--text-muted);line-height:1.6}
+
 .modal-header {
     display: flex;
     justify-content: space-between;
@@ -634,6 +637,39 @@ tr:last-child td {
 .action-buttons {
     display: flex;
     gap: 12px;
+}
+
+/* Course editor: make the long form scannable and keep its actions available. */
+#course-modal .modal-content { width: min(920px, 100%); }
+#course-form { padding: 24px; }
+#course-form::before {
+    content: "Course details";
+    display: block;
+    margin: 0 0 18px;
+    padding-bottom: 12px;
+    border-bottom: 1px solid var(--border-color);
+    color: var(--text-main);
+    font-size: 15px;
+    font-weight: 700;
+}
+#course-form .form-group { margin-bottom: 18px; }
+#course-form .form-row { margin-bottom: 18px; gap: 16px; }
+#course-form .form-input, #course-form .form-select, #course-form .form-textarea { min-height: 46px; background: #fff; }
+#course-form .form-textarea { min-height: 120px; }
+.lessons-section-wrapper { margin-left: -24px; margin-right: -24px; padding: 24px; background: #f8fafc; }
+.lessons-section-header { padding-bottom: 14px; border-bottom: 1px solid var(--border-color); }
+.lessons-section-header::after { content: "Build the learning path in the order learners will see it."; margin-left: auto; margin-right: 16px; color: var(--text-muted); font-size: 12px; }
+.lesson-card { background: #fff; padding: 20px; }
+.lesson-card .form-group { margin-bottom: 16px; }
+.lesson-card input[type="file"] { width: 100%; padding: 10px; border: 1px dashed var(--border-color); border-radius: var(--radius-md); background: #f8fafc; }
+.action-buttons-modal-row { margin: 0 -24px -24px; padding: 16px 24px; border-top: 1px solid var(--border-color); z-index: 2; }
+.action-buttons-modal-row .btn-primary { min-width: 140px; }
+@media (max-width: 768px) {
+    #course-form { padding: 18px; }
+    .lessons-section-wrapper { margin-left: -18px; margin-right: -18px; padding: 18px; }
+    .lessons-section-header { align-items: flex-start; flex-wrap: wrap; gap: 10px; }
+    .lessons-section-header::after { order: 3; flex-basis: 100%; margin: 0; }
+    .action-buttons-modal-row { margin: 0 -18px -18px; padding: 14px 18px; }
 }
 
 /* ====================================================================
