@@ -6,6 +6,7 @@
   <title>Admin Dashboard - SAFpedia</title>
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
   <link rel="icon" type="image/x-icon" href="favicon.ico">
+  <link rel="stylesheet" href="../users/css/ui-foundation.css">
   <link rel="stylesheet" href="assets/css/admin.css">
   <script type="module" src="https://unpkg.com/ionicons@7.1.0/dist/ionicons/ionicons.esm.js"></script>
   <script nomodule src="https://unpkg.com/ionicons@7.1.0/dist/ionicons/ionicons.js"></script>
@@ -318,11 +319,11 @@
   </div>
 
 <!-- Add/Edit Course Modal with Lessons Support -->
-<div class="modal" id="course-modal">
-  <div class="modal-content">
+<div class="modal" id="course-modal" role="dialog" aria-modal="true" aria-labelledby="modal-title">
+  <div class="modal-content" tabindex="-1">
     <div class="modal-header">
       <h2 class="modal-title" id="modal-title">Add New Course</h2>
-      <button class="close-modal" id="close-modal">&times;</button>
+      <button type="button" class="close-modal" id="close-modal" aria-label="Close course editor">&times;</button>
     </div>
     <form id="course-form">
       <input type="hidden" id="course-id">
@@ -508,11 +509,11 @@
 </template>
 
   <!-- Approve Affiliate Modal -->
-  <div class="modal" id="approve-affiliate-modal">
-    <div class="modal-content" style="max-width: 480px;">
+  <div class="modal" id="approve-affiliate-modal" role="dialog" aria-modal="true" aria-labelledby="approve-affiliate-title">
+    <div class="modal-content" style="max-width: 480px;" tabindex="-1">
       <div class="modal-header">
-        <h2 class="modal-title">Approve Affiliate</h2>
-        <button class="close-modal" id="close-approve-modal">&times;</button>
+        <h2 class="modal-title" id="approve-affiliate-title">Approve Affiliate</h2>
+        <button type="button" class="close-modal" id="close-approve-modal" aria-label="Close affiliate approval">&times;</button>
       </div>
       <form id="approve-affiliate-form">
         <input type="hidden" id="approve-affiliate-uid">
@@ -531,11 +532,11 @@
   </div>
 
   <!-- Create Affiliate Account Modal -->
-  <div class="modal" id="create-affiliate-modal">
-    <div class="modal-content" style="max-width: 480px;">
+  <div class="modal" id="create-affiliate-modal" role="dialog" aria-modal="true" aria-labelledby="create-affiliate-title">
+    <div class="modal-content" style="max-width: 480px;" tabindex="-1">
       <div class="modal-header">
-        <h2 class="modal-title">Create Affiliate Account</h2>
-        <button class="close-modal" id="close-create-affiliate-modal">&times;</button>
+        <h2 class="modal-title" id="create-affiliate-title">Create Affiliate Account</h2>
+        <button type="button" class="close-modal" id="close-create-affiliate-modal" aria-label="Close affiliate account form">&times;</button>
       </div>
       <form id="create-affiliate-form">
         <div class="form-group">

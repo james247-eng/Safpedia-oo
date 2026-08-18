@@ -198,11 +198,29 @@
     }
 
 
-    products-grid {
+    .products-grid {
         display: block;
         overflow-x: auto;
         white-space: nowrap;
     }
+}
+
+/* Foundation alignment for the seller workflow */
+.seller-form { max-width: 720px; gap: 20px; padding: 24px; background: var(--white); border: 1px solid var(--border); border-radius: var(--radius-md); }
+.seller-form .form-row { gap: 8px; }
+.seller-form label { color: var(--ink); }
+.seller-form input[type="text"], .seller-form input[type="number"], .seller-form input[type="file"], .seller-form select, .seller-form textarea { min-height: 44px; border-color: var(--border); }
+.seller-form input[type="file"] { padding: 8px 10px; background: var(--surface); }
+.modal-overlay { backdrop-filter: blur(3px); }
+.modal-card { border-radius: 16px; }
+.modal-header { padding: 20px 24px; border-bottom: 1px solid var(--border); }
+.modal-body { padding: 24px; }
+.modal-close-btn { font-size: 0; }
+.modal-close-btn::before { content: "\\00d7"; font-size: 24px; line-height: 1; }
+@media (max-width: 640px) {
+  .seller-form { padding: 18px; }
+  .modal-overlay { align-items: flex-end; padding: 0; }
+  .modal-card { max-height: 94vh; border-radius: 16px 16px 0 0; }
 }
 
 /* ----------------------------------------------------------------
