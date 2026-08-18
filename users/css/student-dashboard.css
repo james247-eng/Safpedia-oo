@@ -620,6 +620,10 @@ ion-icon { vertical-align: middle; font-size: 1.15em; }
   .continue-hero h3 { font-size: 18px; }
 }
 
+.loading-placeholder span{position:relative;padding-top:48px;font-weight:600}.loading-placeholder span::before{content:"";position:absolute;left:50%;top:0;width:32px;height:32px;margin-left:-16px;border:3px solid var(--border);border-top-color:var(--blue);border-radius:50%;animation:state-spin .8s linear infinite}@keyframes state-spin{to{transform:rotate(360deg)}}
+.empty-state-block{border:1px dashed var(--border);border-radius:var(--radius-md);background:var(--white)}.empty-state-block.is-error{border-style:solid;border-color:rgba(255,59,92,.25);background:var(--red-tint)}.empty-state-block.is-error .btn{background:var(--white)}
+.error-state{display:grid;place-items:center;gap:10px;min-height:150px;line-height:1.55}.error-state::before{content:"!";display:grid;place-items:center;width:42px;height:42px;border-radius:50%;background:#fff;color:var(--red);font-size:20px;font-weight:800}
+
 /* Data-display system */
 .metric-card{position:relative;min-height:128px;display:flex;flex-direction:column;justify-content:space-between;overflow:hidden}.metric-card::before{content:"";position:absolute;left:0;top:0;bottom:0;width:4px;background:var(--blue)}.metric-card::after{content:"View details";font-size:11px;font-weight:700;color:var(--blue);margin-top:14px}.metric-card .value{letter-spacing:-.03em}
 .data-table-frame{box-shadow:var(--shadow-card)}.data-table-frame thead{position:sticky;top:0;z-index:1}.data-table-frame tbody tr{transition:background .15s ease}.data-table-frame td:first-child{font-weight:600}.table-empty-state{padding:52px 20px!important;line-height:1.6}.loading-placeholder{position:relative;min-height:180px;display:grid;place-items:center;border:1px dashed var(--border);border-radius:var(--radius-md);background:linear-gradient(90deg,var(--surface) 25%,#fff 37%,var(--surface) 63%);background-size:400% 100%;animation:dashboard-shimmer 1.5s ease infinite}@keyframes dashboard-shimmer{to{background-position:-135% 0}}

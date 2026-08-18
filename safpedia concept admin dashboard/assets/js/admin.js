@@ -649,6 +649,8 @@ async function loadCourses() {
 // loadCourses() and the search filter below so both stay in sync.
 function renderCoursesTable(courses) {
   const tbody = document.getElementById('courses-table-body');
+  const countEl = document.getElementById('courses-count');
+  if (countEl) countEl.textContent = `${courses.length} course${courses.length === 1 ? '' : 's'}`;
   tbody.innerHTML = '';
 
   if (courses.length === 0) {

@@ -82,7 +82,7 @@
                 <section id="vendors-pane" class="dashboard-section-card">
                     <h2>Vendors</h2>
                     <p>Every seller on SAFpedia's marketplace, with earnings and payout status.</p>
-                    <div id="vendors-list" class="data-table-wrapper">
+                    <div class="table-toolbar"><span class="table-result-count" id="vendors-count">Loading vendors...</span></div><div id="vendors-list" class="data-table-wrapper">
                         <div class="loading-placeholder">Loading vendors...</div>
                     </div>
                 </section>
@@ -91,7 +91,7 @@
                 <section id="products-pane" class="dashboard-section-card">
                     <h2>Products</h2>
                     <p>Every product listed across all vendors.</p>
-                    <div class="filter-row">
+                    <div class="filter-row"><span class="table-result-count" id="products-count">0 products</span>
                         <input type="text" id="product-search" placeholder="Search by title or vendor...">
                         <select id="status-filter">
                             <option value="all">All Statuses</option>

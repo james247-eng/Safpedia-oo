@@ -467,11 +467,17 @@ function runProductFilter() {
     const searchTerm = document.getElementById('product-search').value.toLowerCase().trim();
     const statusValue = document.getElementById('status-filter').value;
 
-    document.querySelectorAll('#products-list tbody tr').forEach((row) => {
+    const rows = document.querySelectorAll('#products-list tbody tr');
+    let visible = 0;
+    rows.forEach((row) => {
         const matchesSearch = row.dataset.title.indexOf(searchTerm) !== -1 || row.dataset.vendor.indexOf(searchTerm) !== -1;
         const matchesStatus = statusValue === 'all' || row.dataset.status === statusValue;
-        row.style.display = (matchesSearch && matchesStatus) ? '' : 'none';
+        const matched = matchesSearch && matchesStatus;
+        row.style.display = matched ? '' : 'none';
+        if (matched) visible += 1;
     });
+    const countEl = document.getElementById('products-count');
+    if (countEl) countEl.textContent = `${visible} product${visible === 1 ? '' : 's'}`;
 }
 document.getElementById('product-search').addEventListener('input', runProductFilter);
 document.getElementById('status-filter').addEventListener('change', runProductFilter);

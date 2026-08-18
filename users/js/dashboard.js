@@ -86,7 +86,7 @@ async function loadStudentDashboardData(userId) {
     }
 
     // Set initial loading visual state
-    libraryGrid.innerHTML = '<div class="loading-placeholder">Loading active Assets...</div>';
+    libraryGrid.innerHTML = '<div class="loading-placeholder" role="status"><span>Loading your courses...</span></div>';
 
     // Fetch user document from Firestore
     const userDocSnap = await getDoc(doc(db, 'user', userId));
@@ -450,7 +450,7 @@ function showEmptyState() {
 function showError(message) {
   const libraryGrid = document.getElementById('library-grid');
   if (!libraryGrid) return;
-  libraryGrid.innerHTML = `<div style="grid-column: 1/-1; color: #ef4444; text-align: center; padding: 40px 0;"><ion-icon name="alert-circle-outline" style="font-size: 32px;"></ion-icon><p>${message}</p></div>`;
+  libraryGrid.innerHTML = `<div class="empty-state-block is-error" role="alert"><div class="empty-icon"><ion-icon name="alert-circle-outline"></ion-icon></div><h3>We could not load this section</h3><p>${message}</p><button type="button" class="btn btn-secondary" onclick="window.location.reload()">Try again</button></div>`;
 }
 
 // ====================================================================

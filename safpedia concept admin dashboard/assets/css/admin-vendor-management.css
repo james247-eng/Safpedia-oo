@@ -595,6 +595,9 @@ a {
     }
 }
 
+.loading-placeholder{min-height:150px;display:grid;place-items:center;padding:32px;border:1px dashed #dbe2ea;border-radius:12px;background:linear-gradient(90deg,#f8fafc 25%,#fff 37%,#f8fafc 63%);background-size:400% 100%;color:#64748b;font-weight:600;animation:vendor-state-shimmer 1.5s ease infinite}@keyframes vendor-state-shimmer{to{background-position:-135% 0}}
+.empty-state{min-height:140px;display:grid;place-items:center;padding:32px;border:1px dashed #dbe2ea;border-radius:12px;background:#fff;color:#64748b;text-align:center}.error-state{min-height:140px;display:grid;place-items:center;padding:32px;border:1px solid #fecaca;border-radius:12px;background:#fff1f2;color:#b42318;text-align:center;line-height:1.55}
+
 .modal-overlay { backdrop-filter: blur(3px); }
 .modal-box { max-height: min(90vh, 820px); overflow-y: auto; }
 @media (max-width: 640px) {
