@@ -1,7 +1,14 @@
 import { auth, db } from '/firebase-config.js'; // Centralized shared instance
 import { getAnalytics } from "https://www.gstatic.com/firebasejs/12.17.1/firebase-analytics.js";
 import { doc, setDoc, getDoc } from "https://www.gstatic.com/firebasejs/12.17.1/firebase-firestore.js";
-import { createUserWithEmailAndPassword, signInWithEmailAndPassword, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/12.17.1/firebase-auth.js";
+import {
+  createUserWithEmailAndPassword,
+  signInWithEmailAndPassword,
+  onAuthStateChanged,
+  GoogleAuthProvider,
+  FacebookAuthProvider,
+  signInWithPopup
+} from "https://www.gstatic.com/firebasejs/12.17.1/firebase-auth.js";
 import { showToast, showLoading } from './toast-notification.js';
 import './notification-center.js';
 
@@ -51,6 +58,7 @@ if (signupForm && signupBtn) {
         preferredCourse: course,
         enrolledCourses: [],
         role: 'user',
+        authProvider: 'password',
         createdAt: new Date().toISOString()
       };
 
@@ -208,6 +216,86 @@ if (loginForm && loginBtn) {
     }
   });
 }
+
+// ====================================================================
+// SOCIAL AUTH HANDLERS (Google + Facebook)
+// Works on both sign-up.html and sign-in.html — same buttons, same
+// Firestore user-doc shape as the email/password signup flow.
+// ====================================================================
+const googleProvider = new GoogleAuthProvider();
+const facebookProvider = new FacebookAuthProvider();
+
+async function handleSocialAuth(provider, providerName) {
+  const dismissLoading = showLoading(`Signing in with ${providerName}...`);
+
+  try {
+    const result = await signInWithPopup(auth, provider);
+    const user = result.user;
+
+    const userDocRef = doc(db, 'user', user.uid);
+    const userDocSnap = await getDoc(userDocRef);
+
+    // First time we've seen this user — create the same shape the
+    // email/password signup flow creates.
+    if (!userDocSnap.exists()) {
+      const nameParts = (user.displayName || '').trim().split(' ');
+      const firstName = nameParts[0] || 'User';
+      const lastName = nameParts.slice(1).join(' ') || '';
+
+      await setDoc(userDocRef, {
+        firstName,
+        lastName,
+        email: user.email || '',
+        phone: user.phoneNumber || '',
+        preferredCourse: '',
+        enrolledCourses: [],
+        role: 'user',
+        authProvider: providerName.toLowerCase(),
+        createdAt: new Date().toISOString()
+      });
+    }
+
+    const freshSnap = await getDoc(userDocRef);
+    const userRole = freshSnap.exists() ? (freshSnap.data().role || 'user') : 'user';
+
+    dismissLoading();
+    showToast(`Signed in with ${providerName}!`, 'success');
+
+    setTimeout(() => {
+      if (userRole === 'admin') {
+        window.location.href = '/safpedia concept admin dashboard/dashboard.html';
+      } else {
+        window.location.href = '/users/dashboard.html';
+      }
+    }, 500);
+
+  } catch (error) {
+    dismissLoading();
+    console.error(`${providerName} sign-in error:`, error);
+
+    let errorMsg = `${providerName} sign-in failed: ` + error.message;
+
+    if (error.code === 'auth/account-exists-with-different-credential') {
+      errorMsg = 'An account already exists with this email using a different sign-in method.';
+    } else if (error.code === 'auth/popup-closed-by-user') {
+      errorMsg = 'Sign-in was cancelled.';
+    } else if (error.code === 'auth/popup-blocked') {
+      errorMsg = 'Popup was blocked. Please allow popups for this site and try again.';
+    } else if (error.code === 'auth/cancelled-popup-request') {
+      return; // user double-clicked, ignore silently
+    }
+
+    showToast(errorMsg, 'error');
+  }
+}
+
+document.querySelectorAll('.google-signin-btn').forEach((btn) => {
+  btn.addEventListener('click', () => handleSocialAuth(googleProvider, 'Google'));
+});
+
+document.querySelectorAll('.facebook-signin-btn').forEach((btn) => {
+  btn.addEventListener('click', () => handleSocialAuth(facebookProvider, 'Facebook'));
+});
 
 // ====================================================================
 // PROFILE NAV INTERACTION & INTERFACE MANAGEMENT
