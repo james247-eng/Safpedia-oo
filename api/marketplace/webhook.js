@@ -4,6 +4,7 @@ const { getFirebaseAdmin } = require('../../lib/firebase-admin');
 const { sendEmail } = require('../utils/send-email');
 const { sendNotification } = require('../utils/send-notification');
 const { getRecipient } = require('../utils/recipient');
+const { TIERS } = require('../../lib/vendor-subscriptions');
 
 const APP_URL = process.env.APP_URL || 'https://safpedia-oo.vercel.app';
 
@@ -94,12 +95,16 @@ module.exports = async (req, res) => {
 async function handleChargeSuccess(data, admin, db, res, PAYSTACK_SECRET) {
   const metadata = data.metadata || {};
 
+  if (metadata.orderType === 'vendor_subscription') {
+    return handleSubscriptionChargeSuccess(data, metadata, admin, db, res);
+  }
+
   if (metadata.orderType !== 'marketplace') {
     console.log('Ignoring non-marketplace charge.success event');
     return res.status(200).send('ok');
   }
 
-  const { buyerUid, productId, vendorUid, quantity, commissionRate } = metadata;
+  const { buyerUid, productId, vendorUid, quantity } = metadata;
   const reference = data.reference;
 
   if (!buyerUid || !productId || !vendorUid) {
@@ -108,10 +113,10 @@ async function handleChargeSuccess(data, admin, db, res, PAYSTACK_SECRET) {
   }
 
   const qty = typeof quantity === 'number' ? quantity : 1;
-  const rate = typeof commissionRate === 'number' ? commissionRate : 0.15;
   const amountNaira = data.amount / 100; // kobo -> naira
-  const commissionAmount = Math.round(amountNaira * rate * 100) / 100;
-  const vendorAmount = Math.round((amountNaira - commissionAmount) * 100) / 100;
+  const rate = 0;
+  const commissionAmount = 0;
+  const vendorAmount = amountNaira;
 
   const productRef = db.collection('vendorProducts').doc(productId);
   const saleRef = productRef.collection('sales').doc(reference);
@@ -311,6 +316,47 @@ async function handleTransferEvent(eventType, data, admin, db, res) {
   }
 }
 
+async function handleSubscriptionChargeSuccess(data, metadata, admin, db, res) {
+  const { vendorUid, subscriptionTier, billingCycle } = metadata;
+  const reference = data.reference;
+  const tier = TIERS[subscriptionTier];
+  if (!vendorUid || !tier || subscriptionTier === 'safseed' || !['monthly', 'annual'].includes(billingCycle) || !reference) {
+    return res.status(400).send('Invalid subscription metadata');
+  }
+  const expectedAmount = billingCycle === 'annual' ? tier.annualPrice : tier.monthlyPrice;
+  const amountNaira = data.amount / 100;
+  if (amountNaira !== expectedAmount) console.warn('Subscription amount mismatch:', { reference, expectedAmount, amountNaira });
+  const paymentRef = db.collection('vendors').doc(vendorUid).collection('subscriptionPayments').doc(reference);
+  const vendorRef = db.collection('vendors').doc(vendorUid);
+  const now = admin.firestore.Timestamp.now();
+  const days = billingCycle === 'annual' ? 365 : 30;
+  const expires = admin.firestore.Timestamp.fromMillis(now.toMillis() + days * 24 * 60 * 60 * 1000);
+  try {
+    let alreadyProcessed = false;
+    await db.runTransaction(async (tx) => {
+      const existing = await tx.get(paymentRef);
+      if (existing.exists) { alreadyProcessed = true; return; }
+      tx.set(paymentRef, { reference, tier: subscriptionTier, amount: amountNaira, billingCycle, status: 'success', createdAt: now });
+      tx.set(vendorRef, { subscriptionTier, subscriptionStatus: 'active', subscriptionStartedAt: now, subscriptionExpiresAt: expires, subscriptionPaystackReference: reference, subscriptionUpdatedAt: now }, { merge: true });
+    });
+    const products = await db.collection('vendorProducts').where('vendorUid', '==', vendorUid).where('subscriptionLapsed', '==', true).get();
+    for (let i = 0; i < products.docs.length; i += 400) {
+      const batch = db.batch();
+      products.docs.slice(i, i + 400).forEach((doc) => {
+        if (doc.data().adminSuspended !== true) batch.set(doc.ref, { isActive: true, subscriptionLapsed: false }, { merge: true });
+      });
+      await batch.commit();
+    }
+    if (!alreadyProcessed) {
+      await notifyVendorSubscription({ admin, db, vendorUid, tierName: tier.displayName, billingCycle, amountNaira, reference, expires });
+    }
+    return res.status(200).json({ success: true, reference });
+  } catch (err) {
+    console.error('Subscription charge processing error:', err);
+    return res.status(500).json({ error: err.message });
+  }
+}
+
 async function notifyMarketplaceSale({
   admin,
   db,
@@ -424,5 +470,33 @@ async function notifyVendorTransfer({ admin, db, vendorUid, amount, eventType, r
     ]);
   } catch (error) {
     console.error('Vendor payout notifications failed (non-blocking):', error.message);
+  }
+}
+
+async function notifyVendorSubscription({ admin, db, vendorUid, tierName, billingCycle, amountNaira, reference, expires }) {
+  try {
+    const vendor = await getRecipient(admin, db, vendorUid, ['user', 'vendors']);
+    const subscriptionLink = `${APP_URL}/seller-dashboard.html?tab=subscription`;
+    const expiryDate = expires.toDate().toLocaleDateString('en-NG');
+    await Promise.all([
+      sendEmail({
+        toEmail: vendor.email,
+        toName: vendor.name,
+        subject: `${tierName} subscription activated`,
+        headline: 'Your vendor subscription is active',
+        bodyContent: `Your ${tierName} ${billingCycle} subscription is active until ${expiryDate}. Amount paid: NGN ${amountNaira.toLocaleString('en-NG')}. Reference: ${reference}.`,
+        actionUrl: subscriptionLink,
+        actionText: 'View Subscription'
+      }),
+      sendNotification({
+        recipientUid: vendorUid,
+        title: 'Subscription activated',
+        message: `Your ${tierName} subscription is active until ${expiryDate}.`,
+        link: subscriptionLink,
+        type: 'vendor_subscription_activated'
+      })
+    ]);
+  } catch (error) {
+    console.error('Vendor subscription notifications failed (non-blocking):', error.message);
   }
 }

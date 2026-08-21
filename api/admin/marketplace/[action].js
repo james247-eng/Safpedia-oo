@@ -33,10 +33,19 @@ module.exports = async (req, res) => {
     const admin = getFirebaseAdmin();
     const db = admin.firestore();
 
-    await requireAdmin(req, admin);
+    const adminUser = await requireAdmin(req, admin);
 
     if (req.method === 'GET' && action === 'get-platform-stats') {
       return await handleGetPlatformStats(req, res, admin, db);
+    }
+    if (req.method === 'GET' && action === 'lookup-subscription-payment') {
+      return await handleLookupSubscriptionPayment(req, res, db);
+    }
+    if (req.method === 'GET' && action === 'get-audit-log') {
+      return await handleGetAuditLog(req, res, db);
+    }
+    if (req.method === 'GET' && action === 'get-audit-log') {
+      return await handleGetAuditLog(req, res, db);
     }
 
     if (req.method !== 'POST') {
@@ -45,9 +54,13 @@ module.exports = async (req, res) => {
 
     switch (action) {
       case 'suspend-product':
-        return await handleSuspendProduct(req, res, admin, db);
+        return await handleSuspendProduct(req, res, admin, db, adminUser);
       case 'suspend-vendor':
-        return await handleSuspendVendor(req, res, admin, db);
+        return await handleSuspendVendor(req, res, admin, db, adminUser);
+      case 'toggle-storefront':
+        return await handleToggleStorefront(req, res, admin, db, adminUser);
+      case 'set-subscription-override':
+        return await handleSetSubscriptionOverride(req, res, admin, db, adminUser);
       default:
         return res.status(404).json({ error: `Unknown action: ${action}` });
     }
@@ -117,7 +130,7 @@ async function handleGetPlatformStats(req, res, admin, db) {
  *
  * Body: { productId, suspend: boolean, reason? }
  */
-async function handleSuspendProduct(req, res, admin, db) {
+async function handleSuspendProduct(req, res, admin, db, adminUser) {
   const { productId, suspend, reason } = req.body || {};
 
   if (!productId || typeof productId !== 'string') {
@@ -149,6 +162,7 @@ async function handleSuspendProduct(req, res, admin, db) {
   }
 
   await productRef.set(update, { merge: true });
+  await writeAdminAuditLog(db, admin, adminUser, { action: suspend ? 'suspend_product' : 'reactivate_product', vendorUid: productSnap.data().vendorUid, productId, details: { reason: reason || '', newIsActive: !suspend } });
 
   return res.status(200).json({ success: true, productId, isActive: !suspend });
 }
@@ -168,7 +182,7 @@ async function handleSuspendProduct(req, res, admin, db) {
  *
  * Body: { vendorUid, suspend: boolean, reason? }
  */
-async function handleSuspendVendor(req, res, admin, db) {
+async function handleSuspendVendor(req, res, admin, db, adminUser) {
   const { vendorUid, suspend, reason } = req.body || {};
 
   if (!vendorUid || typeof vendorUid !== 'string') {
@@ -220,10 +234,90 @@ async function handleSuspendVendor(req, res, admin, db) {
     }
   }
 
+  await writeAdminAuditLog(db, admin, adminUser, { action: suspend ? 'suspend_vendor' : 'reactivate_vendor', vendorUid, details: { reason: reason || '', newIsSuspended: suspend, deactivatedProductCount: deactivatedCount } });
+
   return res.status(200).json({
     success: true,
     vendorUid,
     isSuspended: suspend,
     deactivatedProductCount: deactivatedCount
   });
+}
+
+async function handleToggleStorefront(req, res, admin, db, adminUser) {
+  const { vendorUid, storefrontActive } = req.body || {};
+  if (!vendorUid || typeof vendorUid !== 'string') return res.status(400).json({ error: 'Missing vendorUid' });
+  if (typeof storefrontActive !== 'boolean') return res.status(400).json({ error: 'storefrontActive must be true or false' });
+  const vendorRef = db.collection('vendors').doc(vendorUid);
+  const vendorSnap = await vendorRef.get();
+  if (!vendorSnap.exists) return res.status(404).json({ error: 'Vendor not found' });
+  const oldValue = vendorSnap.data().storefrontActive !== false;
+  await vendorRef.set({ storefrontActive, subscriptionUpdatedAt: admin.firestore.Timestamp.now() }, { merge: true });
+  await writeAdminAuditLog(db, admin, adminUser, { action: 'toggle_storefront', vendorUid, details: { oldStorefrontActive: oldValue, newStorefrontActive: storefrontActive } });
+  return res.status(200).json({ success: true, vendorUid, storefrontActive });
+}
+
+async function handleSetSubscriptionOverride(req, res, admin, db, adminUser) {
+  const { vendorUid, overrideActive } = req.body || {};
+  if (!vendorUid || typeof vendorUid !== 'string') return res.status(400).json({ error: 'Missing vendorUid' });
+  if (typeof overrideActive !== 'boolean') return res.status(400).json({ error: 'overrideActive must be true or false' });
+  const vendorRef = db.collection('vendors').doc(vendorUid);
+  const vendorSnap = await vendorRef.get();
+  if (!vendorSnap.exists) return res.status(404).json({ error: 'Vendor not found' });
+  const oldValue = vendorSnap.data().subscriptionOverrideActive === true;
+  await vendorRef.set({ subscriptionOverrideActive: overrideActive, subscriptionUpdatedAt: admin.firestore.Timestamp.now() }, { merge: true });
+
+  let reactivatedProductCount = 0;
+  if (overrideActive) {
+    const lapsedSnap = await db.collection('vendorProducts')
+      .where('vendorUid', '==', vendorUid).where('subscriptionLapsed', '==', true).get();
+    const eligibleDocs = lapsedSnap.docs.filter((doc) => doc.data().adminSuspended !== true);
+    for (let i = 0; i < eligibleDocs.length; i += BATCH_LIMIT) {
+      const chunk = eligibleDocs.slice(i, i + BATCH_LIMIT);
+      const batch = db.batch();
+      chunk.forEach((doc) => batch.set(doc.ref, {
+        isActive: true,
+        subscriptionLapsed: false,
+        updatedAt: admin.firestore.Timestamp.now()
+      }, { merge: true }));
+      await batch.commit();
+      reactivatedProductCount += chunk.length;
+    }
+  }
+  await writeAdminAuditLog(db, admin, adminUser, { action: overrideActive ? 'set_subscription_override' : 'clear_subscription_override', vendorUid, details: { oldOverrideActive: oldValue, newOverrideActive: overrideActive, reactivatedProductCount } });
+  return res.status(200).json({ success: true, vendorUid, subscriptionOverrideActive: overrideActive, reactivatedProductCount });
+}
+
+async function handleLookupSubscriptionPayment(req, res, db) {
+  const reference = typeof req.query.reference === 'string' ? req.query.reference.trim() : '';
+  if (!reference) return res.status(400).json({ error: 'Missing reference' });
+  const snap = await db.collectionGroup('subscriptionPayments').where('reference', '==', reference).limit(1).get();
+  if (snap.empty) return res.status(404).json({ error: 'No payment found with that reference' });
+  const paymentDoc = snap.docs[0];
+  const vendorUid = paymentDoc.ref.parent.parent.id;
+  return res.status(200).json({ success: true, vendorUid, payment: { id: paymentDoc.id, ...paymentDoc.data() } });
+}
+
+async function handleGetAuditLog(req, res, db) {
+  const vendorUid = typeof req.query.vendorUid === 'string' ? req.query.vendorUid.trim() : '';
+  let q = db.collection('adminAuditLog');
+  if (vendorUid) q = q.where('vendorUid', '==', vendorUid);
+  const snap = await q.orderBy('createdAt', 'desc').limit(200).get();
+  return res.status(200).json({ success: true, entries: snap.docs.map((d) => ({ id: d.id, ...d.data() })) });
+}
+
+async function writeAdminAuditLog(db, admin, adminUser, entry) {
+  try {
+    await db.collection('adminAuditLog').add({
+      adminUid: adminUser.uid,
+      adminEmail: adminUser.email || null,
+      action: entry.action,
+      vendorUid: entry.vendorUid || null,
+      productId: entry.productId || null,
+      details: entry.details || {},
+      createdAt: admin.firestore.Timestamp.now()
+    });
+  } catch (err) {
+    console.error('Failed to write admin audit log:', err);
+  }
 }

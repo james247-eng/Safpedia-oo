@@ -33,6 +33,7 @@
                 <li><div class="nav-item-btn" data-tab="add-product-pane"><ion-icon name="add-circle-outline"></ion-icon><span class="nav-label">Add Product</span></div></li>
                 <li><div class="nav-item-btn" data-tab="orders-pane"><ion-icon name="receipt-outline"></ion-icon><span class="nav-label">Orders</span></div></li>
                 <li><div class="nav-item-btn" data-tab="payouts-pane"><ion-icon name="cash-outline"></ion-icon><span class="nav-label">Balance &amp; Payouts</span></div></li>
+                <li><div class="nav-item-btn" data-tab="subscription-pane"><ion-icon name="card-outline"></ion-icon><span class="nav-label">Subscription</span></div></li>
             </ul>
             <div class="nav-section-label">Account</div>
             <ul class="nav-group">
@@ -76,6 +77,15 @@
                 <div id="products-grid" class="products-grid">
                     <div class="loading-placeholder">Loading your products...</div>
                 </div>
+            </section>
+
+            <section id="subscription-pane" class="dashboard-section-card">
+                <h2>Subscription</h2>
+                <p>Manage your product-listing plan and subscription payments.</p>
+                <div id="subscription-status-panel" class="bank-account-display">Loading subscription...</div>
+                <div id="subscription-actions" class="subscription-actions"></div>
+                <h3>Payment History</h3>
+                <div id="subscription-payments-list" class="data-table-frame"><div class="loading-placeholder">Loading payments...</div></div>
             </section>
 
             <!-- TAB 2: ADD PRODUCT -->
@@ -130,6 +140,11 @@
                     </div>
 
                     <div id="upload-progress" class="upload-progress hidden"></div>
+                    <div id="product-limit-upgrade-prompt" class="subscription-callout hidden" role="status">
+                        <span id="product-limit-upgrade-message"></span>
+                        <div><button type="button" id="product-limit-upgrade-btn" class="btn btn-secondary btn-sm">View plans</button><button type="button" id="dismiss-product-limit-prompt" class="btn btn-secondary btn-sm">Dismiss</button></div>
+                    </div>
+                    <div id="product-draft-restored" class="subscription-callout hidden" role="status"></div>
 
                     <div class="form-submit-row"><span class="form-submit-note">Your listing will be visible immediately after publishing.</span><button type="submit" id="submit-product-btn" class="btn btn-primary">Publish Product</button></div>
                 </form>

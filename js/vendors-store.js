@@ -1,7 +1,6 @@
 // js/vendor-store.js
 
 import { initializeApp } from 'https://www.gstatic.com/firebasejs/12.17.1/firebase-app.js';
-import { getFirestore, collection, query, where, orderBy, getDocs } from 'https://www.gstatic.com/firebasejs/12.17.1/firebase-firestore.js';
 import { getAuth, onAuthStateChanged } from 'https://www.gstatic.com/firebasejs/12.17.1/firebase-auth.js';
 
 // NOTE: mirrors course.js's inline Firebase init since this project's shared
@@ -17,7 +16,6 @@ import { getAuth, onAuthStateChanged } from 'https://www.gstatic.com/firebasejs/
   };
 
 const app = initializeApp(firebaseConfig);
-const db = getFirestore(app);
 const auth = getAuth(app);
 
 // ====================================================================
@@ -50,26 +48,19 @@ async function loadVendorStore() {
     }
 
     try {
-        const q = query(
-            collection(db, 'vendorProducts'),
-            where('vendorUid', '==', vendorUid),
-            where('isActive', '==', true),
-            orderBy('createdAt', 'desc')
-        );
-        const querySnapshot = await getDocs(q);
-
-        const products = [];
-        querySnapshot.forEach((docSnap) => {
-            products.push({ id: docSnap.id, ...docSnap.data() });
-        });
+        const response = await fetch(`/api/marketplace/get-storefront?vendorUid=${encodeURIComponent(vendorUid)}`);
+        const result = await response.json();
+        if (response.status === 404) throw new Error('This storefront is unavailable.');
+        if (!response.ok) throw new Error(result.error || 'Could not load this store');
+        const products = result.products || [];
 
         renderBanner(products);
         renderProductGrid(products);
 
     } catch (error) {
         console.error('Vendor store retrieval failure:', error);
-        document.getElementById('vendor-store-title').textContent = 'Could not load this store';
-        grid.innerHTML = `<div class="error-state">Error: ${error.message}</div>`;
+        document.getElementById('vendor-store-title').textContent = 'Storefront unavailable';
+        grid.innerHTML = `<div class="error-state">${error.message || 'This storefront is unavailable.'}</div>`;
     }
 }
 

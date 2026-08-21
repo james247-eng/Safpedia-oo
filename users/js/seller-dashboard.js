@@ -6,6 +6,25 @@ import { collection, doc } from 'https://www.gstatic.com/firebasejs/12.17.1/fire
 import { onAuthStateChanged, signOut } from 'https://www.gstatic.com/firebasejs/12.17.1/firebase-auth.js';
 
 let currentUser = null;
+let tierConfig = {};
+let subscriptionSummary = null;
+
+function subscriptionDate(value) {
+    if (!value) return null;
+    if (typeof value === 'string' || value instanceof Date) return new Date(value);
+    if (typeof value._seconds === 'number') return new Date(value._seconds * 1000);
+    if (typeof value.seconds === 'number') return new Date(value.seconds * 1000);
+    return null;
+}
+
+function formatSubscriptionDate(value) {
+    const date = subscriptionDate(value);
+    return date && !Number.isNaN(date.getTime()) ? date.toLocaleDateString() : 'Not set';
+}
+
+function naira(amount) { return amount == null ? 'N/A' : `₦${Number(amount).toLocaleString()}`; }
+
+function subscriptionStorageKey() { return currentUser ? `safpedia-add-product-draft:${currentUser.uid}` : null; }
 
 // ====================================================================
 // TAB SWITCHING (self-contained — no dependency on dashboard-nav.js)
@@ -42,6 +61,8 @@ onAuthStateChanged(auth, (user) => {
     loadVendorProfile();
     loadBankList();
     loadOrders();
+    loadSubscriptionSummary();
+    restoreProductDraft();
 });
 
 document.getElementById('seller-logout-trigger')?.addEventListener('click', async (e) => {
@@ -65,6 +86,104 @@ function clearStatus() {
     el.textContent = '';
     el.classList.add('hidden');
     el.classList.remove('status-error');
+}
+
+async function loadSubscriptionSummary() {
+    try {
+        const idToken = await currentUser.getIdToken();
+        const res = await fetch('/api/vendors/get-subscription-summary', {
+            headers: { Authorization: `Bearer ${idToken}` }
+        });
+        const json = await res.json();
+        if (!res.ok) throw new Error(json.error || 'Could not load subscription');
+        tierConfig = json.tiers || {};
+        subscriptionSummary = json;
+        renderSubscriptionSummary(json);
+    } catch (err) {
+        console.error('loadSubscriptionSummary error:', err);
+        document.getElementById('subscription-status-panel').textContent = `Could not load subscription: ${err.message}`;
+        document.getElementById('subscription-payments-list').innerHTML = '<div class="error-state">Could not load payment history.</div>';
+    }
+}
+
+function renderSubscriptionSummary(summary) {
+    const vendor = summary.vendor || {};
+    const tierKey = tierConfig[vendor.subscriptionTier] ? vendor.subscriptionTier : 'safseed';
+    const tier = tierConfig[tierKey] || {};
+    const paidTier = tierKey !== 'safseed';
+    const expired = paidTier && vendor.subscriptionStatus === 'expired';
+    const status = paidTier ? (expired ? 'Expired' : 'Active') : 'Free tier (no status needed)';
+    document.getElementById('subscription-status-panel').innerHTML = `
+        <p><strong>${tier.displayName || 'Safseed'}</strong></p>
+        <p>Status: ${status}</p>
+        ${paidTier ? `<p>Expires: ${formatSubscriptionDate(vendor.subscriptionExpiresAt)}</p>` : '<p>Safseed is free and does not expire.</p>'}
+    `;
+
+    const actions = document.getElementById('subscription-actions');
+    actions.innerHTML = '';
+    if (expired) actions.appendChild(subscriptionButton(tierKey, 'monthly', 'Renew'));
+    if (!paidTier || expired) {
+        actions.appendChild(buildTierChoices());
+    } else {
+        actions.appendChild(buildTierChoices('Change plan'));
+    }
+    renderSubscriptionPayments(summary.payments || []);
+}
+
+function subscriptionButton(tier, billingCycle, label) {
+    const button = document.createElement('button');
+    button.type = 'button'; button.className = 'btn btn-primary'; button.textContent = label;
+    button.addEventListener('click', () => initiateSubscriptionPayment(tier, billingCycle, button));
+    return button;
+}
+
+function buildTierChoices(label = 'Upgrade') {
+    const wrapper = document.createElement('div');
+    wrapper.className = 'subscription-tier-choices';
+    const heading = document.createElement('h3'); heading.textContent = label; wrapper.appendChild(heading);
+    Object.entries(tierConfig).filter(([key]) => key !== 'safseed').forEach(([key, tier]) => {
+        const row = document.createElement('div'); row.className = 'subscription-tier-row';
+        const details = document.createElement('span');
+        details.textContent = `${tier.displayName}: ${naira(tier.monthlyPrice)}/month or ${naira(tier.annualPrice)}/year`;
+        const monthly = subscriptionButton(key, 'monthly', 'Monthly');
+        const annual = subscriptionButton(key, 'annual', 'Annual');
+        row.append(details, monthly, annual); wrapper.appendChild(row);
+    });
+    return wrapper;
+}
+
+function renderSubscriptionPayments(payments) {
+    const container = document.getElementById('subscription-payments-list');
+    if (!payments.length) { container.innerHTML = '<div class="empty-state">No subscription payments yet.</div>'; return; }
+    container.innerHTML = '';
+    payments.forEach((payment) => {
+        const tier = tierConfig[payment.tier];
+        const row = document.createElement('div'); row.className = 'subscription-payment-row';
+        const reference = document.createElement('code'); reference.textContent = payment.reference || payment.id;
+        const copy = document.createElement('button'); copy.type = 'button'; copy.className = 'btn btn-secondary btn-sm'; copy.textContent = 'Copy';
+        copy.addEventListener('click', async () => {
+            try { await navigator.clipboard.writeText(payment.reference || payment.id); copy.textContent = 'Copied'; setTimeout(() => { copy.textContent = 'Copy'; }, 1500); }
+            catch { copy.textContent = 'Copy failed'; }
+        });
+        row.append(`${tier?.displayName || payment.tier || 'Subscription'} | ${naira(payment.amount)} | ${payment.billingCycle || 'monthly'} | ${payment.status || 'unknown'} | ${formatSubscriptionDate(payment.createdAt)} | `, reference, copy);
+        container.appendChild(row);
+    });
+}
+
+async function initiateSubscriptionPayment(tier, billingCycle, button) {
+    button.disabled = true;
+    try {
+        const idToken = await currentUser.getIdToken();
+        const res = await fetch('/api/marketplace/initiate-subscription-payment', {
+            method: 'POST', headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${idToken}` },
+            body: JSON.stringify({ tier, billingCycle })
+        });
+        const json = await res.json();
+        if (!res.ok || !json.authorization_url) throw new Error(json.error || 'Could not start payment');
+        window.location.assign(json.authorization_url);
+    } catch (err) {
+        alert(`Subscription payment could not start: ${err.message}`); button.disabled = false;
+    }
 }
 
 // ====================================================================
@@ -266,6 +385,48 @@ document.querySelectorAll('input[name="product-type"]').forEach((radio) => {
     });
 });
 
+function draftSnapshot() {
+    const form = document.getElementById('add-product-form');
+    return {
+        title: document.getElementById('product-title').value,
+        description: document.getElementById('product-description').value,
+        category: document.getElementById('product-category').value,
+        price: document.getElementById('product-price').value,
+        type: document.querySelector('input[name="product-type"]:checked')?.value || 'physical',
+        stock: document.getElementById('product-stock').value,
+        imageFiles: Array.from(document.getElementById('product-images').files || []).map((file) => ({ name: file.name, size: file.size, type: file.type })),
+        digitalFile: document.getElementById('product-digital-file').files[0] ? { name: document.getElementById('product-digital-file').files[0].name, size: document.getElementById('product-digital-file').files[0].size, type: document.getElementById('product-digital-file').files[0].type } : null,
+        savedAt: Date.now()
+    };
+}
+
+function saveProductDraft() {
+    const key = subscriptionStorageKey();
+    if (!key) return;
+    const snapshot = draftSnapshot();
+    if (snapshot.title || snapshot.description || snapshot.category || snapshot.price || snapshot.imageFiles.length || snapshot.digitalFile) localStorage.setItem(key, JSON.stringify(snapshot));
+}
+
+function restoreProductDraft() {
+    const raw = subscriptionStorageKey() && localStorage.getItem(subscriptionStorageKey());
+    if (!raw) return;
+    try {
+        const draft = JSON.parse(raw);
+        document.getElementById('product-title').value = draft.title || '';
+        document.getElementById('product-description').value = draft.description || '';
+        document.getElementById('product-category').value = draft.category || '';
+        document.getElementById('product-price').value = draft.price || '';
+        document.getElementById('product-stock').value = draft.stock || '';
+        const radio = document.querySelector(`input[name="product-type"][value="${draft.type || 'physical'}"]`); if (radio) { radio.checked = true; radio.dispatchEvent(new Event('change')); }
+        const notes = [...(draft.imageFiles || []).map((file) => file.name), draft.digitalFile?.name].filter(Boolean);
+        const notice = document.getElementById('product-draft-restored'); notice.textContent = `We restored your unsaved product details. Please reselect your files${notes.length ? `: ${notes.join(', ')}` : ''}.`; notice.classList.remove('hidden');
+    } catch { localStorage.removeItem(subscriptionStorageKey()); }
+}
+
+document.getElementById('add-product-form').addEventListener('input', saveProductDraft);
+document.getElementById('add-product-form').addEventListener('change', saveProductDraft);
+window.addEventListener('beforeunload', saveProductDraft);
+
 // ====================================================================
 // CLOUDINARY UPLOAD HELPERS
 // ====================================================================
@@ -382,10 +543,17 @@ document.getElementById('add-product-form').addEventListener('submit', async (e)
             })
         });
         const createJson = await createRes.json();
-        if (!createRes.ok) throw new Error(createJson.error || 'Could not publish product');
+        if (!createRes.ok) {
+            const error = new Error(createJson.error || 'Could not publish product');
+            error.reasonCode = createJson.reasonCode;
+            throw error;
+        }
 
         showStatus('Product published successfully!');
         document.getElementById('add-product-form').reset();
+        localStorage.removeItem(subscriptionStorageKey());
+        document.getElementById('product-draft-restored').classList.add('hidden');
+        document.getElementById('product-limit-upgrade-prompt').classList.add('hidden');
         document.getElementById('digital-file-wrapper').classList.add('hidden');
         document.getElementById('stock-field-wrapper').classList.remove('hidden');
         loadVendorProfile();
@@ -393,10 +561,26 @@ document.getElementById('add-product-form').addEventListener('submit', async (e)
 
     } catch (err) {
         console.error('Product creation error:', err);
+        saveProductDraft();
+        if (err.reasonCode === 'limit_reached') showProductLimitPrompt(err.message);
         showStatus('Error: ' + err.message, true);
     } finally {
         submitBtn.disabled = false;
     }
+});
+
+function showProductLimitPrompt(message) {
+    const currentTier = subscriptionSummary?.vendor?.subscriptionTier || 'safseed';
+    const limit = tierConfig[currentTier]?.productLimit;
+    document.getElementById('product-limit-upgrade-message').textContent = `${message || `You have reached your ${limit}-product limit.`} Your details are still here. Upgrade to add another product.`;
+    document.getElementById('product-limit-upgrade-prompt').classList.remove('hidden');
+}
+
+document.getElementById('product-limit-upgrade-btn').addEventListener('click', () => {
+    document.querySelector('.nav-item-btn[data-tab="subscription-pane"]')?.click();
+});
+document.getElementById('dismiss-product-limit-prompt').addEventListener('click', () => {
+    document.getElementById('product-limit-upgrade-prompt').classList.add('hidden');
 });
 
 // ====================================================================

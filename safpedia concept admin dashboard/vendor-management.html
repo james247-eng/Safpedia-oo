@@ -31,6 +31,8 @@
                 <li><div class="nav-item-btn" data-tab="vendors-pane"><ion-icon name="people-outline"></ion-icon><span class="nav-label">Vendors</span></div></li>
                 <li><div class="nav-item-btn" data-tab="products-pane"><ion-icon name="cube-outline"></ion-icon><span class="nav-label">Products</span></div></li>
                 <li><div class="nav-item-btn" data-tab="payouts-pane"><ion-icon name="cash-outline"></ion-icon><span class="nav-label">Payouts</span></div></li>
+                <li><div class="nav-item-btn" data-tab="activity-pane"><ion-icon name="time-outline"></ion-icon><span class="nav-label">Activity</span></div></li>
+                <li><div class="nav-item-btn" data-tab="disputes-pane"><ion-icon name="chatbubbles-outline"></ion-icon><span class="nav-label">Disputes</span></div></li>
                 <li><a href="dashboard.html"><div class="nav-item-btn"><ion-icon name="arrow-back-outline"></ion-icon><span class="nav-label">Back to Site</span></div></a></li>
             </ul>
             <div class="sidebar-footer">
@@ -82,8 +84,28 @@
                 <section id="vendors-pane" class="dashboard-section-card">
                     <h2>Vendors</h2>
                     <p>Every seller on SAFpedia's marketplace, with earnings and payout status.</p>
+                    <div class="filter-row">
+                        <input type="text" id="subscription-reference-input" placeholder="Paste subscription payment reference...">
+                        <button type="button" class="btn-action" id="subscription-reference-lookup-btn">Find Payment</button>
+                    </div>
+                    <div id="subscription-reference-result"></div>
+                    <div class="filter-row">
+                        <select id="vendor-tier-filter"><option value="all">All Tiers</option><option value="safseed">Safseed</option><option value="safbloom">SafBloom</option><option value="safscale">SafScale</option></select>
+                        <select id="vendor-account-filter"><option value="all">All Account States</option><option value="active">Account Active</option><option value="suspended">Account Suspended</option></select>
+                        <select id="vendor-subscription-filter"><option value="all">All Subscription States</option><option value="active">Subscription Active</option><option value="expired">Subscription Expired</option></select>
+                    </div>
                     <div class="table-toolbar"><span class="table-result-count" id="vendors-count">Loading vendors...</span></div><div id="vendors-list" class="data-table-wrapper">
                     </div>
+                </section>
+
+                <section id="activity-pane" class="dashboard-section-card">
+                    <h2>Admin Activity</h2><p>Recent vendor and product state changes made by administrators.</p>
+                    <div class="filter-row"><input id="audit-vendor-filter" type="text" placeholder="Filter by vendor UID"><button type="button" class="btn-action" id="audit-filter-btn">Apply</button><button type="button" class="btn-action" id="audit-clear-btn">Show All</button></div>
+                    <div id="audit-log-list" class="data-table-wrapper"><div class="loading-placeholder">Open this tab to load activity.</div></div>
+                </section>
+
+                <section id="disputes-pane" class="dashboard-section-card">
+                    <h2>Disputes</h2><div class="empty-state">Conflict resolution tools are coming soon in Milestone 8.</div>
                 </section>
 
                 <!-- TAB 2: PRODUCTS -->
@@ -123,6 +145,18 @@
                     <p id="modal-vendor-email" class="modal-subtitle"></p>
 
                     <div class="modal-balance-row" id="modal-balance-row"></div>
+
+                    <h3>Storefront</h3>
+                    <div id="modal-storefront-status" class="modal-balance-row"></div>
+                    <button type="button" class="btn-action" id="modal-storefront-toggle-btn">Loading...</button>
+
+                    <h3>Subscription</h3>
+                    <div id="modal-subscription-summary" class="modal-balance-row"></div>
+                    <div class="modal-subscription-actions">
+                        <button type="button" class="btn-action" id="modal-grant-override-btn">Reactivate (Override)</button>
+                        <button type="button" class="btn-action btn-danger" id="modal-clear-override-btn">Clear Override</button>
+                    </div>
+                    <div id="modal-subscription-payments" class="data-table-wrapper"><div class="loading-placeholder">Loading...</div></div>
 
                     <h3>Recent Sales</h3>
                     <div id="modal-sales-list" class="data-table-wrapper">

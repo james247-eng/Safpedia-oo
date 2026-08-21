@@ -205,6 +205,26 @@
     }
 }
 
+.subscription-callout {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+    padding: 12px 14px;
+    border: 1px solid #d8dce1;
+    border-radius: 8px;
+    background: #f7f9fc;
+    font-size: 0.9rem;
+}
+
+.subscription-actions { display: grid; gap: 16px; margin: 16px 0 24px; }
+.subscription-tier-choices { display: grid; gap: 10px; }
+.subscription-tier-choices h3 { margin: 0; font-size: 1rem; }
+.subscription-tier-row, .subscription-payment-row { display: flex; align-items: center; flex-wrap: wrap; gap: 8px; padding: 12px; border: 1px solid #e5e9f0; border-radius: 8px; }
+.subscription-tier-row > span { flex: 1 1 280px; }
+.subscription-payment-row code { overflow-wrap: anywhere; }
+@media (max-width: 640px) { .subscription-callout { align-items: stretch; flex-direction: column; } }
+
 /* Workflow hierarchy */
 .form-intro{display:flex;align-items:flex-start;justify-content:space-between;gap:18px;padding-bottom:16px;border-bottom:1px solid var(--border)}
 .form-intro strong{color:var(--ink);font-size:15px}.form-intro span,.field-hint,.form-submit-note{color:var(--ink-soft);font-size:12px;line-height:1.45}.required-mark{margin-left:6px;color:var(--red);font-size:10px;font-weight:700;text-transform:uppercase}.form-submit-row{display:flex;align-items:center;justify-content:space-between;gap:20px;padding-top:18px;border-top:1px solid var(--border)}.form-submit-note{max-width:360px}

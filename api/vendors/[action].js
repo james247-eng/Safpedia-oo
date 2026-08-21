@@ -5,6 +5,7 @@ const { getAuthedUser } = require('../../lib/auth');
 const { sendEmail } = require('../utils/send-email');
 const { sendNotification } = require('../utils/send-notification');
 const { getRecipient } = require('../utils/recipient');
+const { TIERS } = require('../../lib/vendor-subscriptions');
 
 const APP_URL = process.env.APP_URL || 'https://safpedia-oo.vercel.app';
 
@@ -47,6 +48,9 @@ module.exports = async (req, res) => {
     }
     if (req.method === 'GET' && action === 'get-orders') {
       return await handleGetOrders(req, res, admin, db);
+    }
+    if (req.method === 'GET' && action === 'get-subscription-summary') {
+      return await handleGetSubscriptionSummary(req, res, admin, db);
     }
 
     return res.status(404).json({ error: `Unknown route: ${req.method} ${action}` });
@@ -445,6 +449,26 @@ async function handleGetOrders(req, res, admin, db) {
   });
 
   return res.status(200).json({ success: true, orders });
+}
+
+async function handleGetSubscriptionSummary(req, res, admin, db) {
+  const user = await getAuthedUser(req, admin);
+  const vendorRef = db.collection('vendors').doc(user.uid);
+  const vendorSnap = await vendorRef.get();
+  const vendor = vendorSnap.exists ? vendorSnap.data() : {};
+  const paymentsSnap = await vendorRef.collection('subscriptionPayments')
+    .orderBy('createdAt', 'desc').limit(50).get();
+
+  return res.status(200).json({
+    tiers: Object.fromEntries(Object.entries(TIERS).map(([key, value]) => [key, value])),
+    vendor: {
+      subscriptionTier: vendor.subscriptionTier || 'safseed',
+      subscriptionStatus: vendor.subscriptionStatus || 'active',
+      subscriptionExpiresAt: vendor.subscriptionExpiresAt || null,
+      subscriptionOverrideActive: vendor.subscriptionOverrideActive === true
+    },
+    payments: paymentsSnap.docs.map((doc) => ({ id: doc.id, ...doc.data() }))
+  });
 }
 
 async function notifyBuyerOrderShipped({ admin, db, sale, reference, trackingNumber, carrier }) {

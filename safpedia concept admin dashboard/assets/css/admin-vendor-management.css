@@ -604,3 +604,8 @@ a {
     .modal-overlay { align-items: flex-end; padding: 0; }
     .modal-box { width: 100%; max-height: 94vh; border-radius: 14px 14px 0 0; }
 }
+.modal-subscription-actions { display: flex; flex-wrap: wrap; gap: 10px; margin: 12px 0 18px; }
+.btn-danger { border-color: #b42318; color: #b42318; background: #fff; }
+.payment-lookup-result { display: flex; align-items: center; flex-wrap: wrap; gap: 12px; padding: 14px; margin: 12px 0; border: 1px solid var(--border); border-radius: 8px; background: var(--white); }
+.payment-lookup-result span { flex: 1 1 320px; }
+.payment-lookup-result code { overflow-wrap: anywhere; }

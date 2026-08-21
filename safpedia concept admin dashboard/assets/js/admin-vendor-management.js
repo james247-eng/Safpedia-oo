@@ -11,6 +11,7 @@ import { onAuthStateChanged, signOut } from 'https://www.gstatic.com/firebasejs/
 let currentUser = null;
 let allProducts = [];
 let vendorSummaries = [];
+let activeModalVendorUid = null;
 
 const sidebarPanel = document.getElementById('sidebar-panel');
 const sidebarOverlay = document.getElementById('sidebar-overlay');
@@ -166,7 +167,7 @@ async function loadVendorsAndProducts() {
         });
 
         await buildVendorSummaries();
-        renderVendors(vendorSummaries);
+        runVendorFilters();
         renderProducts(allProducts);
 
     } catch (err) {
@@ -221,6 +222,11 @@ async function buildVendorSummaries() {
                 v.awaitingPayout = vd.awaitingPayout || 0;
                 v.totalEarned = vd.totalEarned || 0;
                 v.totalPaidOut = vd.totalPaidOut || 0;
+                v.storefrontActive = vd.storefrontActive !== false;
+                v.subscriptionTier = vd.subscriptionTier || 'safseed';
+                v.subscriptionStatus = vd.subscriptionStatus || 'active';
+                v.subscriptionExpiresAt = vd.subscriptionExpiresAt || null;
+                v.subscriptionOverrideActive = vd.subscriptionOverrideActive === true;
             } else {
                 v.isSuspended = false;
                 v.pendingPayout = 0;
@@ -316,6 +322,7 @@ async function toggleVendorSuspension(vendorUid, suspend, btn) {
 async function openVendorDetail(vendorUid) {
     const vendor = vendorSummaries.find((v) => v.vendorUid === vendorUid);
     if (!vendor) return;
+    activeModalVendorUid = vendorUid;
 
     document.getElementById('modal-vendor-name').textContent = vendor.vendorFirstName;
     document.getElementById('modal-vendor-email').textContent = vendor.email;
@@ -327,6 +334,8 @@ async function openVendorDetail(vendorUid) {
     document.getElementById('vendor-detail-modal').classList.remove('hidden');
     document.getElementById('modal-sales-list').innerHTML = '<div class="loading-placeholder">Loading...</div>';
     document.getElementById('modal-payouts-list').innerHTML = '<div class="loading-placeholder">Loading...</div>';
+    renderModalSubscription(vendor);
+    loadModalSubscriptionPayments(vendorUid);
 
     try {
         const salesSnap = await getDocs(query(
@@ -479,8 +488,124 @@ function runProductFilter() {
     const countEl = document.getElementById('products-count');
     if (countEl) countEl.textContent = `${visible} product${visible === 1 ? '' : 's'}`;
 }
+
+function runVendorFilters() {
+    const tier = document.getElementById('vendor-tier-filter')?.value || 'all';
+    const account = document.getElementById('vendor-account-filter')?.value || 'all';
+    const subscription = document.getElementById('vendor-subscription-filter')?.value || 'all';
+    const filtered = vendorSummaries.filter((v) =>
+        (tier === 'all' || (v.subscriptionTier || 'safseed') === tier) &&
+        (account === 'all' || (account === 'suspended' ? v.isSuspended : !v.isSuspended)) &&
+        (subscription === 'all' || (subscription === 'expired' ? v.subscriptionStatus === 'expired' : v.subscriptionStatus !== 'expired'))
+    );
+    renderVendors(filtered);
+    const count = document.getElementById('vendors-count');
+    if (count) count.textContent = `${filtered.length} vendor${filtered.length === 1 ? '' : 's'}`;
+}
+
+async function loadAuditLog(vendorUid = '') {
+    const container = document.getElementById('audit-log-list');
+    container.innerHTML = '<div class="loading-placeholder">Loading activity...</div>';
+    try {
+        const token = await currentUser.getIdToken();
+        const url = '/api/admin/marketplace/get-audit-log' + (vendorUid ? '?vendorUid=' + encodeURIComponent(vendorUid) : '');
+        const res = await fetch(url, { headers: { Authorization: 'Bearer ' + token } });
+        const json = await res.json();
+        if (!res.ok) throw new Error(json.error || 'Could not load activity');
+        if (!json.entries.length) { container.innerHTML = '<div class="empty-state">No admin activity found.</div>'; return; }
+        const rows = json.entries.map((e) => {
+            const d = e.createdAt && e.createdAt._seconds ? new Date(e.createdAt._seconds * 1000).toLocaleString() : (e.createdAt?.seconds ? new Date(e.createdAt.seconds * 1000).toLocaleString() : '');
+            return '<tr><td>' + (e.adminEmail || e.adminUid) + '</td><td>' + e.action + '</td><td>' + (e.vendorUid || '') + (e.productId ? ' / ' + e.productId : '') + '</td><td>' + d + '</td></tr>';
+        }).join('');
+        container.innerHTML = '<table class="admin-table"><thead><tr><th>Admin</th><th>Action</th><th>Target</th><th>Timestamp</th></tr></thead><tbody>' + rows + '</tbody></table>';
+    } catch (err) { container.innerHTML = '<div class="error-state">' + err.message + '</div>'; }
+}
+
+function dateLabel(value) {
+    if (!value) return 'Not set';
+    const seconds = value.seconds ?? value._seconds;
+    const date = seconds ? new Date(seconds * 1000) : new Date(value);
+    return Number.isNaN(date.getTime()) ? 'Not set' : date.toLocaleDateString();
+}
+
+function renderModalSubscription(vendor) {
+    const storefrontStatus = vendor.storefrontActive !== false ? 'Active' : 'Deactivated';
+    document.getElementById('modal-storefront-status').innerHTML = '<div><span class="stat-label">Visibility</span><span class="stat-value">' + storefrontStatus + '</span></div>';
+    const storefrontBtn = document.getElementById('modal-storefront-toggle-btn');
+    storefrontBtn.textContent = vendor.storefrontActive !== false ? 'Deactivate Storefront' : 'Reactivate Storefront';
+    storefrontBtn.dataset.active = String(vendor.storefrontActive !== false);
+    document.getElementById('modal-subscription-summary').innerHTML =
+        '<div><span class="stat-label">Tier</span><span class="stat-value">' + vendor.subscriptionTier + '</span></div>' +
+        '<div><span class="stat-label">Status</span><span class="stat-value">' + vendor.subscriptionStatus + '</span></div>' +
+        '<div><span class="stat-label">Expires</span><span class="stat-value">' + dateLabel(vendor.subscriptionExpiresAt) + '</span></div>' +
+        '<div><span class="stat-label">Override</span><span class="stat-value">' + (vendor.subscriptionOverrideActive ? 'On' : 'Off') + '</span></div>';
+    document.getElementById('modal-grant-override-btn').disabled = vendor.subscriptionOverrideActive;
+    document.getElementById('modal-clear-override-btn').disabled = !vendor.subscriptionOverrideActive;
+}
+
+async function loadModalSubscriptionPayments(vendorUid) {
+    const container = document.getElementById('modal-subscription-payments');
+    try {
+        const snap = await getDocs(query(collection(db, 'vendors', vendorUid, 'subscriptionPayments'), orderBy('createdAt', 'desc')));
+        const payments = []; snap.forEach((d) => payments.push(Object.assign({ id: d.id }, d.data())));
+        if (!payments.length) { container.innerHTML = '<div class="empty-state">No subscription payments yet.</div>'; return; }
+        const rows = payments.map((p) => '<tr><td>' + (p.tier || '—') + '</td><td>' + fmt(p.amount) + '</td><td>' + (p.billingCycle || '—') + '</td><td>' + (p.status || '—') + '</td><td>' + dateLabel(p.createdAt) + '</td><td>' + (p.reference || p.id) + '</td></tr>').join('');
+        container.innerHTML = '<table class="admin-table"><thead><tr><th>Tier</th><th>Amount</th><th>Cycle</th><th>Status</th><th>Date</th><th>Reference</th></tr></thead><tbody>' + rows + '</tbody></table>';
+    } catch (err) { container.innerHTML = '<div class="error-state">' + err.message + '</div>'; }
+}
+
+async function adminPost(action, body) {
+    const idToken = await currentUser.getIdToken();
+    const res = await fetch('/api/admin/marketplace/' + action, { method: 'POST', headers: { 'Content-Type': 'application/json', Authorization: 'Bearer ' + idToken }, body: JSON.stringify(body) });
+    const json = await res.json(); if (!res.ok) throw new Error(json.error || 'Admin action failed'); return json;
+}
+
+document.getElementById('modal-storefront-toggle-btn').addEventListener('click', async (event) => {
+    const button = event.currentTarget; button.disabled = true;
+    try { await adminPost('toggle-storefront', { vendorUid: activeModalVendorUid, storefrontActive: button.dataset.active !== 'true' }); await refreshOpenVendor(); }
+    catch (err) { alert('Error: ' + err.message); button.disabled = false; }
+});
+
+async function setOverride(overrideActive, button) {
+    button.disabled = true;
+    try { await adminPost('set-subscription-override', { vendorUid: activeModalVendorUid, overrideActive }); await refreshOpenVendor(); }
+    catch (err) { alert('Error: ' + err.message); button.disabled = false; }
+}
+document.getElementById('modal-grant-override-btn').addEventListener('click', (e) => setOverride(true, e.currentTarget));
+document.getElementById('modal-clear-override-btn').addEventListener('click', (e) => setOverride(false, e.currentTarget));
+
+async function refreshOpenVendor() {
+    const uid = activeModalVendorUid;
+    await loadVendorsAndProducts();
+    if (uid) openVendorDetail(uid);
+}
+
+document.getElementById('subscription-reference-lookup-btn').addEventListener('click', async () => {
+    const input = document.getElementById('subscription-reference-input');
+    const result = document.getElementById('subscription-reference-result');
+    const reference = input.value.trim();
+    if (!reference) { result.innerHTML = '<div class="error-state">Enter a payment reference.</div>'; return; }
+    result.innerHTML = '<div class="loading-placeholder">Looking up payment...</div>';
+    try {
+        const idToken = await currentUser.getIdToken();
+        const res = await fetch('/api/admin/marketplace/lookup-subscription-payment?reference=' + encodeURIComponent(reference), { headers: { Authorization: 'Bearer ' + idToken } });
+        const json = await res.json();
+        if (!res.ok) throw new Error(json.error || 'Could not find payment');
+        const payment = json.payment;
+        const vendor = vendorSummaries.find((v) => v.vendorUid === json.vendorUid);
+        const vendorLabel = vendor ? vendor.vendorFirstName + ' (' + vendor.email + ')' : json.vendorUid;
+        result.innerHTML = '<div class="payment-lookup-result"><strong>' + vendorLabel + '</strong><span>' + (payment.tier || '—') + ' | ' + fmt(payment.amount) + ' | ' + (payment.billingCycle || '—') + ' | ' + (payment.status || '—') + ' | ' + dateLabel(payment.createdAt) + '</span><code>' + (payment.reference || payment.id) + '</code><button type="button" class="btn-action" id="lookup-open-vendor-btn">Open Vendor</button></div>';
+        document.getElementById('lookup-open-vendor-btn').addEventListener('click', () => openVendorDetail(json.vendorUid));
+    } catch (err) { result.innerHTML = '<div class="error-state">' + err.message + '</div>'; }
+});
 document.getElementById('product-search').addEventListener('input', runProductFilter);
 document.getElementById('status-filter').addEventListener('change', runProductFilter);
+document.getElementById('vendor-tier-filter')?.addEventListener('change', runVendorFilters);
+document.getElementById('vendor-account-filter')?.addEventListener('change', runVendorFilters);
+document.getElementById('vendor-subscription-filter')?.addEventListener('change', runVendorFilters);
+document.getElementById('audit-filter-btn')?.addEventListener('click', () => loadAuditLog(document.getElementById('audit-vendor-filter').value.trim()));
+document.getElementById('audit-clear-btn')?.addEventListener('click', () => { document.getElementById('audit-vendor-filter').value = ''; loadAuditLog(); });
+document.querySelector('.nav-item-btn[data-tab="activity-pane"]')?.addEventListener('click', () => loadAuditLog());
 
 async function loadPayoutHistory() {
     const container = document.getElementById('payouts-list');

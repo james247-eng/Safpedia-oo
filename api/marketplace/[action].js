@@ -3,6 +3,7 @@
 const { getFirebaseAdmin } = require('../../lib/firebase-admin');
 const { getAuthedUser } = require('../../lib/auth');
 const { generateUploadSignature, verifyAsset, deleteAsset, generateSignedDownloadUrl } = require('../../lib/cloudinary-storage');
+const { TIERS, evaluateVendorCreateProductAccess } = require('../../lib/vendor-subscriptions');
 
 const MAX_TITLE_LENGTH = 120;
 const MAX_DESCRIPTION_LENGTH = 5000;
@@ -30,6 +31,15 @@ const ALLOWED_TYPES = new Set(['physical', 'digital']);
  * original standalone file — only the routing wrapper is shared.
  */
 module.exports = async (req, res) => {
+  if (req.method === 'GET' && req.query.action === 'get-storefront') {
+    try {
+      const admin = getFirebaseAdmin();
+      return await handleGetStorefront(req, res, admin.firestore());
+    } catch (err) {
+      console.error('marketplace/get-storefront error:', err);
+      return res.status(500).json({ error: 'Could not load storefront' });
+    }
+  }
   if (req.method !== 'POST') {
     return res.status(405).json({ error: 'Method not allowed' });
   }
@@ -53,6 +63,8 @@ module.exports = async (req, res) => {
         return await handleGetDownloadLink(req, res, admin, db);
       case 'create-transaction':
         return await handleCreateTransaction(req, res, admin, db);
+      case 'initiate-subscription-payment':
+        return await handleInitiateSubscriptionPayment(req, res, admin, db);
       default:
         return res.status(404).json({ error: `Unknown action: ${action}` });
     }
@@ -62,6 +74,21 @@ module.exports = async (req, res) => {
     return res.status(err.statusCode || 500).json({ error: err.message });
   }
 };
+
+async function handleGetStorefront(req, res, db) {
+  const vendorUid = typeof req.query.vendorUid === 'string' ? req.query.vendorUid.trim() : '';
+  if (!vendorUid) return res.status(404).json({ error: 'Storefront not found' });
+  const vendorSnap = await db.collection('vendors').doc(vendorUid).get();
+  if (!vendorSnap.exists || vendorSnap.data().storefrontActive === false) {
+    return res.status(404).json({ error: 'Storefront not found' });
+  }
+  const productsSnap = await db.collection('vendorProducts').where('vendorUid', '==', vendorUid).where('isActive', '==', true).orderBy('createdAt', 'desc').get();
+  const products = productsSnap.docs.map((doc) => {
+    const p = doc.data();
+    return { id: doc.id, vendorFirstName: p.vendorFirstName || 'Vendor', title: p.title, category: p.category, price: p.price, type: p.type, stock: p.stock, images: p.images || [] };
+  });
+  return res.status(200).json({ vendor: { displayName: products[0]?.vendorFirstName || 'Vendor' }, products });
+}
 
 /**
  * POST /api/marketplace/create-product
@@ -76,8 +103,20 @@ async function handleCreateProduct(req, res, admin, db) {
   const user = await getAuthedUser(req, admin);
 
   const vendorSnap = await db.collection('vendors').doc(user.uid).get();
-  if (vendorSnap.exists && vendorSnap.data().isSuspended) {
-    return res.status(403).json({ error: 'This vendor account is suspended and cannot create new products' });
+  const vendorData = vendorSnap.exists ? vendorSnap.data() : {};
+  const activeProductsCountSnap = await db.collection('vendorProducts')
+    .where('vendorUid', '==', user.uid)
+    .where('isActive', '==', true)
+    .count()
+    .get();
+  const access = evaluateVendorCreateProductAccess(vendorData, activeProductsCountSnap.data().count);
+
+  if (!access.allowed) {
+    return res.status(access.reasonCode === 'limit_reached' ? 409 : 403).json({
+      error: access.message,
+      reasonCode: access.reasonCode,
+      message: access.message
+    });
   }
 
   const {
@@ -205,6 +244,7 @@ async function handleCreateProduct(req, res, admin, db) {
     digitalAsset: digitalAssetValue,
     images: verifiedImages,
     isActive: true,
+    subscriptionLapsed: false,
     totalSales: 0,
     createdAt: admin.firestore.Timestamp.now(),
     updatedAt: admin.firestore.Timestamp.now()
@@ -396,85 +436,60 @@ async function handleUpdateProduct(req, res, admin, db) {
 
 /**
  * POST /api/marketplace/delete-product
- * Vendor-only, own product only. Hard-deletes (doc + Cloudinary assets) if
- * the product never sold; soft-deletes (isActive/isDeleted flags, doc kept
- * intact) if it has any sales history, since get-download-link and order
- * history both still depend on the doc existing.
+ * Vendor-only, own product only. Hard-deletes Cloudinary assets first and
+ * then the Firestore document. Products with sales history are blocked.
  *
  * Body: { productId }
  */
 async function handleDeleteProduct(req, res, admin, db) {
   const user = await getAuthedUser(req, admin);
-
   const { productId } = req.body || {};
   if (!productId || typeof productId !== 'string') {
     return res.status(400).json({ error: 'Missing productId' });
   }
-
   const productRef = db.collection('vendorProducts').doc(productId);
   const productSnap = await productRef.get();
-
   if (!productSnap.exists) {
     return res.status(404).json({ error: 'Product not found' });
   }
-
   const product = productSnap.data();
-
   if (product.vendorUid !== user.uid) {
     return res.status(403).json({ error: 'This product does not belong to your account' });
   }
-  if (product.isDeleted) {
-    return res.status(409).json({ error: 'This product has already been deleted' });
-  }
-
   const salesSnap = await productRef.collection('sales').limit(1).get();
-  const hasSales = !salesSnap.empty;
-
-  if (hasSales) {
-    await productRef.set({
-      isActive: false,
-      isDeleted: true,
-      deletedAt: admin.firestore.Timestamp.now(),
-      updatedAt: admin.firestore.Timestamp.now()
-    }, { merge: true });
-
-    return res.status(200).json({
-      success: true,
-      productId,
-      mode: 'soft-deleted',
-      message: 'This product has sales history, so it was hidden rather than permanently removed — past buyers keep access.'
-    });
+  if (!salesSnap.empty) {
+    return res.status(409).json({ error: 'This product has sales history and cannot be deleted - contact support.' });
   }
-
   const cleanupErrors = [];
-
   if (product.digitalAsset && product.digitalAsset.publicId) {
     try {
       await deleteAsset({ publicId: product.digitalAsset.publicId, resourceType: 'raw', type: 'authenticated' });
     } catch (err) {
+      console.error('Could not delete product digital asset:', product.digitalAsset.publicId, err.message);
       cleanupErrors.push(`digital file: ${err.message}`);
     }
   }
-
   for (const img of product.images || []) {
+    if (!img || !img.publicId) continue;
     try {
       await deleteAsset({ publicId: img.publicId, resourceType: 'image', type: 'upload' });
     } catch (err) {
+      console.error('Could not delete product image asset:', img.publicId, err.message);
       cleanupErrors.push(`image ${img.publicId}: ${err.message}`);
     }
   }
-
-  await productRef.delete();
-
   if (cleanupErrors.length) {
-    console.warn('Product deleted but some storage cleanup failed:', productId, cleanupErrors);
+    return res.status(502).json({
+      error: 'One or more product assets could not be deleted. The product was not removed; please retry.',
+      productId,
+      storageCleanupErrors: cleanupErrors
+    });
   }
-
+  await productRef.delete();
   return res.status(200).json({
     success: true,
     productId,
-    mode: 'hard-deleted',
-    storageCleanupWarnings: cleanupErrors.length ? cleanupErrors : undefined
+    mode: 'hard-deleted'
   });
 }
 
@@ -695,4 +710,39 @@ async function handleCreateTransaction(req, res, admin, db) {
     authorization_url: initJson.data.authorization_url,
     reference: initJson.data.reference
   });
+}
+
+async function handleInitiateSubscriptionPayment(req, res, admin, db) {
+  const authHeader = req.headers.authorization || req.headers.Authorization || '';
+  const idToken = authHeader.replace('Bearer ', '');
+  if (!idToken) return res.status(401).json({ error: 'Missing authorization token' });
+  const decoded = await admin.auth().verifyIdToken(idToken);
+  const { tier, billingCycle } = req.body || {};
+  if (!Object.prototype.hasOwnProperty.call(TIERS, tier) || tier === 'safseed') {
+    return res.status(400).json({ error: 'tier must be safbloom or safscale' });
+  }
+  if (billingCycle !== 'monthly' && billingCycle !== 'annual') {
+    return res.status(400).json({ error: "billingCycle must be 'monthly' or 'annual'" });
+  }
+  const tierConfig = TIERS[tier];
+  const amountNaira = billingCycle === 'annual' ? tierConfig.annualPrice : tierConfig.monthlyPrice;
+  if (typeof amountNaira !== 'number' || amountNaira <= 0) {
+    return res.status(400).json({ error: 'Selected tier and billing cycle are not payable' });
+  }
+  const PAYSTACK_SECRET = process.env.PAYSTACK_SECRET_KEY_MARKETPLACE;
+  if (!PAYSTACK_SECRET) return res.status(500).json({ error: 'PAYSTACK_SECRET_KEY_MARKETPLACE not configured' });
+  const origin = req.headers.origin || process.env.SITE_URL || 'https://techwizardsacademy.com';
+  const initRes = await fetch('https://api.paystack.co/transaction/initialize', {
+    method: 'POST',
+    headers: { Authorization: `Bearer ${PAYSTACK_SECRET}`, 'Content-Type': 'application/json' },
+    body: JSON.stringify({
+      email: decoded.email,
+      amount: Math.round(amountNaira * 100),
+      callback_url: `${origin}/subscription-payment-success.html`,
+      metadata: { orderType: 'vendor_subscription', vendorUid: decoded.uid, subscriptionTier: tier, billingCycle, amount: amountNaira }
+    })
+  });
+  const initJson = await initRes.json();
+  if (!initJson.status) return res.status(502).json({ error: 'Paystack initialization failed', details: initJson });
+  return res.status(200).json({ authorization_url: initJson.data.authorization_url, reference: initJson.data.reference });
 }
