@@ -521,6 +521,12 @@ async function loadAuditLog(vendorUid = '') {
     } catch (err) { container.innerHTML = '<div class="error-state">' + err.message + '</div>'; }
 }
 
+async function loadAdminDisputes() {
+    const list = document.getElementById('admin-disputes-list');
+    try { const token = await currentUser.getIdToken(); const res = await fetch('/api/admin/marketplace/admin-list-disputes', { headers: { Authorization: 'Bearer ' + token } }); const json = await res.json(); if (!res.ok) throw new Error(json.error || 'Could not load disputes'); if (!json.disputes.length) { list.innerHTML = '<div class="empty-state">No disputes found.</div>'; return; } list.innerHTML = '<table class="admin-table"><thead><tr><th>Reference</th><th>Buyer</th><th>Vendor</th><th>Product</th><th>Reason</th><th>Status</th><th></th></tr></thead><tbody>' + json.disputes.map((d) => `<tr><td>${d.reference}</td><td>${d.buyerUid}</td><td>${d.vendorUid}</td><td>${d.productId}</td><td>${d.reason}</td><td>${d.status}</td><td><button class="btn-action dispute-view-btn" data-id="${d.id}">View</button></td></tr>`).join('') + '</tbody></table>'; list.querySelectorAll('.dispute-view-btn').forEach((b) => b.addEventListener('click', () => renderAdminDisputeDetail(json.disputes.find((d) => d.id === b.dataset.id)))); } catch (err) { list.innerHTML = '<div class="error-state">' + err.message + '</div>'; }
+}
+function renderAdminDisputeDetail(d) { const panel = document.getElementById('admin-dispute-detail'); panel.innerHTML = `<div class="modal-balance-row"><h3>${d.reference}</h3><p><strong>Buyer statement:</strong> ${d.buyerStatement}</p><p><strong>Vendor statement:</strong> ${d.vendorStatement || 'No response yet'}</p><p><strong>Refund:</strong> ${d.refundStatus || 'Not applicable'}</p><div>${(d.adminNotes || []).map((n) => `<p>${n.note} <small>${n.adminUid}</small></p>`).join('')}</div><textarea id="admin-dispute-note" placeholder="Add internal note"></textarea><button class="btn-action" id="admin-dispute-note-btn">Add Note</button><select id="admin-dispute-resolution"><option value="">Choose resolution</option><option value="resolved_buyer">Resolve for buyer (refund)</option><option value="resolved_vendor">Resolve for vendor</option><option value="closed">Close</option></select><textarea id="admin-dispute-resolution-note" placeholder="Resolution note"></textarea><button class="btn-action" id="admin-dispute-resolve-btn">Apply Resolution</button></div>`; document.getElementById('admin-dispute-note-btn').onclick = async () => { await adminPost('add-dispute-note', { disputeId: d.id, note: document.getElementById('admin-dispute-note').value }); loadAdminDisputes(); }; document.getElementById('admin-dispute-resolve-btn').onclick = async () => { const resolution = document.getElementById('admin-dispute-resolution').value; if (!resolution) return; try { await adminPost('resolve-dispute', { disputeId: d.id, resolution, resolutionNote: document.getElementById('admin-dispute-resolution-note').value }); loadAdminDisputes(); } catch (err) { alert(err.message); } }; }
+
 function dateLabel(value) {
     if (!value) return 'Not set';
     const seconds = value.seconds ?? value._seconds;
@@ -606,6 +612,7 @@ document.getElementById('vendor-subscription-filter')?.addEventListener('change'
 document.getElementById('audit-filter-btn')?.addEventListener('click', () => loadAuditLog(document.getElementById('audit-vendor-filter').value.trim()));
 document.getElementById('audit-clear-btn')?.addEventListener('click', () => { document.getElementById('audit-vendor-filter').value = ''; loadAuditLog(); });
 document.querySelector('.nav-item-btn[data-tab="activity-pane"]')?.addEventListener('click', () => loadAuditLog());
+document.querySelector('.nav-item-btn[data-tab="disputes-pane"]')?.addEventListener('click', loadAdminDisputes);
 
 async function loadPayoutHistory() {
     const container = document.getElementById('payouts-list');

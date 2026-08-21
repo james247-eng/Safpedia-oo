@@ -2,9 +2,7 @@
 
 const { getFirebaseAdmin } = require('../../lib/firebase-admin');
 const { getAuthedUser } = require('../../lib/auth');
-const { sendEmail } = require('../utils/send-email');
-const { sendNotification } = require('../utils/send-notification');
-const { getRecipient } = require('../utils/recipient');
+const { sendEmail, sendNotification, getRecipient } = require('../utils/[action]');
 const { TIERS } = require('../../lib/vendor-subscriptions');
 
 const APP_URL = process.env.APP_URL || 'https://safpedia-oo.vercel.app';

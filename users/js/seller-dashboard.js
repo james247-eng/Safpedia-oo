@@ -62,6 +62,7 @@ onAuthStateChanged(auth, (user) => {
     loadBankList();
     loadOrders();
     loadSubscriptionSummary();
+    loadVendorDisputes();
     restoreProductDraft();
 });
 
@@ -86,6 +87,18 @@ function clearStatus() {
     el.textContent = '';
     el.classList.add('hidden');
     el.classList.remove('status-error');
+}
+
+async function loadVendorDisputes() {
+    const container = document.getElementById('vendor-disputes-list');
+    try {
+        const token = await currentUser.getIdToken(); const res = await fetch('/api/disputes/list-disputes', { headers: { Authorization: `Bearer ${token}` } }); const json = await res.json();
+        if (!res.ok) throw new Error(json.error || 'Could not load disputes');
+        const disputes = json.disputes.filter((d) => d.vendorUid === currentUser.uid);
+        if (!disputes.length) { container.innerHTML = '<div class="empty-state">No disputes filed against your sales.</div>'; return; }
+        container.innerHTML = disputes.map((d) => `<div class="dashboard-section-card"><p><strong>${d.reference}</strong> — ${d.status}</p><p>Reason: ${d.reason}</p><p>Buyer: ${d.buyerStatement}</p>${d.vendorStatement ? `<p>Your response: ${d.vendorStatement}</p>` : ''}${['open','investigating'].includes(d.status) ? `<form class="vendor-dispute-response" data-id="${d.id}"><textarea required placeholder="Your response to the buyer"></textarea><button class="btn btn-primary" type="submit">Send response</button></form>` : `<p>Resolution: ${d.resolution || d.status}</p>`}</div>`).join('');
+        container.querySelectorAll('.vendor-dispute-response').forEach((form) => form.addEventListener('submit', async (e) => { e.preventDefault(); const token = await currentUser.getIdToken(); const response = await fetch('/api/disputes/respond-to-dispute', { method: 'POST', headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` }, body: JSON.stringify({ disputeId: form.dataset.id, vendorStatement: form.querySelector('textarea').value }) }); const body = await response.json(); if (!response.ok) return alert(body.error || 'Could not respond'); loadVendorDisputes(); }));
+    } catch (err) { container.innerHTML = `<div class="error-state">${err.message}</div>`; }
 }
 
 async function loadSubscriptionSummary() {

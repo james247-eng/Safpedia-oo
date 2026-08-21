@@ -2,6 +2,7 @@
 
 const { getFirebaseAdmin } = require('../../../lib/firebase-admin');
 const { requireAdmin } = require('../../../lib/auth');
+const { sendEmail, sendNotification, getRecipient } = require('../../utils/[action]');
 
 const BATCH_LIMIT = 400; // stay comfortably under Firestore's 500-write batch cap
 
@@ -44,6 +45,9 @@ module.exports = async (req, res) => {
     if (req.method === 'GET' && action === 'get-audit-log') {
       return await handleGetAuditLog(req, res, db);
     }
+    if (req.method === 'GET' && action === 'admin-list-disputes') {
+      return await handleAdminListDisputes(req, res, db);
+    }
     if (req.method === 'GET' && action === 'get-audit-log') {
       return await handleGetAuditLog(req, res, db);
     }
@@ -61,6 +65,9 @@ module.exports = async (req, res) => {
         return await handleToggleStorefront(req, res, admin, db, adminUser);
       case 'set-subscription-override':
         return await handleSetSubscriptionOverride(req, res, admin, db, adminUser);
+      case 'admin-list-disputes': return await handleAdminListDisputes(req, res, db);
+      case 'add-dispute-note': return await handleAddDisputeNote(req, res, admin, db, adminUser);
+      case 'resolve-dispute': return await handleResolveDispute(req, res, admin, db, adminUser);
       default:
         return res.status(404).json({ error: `Unknown action: ${action}` });
     }
@@ -320,4 +327,61 @@ async function writeAdminAuditLog(db, admin, adminUser, entry) {
   } catch (err) {
     console.error('Failed to write admin audit log:', err);
   }
+}
+
+async function handleAdminListDisputes(req, res, db) {
+  const status = typeof req.body?.status === 'string' ? req.body.status : (typeof req.query.status === 'string' ? req.query.status : '');
+  const snap = await db.collection('disputes').get();
+  const disputes = snap.docs.map((d) => ({ id: d.id, ...d.data() })).filter((d) => !status || d.status === status).sort((a, b) => (a.status === 'open' ? 0 : 1) - (b.status === 'open' ? 0 : 1) || ((b.updatedAt?._seconds || b.updatedAt?.seconds || 0) - (a.updatedAt?._seconds || a.updatedAt?.seconds || 0)));
+  return res.status(200).json({ success: true, disputes });
+}
+
+async function handleAddDisputeNote(req, res, admin, db, adminUser) {
+  const { disputeId, note } = req.body || {};
+  if (!disputeId || typeof note !== 'string' || !note.trim()) return res.status(400).json({ error: 'disputeId and note are required' });
+  const ref = db.collection('disputes').doc(disputeId); const snap = await ref.get();
+  if (!snap.exists) return res.status(404).json({ error: 'Dispute not found' });
+  const now = admin.firestore.Timestamp.now();
+  await ref.set({ adminNotes: admin.firestore.FieldValue.arrayUnion({ note: note.trim(), adminUid: adminUser.uid, createdAt: now }), updatedAt: now }, { merge: true });
+  await writeAdminAuditLog(db, admin, adminUser, { action: 'add_dispute_note', vendorUid: snap.data().vendorUid, details: { disputeId, note: note.trim() } });
+  return res.status(200).json({ success: true });
+}
+
+async function handleResolveDispute(req, res, admin, db, adminUser) {
+  const { disputeId, resolution, resolutionNote } = req.body || {};
+  if (!disputeId || !['resolved_buyer', 'resolved_vendor', 'closed'].includes(resolution)) return res.status(400).json({ error: 'Invalid dispute resolution' });
+  const ref = db.collection('disputes').doc(disputeId); const snap = await ref.get();
+  if (!snap.exists) return res.status(404).json({ error: 'Dispute not found' });
+  const dispute = snap.data();
+  let refundStatus = 'not_applicable';
+  if (resolution === 'resolved_buyer') {
+    const secret = process.env.PAYSTACK_SECRET_KEY_MARKETPLACE;
+    try {
+      const refund = await fetch('https://api.paystack.co/refund', { method: 'POST', headers: { Authorization: `Bearer ${secret}`, 'Content-Type': 'application/json' }, body: JSON.stringify({ transaction: dispute.reference }) });
+      const body = await refund.json();
+      if (!refund.ok || body.status === false) throw new Error(body.message || 'Paystack refund failed');
+      refundStatus = 'triggered';
+    } catch (err) {
+      console.error('DISPUTE REFUND FAILED — manual action required:', dispute.reference, err.message);
+      await ref.set({ resolution: `refund_failed: ${resolutionNote || err.message}`, updatedAt: admin.firestore.Timestamp.now() }, { merge: true });
+      await writeAdminAuditLog(db, admin, adminUser, { action: 'resolve_dispute_refund_failed', vendorUid: dispute.vendorUid, details: { disputeId, resolution, reference: dispute.reference, error: err.message } });
+      return res.status(502).json({ error: 'Refund failed; dispute was not marked resolved. Manual action required.', refundStatus: 'failed' });
+    }
+  }
+  const now = admin.firestore.Timestamp.now();
+  await ref.set({ status: resolution, resolution: resolutionNote || resolution, updatedAt: now, refundStatus }, { merge: true });
+  await writeAdminAuditLog(db, admin, adminUser, { action: 'resolve_dispute', vendorUid: dispute.vendorUid, details: { disputeId, resolution, refundStatus } });
+  notifyDisputeOutcome(admin, db, dispute, resolution, refundStatus).catch(() => {});
+  return res.status(200).json({ success: true, status: resolution, refundStatus });
+}
+
+async function notifyDisputeOutcome(admin, db, dispute, resolution, refundStatus) {
+  try {
+    const [buyer, vendor] = await Promise.all([getRecipient(admin, db, dispute.buyerUid, ['user']), getRecipient(admin, db, dispute.vendorUid, ['user', 'vendors'])]);
+    const message = `Dispute ${dispute.reference} was updated to ${resolution}.`;
+    await Promise.all([
+      sendNotification({ recipientUid: dispute.buyerUid, title: 'Dispute updated', message, link: '/users/marketplace-orders.html', type: 'dispute_resolved' }),
+      sendNotification({ recipientUid: dispute.vendorUid, title: 'Dispute updated', message, link: '/seller-dashboard.html?tab=disputes', type: 'dispute_resolved' })
+    ]);
+  } catch (err) { console.error('Dispute outcome notification failed:', err.message); }
 }

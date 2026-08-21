@@ -6,6 +6,8 @@ import { collectionGroup, query, where, orderBy, getDocs } from 'https://www.gst
 import { onAuthStateChanged, signOut } from 'https://www.gstatic.com/firebasejs/12.17.1/firebase-auth.js';
 
 let currentUser = null;
+let disputesByReference = new Map();
+let activeDisputeReference = null;
 
 // ====================================================================
 // AUTH GUARD
@@ -55,6 +57,7 @@ async function loadOrders() {
             orders.push({ id: docSnap.id, ...docSnap.data() });
         });
 
+        await loadDisputes();
         renderOrders(orders);
 
     } catch (err) {
@@ -93,6 +96,8 @@ function renderOrders(orders) {
             actionCell = `${o.fulfillmentStatus || 'pending_shipment'}${tracking}`;
         }
 
+        const dispute = disputesByReference.get(o.reference);
+        const disputeAction = dispute ? `<span class="status-badge">Dispute: ${dispute.status}</span>` : `<button class="btn btn-sm btn-secondary dispute-btn" data-reference="${o.reference}">Report a problem</button>`;
         return `
             <tr>
                 <td>${o.productTitle}</td>
@@ -100,7 +105,7 @@ function renderOrders(orders) {
                 <td>₦${(o.amount || 0).toLocaleString()}</td>
                 <td>${o.productType}</td>
                 <td>${date}</td>
-                <td>${actionCell}</td>
+                <td>${actionCell}<div>${disputeAction}</div></td>
             </tr>
         `;
     }).join('');
@@ -124,7 +129,14 @@ function renderOrders(orders) {
     container.querySelectorAll('.download-btn').forEach((btn) => {
         btn.addEventListener('click', () => getDownloadLink(btn.dataset.productId, btn.dataset.reference, btn));
     });
+    container.querySelectorAll('.dispute-btn').forEach((btn) => btn.addEventListener('click', () => openDisputeModal(btn.dataset.reference)));
 }
+
+async function authedFetch(url, options = {}) { const token = await currentUser.getIdToken(); options.headers = Object.assign({}, options.headers, { Authorization: `Bearer ${token}` }); return fetch(url, options); }
+async function loadDisputes() { const res = await authedFetch('/api/disputes/list-disputes'); const json = await res.json(); if (!res.ok) throw new Error(json.error || 'Could not load disputes'); disputesByReference = new Map(json.disputes.map((d) => [d.reference, d])); }
+function openDisputeModal(reference) { activeDisputeReference = reference; document.getElementById('dispute-form').reset(); document.getElementById('dispute-form-message').textContent = ''; document.getElementById('dispute-modal').classList.remove('hidden'); }
+document.getElementById('dispute-modal-close').addEventListener('click', () => document.getElementById('dispute-modal').classList.add('hidden'));
+document.getElementById('dispute-form').addEventListener('submit', async (event) => { event.preventDefault(); const message = document.getElementById('dispute-form-message'); const button = event.currentTarget.querySelector('button[type="submit"]'); button.disabled = true; try { const res = await authedFetch('/api/disputes/create-dispute', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ reference: activeDisputeReference, reason: document.getElementById('dispute-reason').value, buyerStatement: document.getElementById('dispute-statement').value }) }); const json = await res.json(); if (!res.ok) throw new Error(json.error || 'Could not create dispute'); document.getElementById('dispute-modal').classList.add('hidden'); await loadOrders(); } catch (err) { message.textContent = err.message; } finally { button.disabled = false; } });
 
 // ====================================================================
 // DOWNLOAD LINK (server call — needs the Cloudinary secret, stays serverless)
