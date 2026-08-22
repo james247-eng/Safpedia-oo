@@ -10,21 +10,20 @@ function saveIntent(tier, billingCycle) {
 }
 
 async function loadTiers() {
-  const res = await fetch('/api/marketplace/get-tier-config');
+  const controller = new AbortController();
+  const timeout = setTimeout(() => controller.abort(), 8000);
+  let res;
+  try {
+    res = await fetch('/api/marketplace/get-tier-config', { signal: controller.signal });
+  } finally {
+    clearTimeout(timeout);
+  }
   const json = await res.json();
   if (!res.ok) throw new Error(json.error || 'Could not load tier pricing');
   return json.tiers || {};
 }
 
 async function init() {
-  let tiers;
-  try { tiers = await loadTiers(); } catch (err) { console.error(err); return; }
-  document.querySelectorAll('[data-tier-card]').forEach((card) => {
-    const tier = tiers[card.dataset.tierCard];
-    if (!tier) return;
-    card.querySelector('[data-price-monthly]').textContent = `₦${Number(tier.monthlyPrice).toLocaleString()}/month`;
-    card.querySelector('[data-tier-details]').textContent = `${tier.productLimit} active products. Annual: ₦${Number(tier.annualPrice).toLocaleString()}.`;
-  });
   document.querySelectorAll('[data-tier-card] .billing-choice').forEach((button) => button.addEventListener('click', () => {
     button.parentElement.querySelectorAll('.billing-choice').forEach((b) => b.classList.remove('active'));
     button.classList.add('active');
@@ -36,5 +35,21 @@ async function init() {
     saveIntent(tier, cycle);
     window.location.href = authUser ? '/users/sellers-page.html#subscription-pane' : '/sign-in.html';
   }));
+
+  let tiers;
+  try { tiers = await loadTiers(); } catch (err) {
+    console.error('Could not load tier config:', err);
+    document.querySelectorAll('[data-tier-card]').forEach((card) => {
+      card.querySelector('[data-price-monthly]').textContent = 'Pricing temporarily unavailable';
+      card.querySelector('[data-tier-details]').textContent = 'Please refresh and try again.';
+    });
+    return;
+  }
+  document.querySelectorAll('[data-tier-card]').forEach((card) => {
+    const tier = tiers[card.dataset.tierCard];
+    if (!tier) return;
+    card.querySelector('[data-price-monthly]').textContent = `₦${Number(tier.monthlyPrice).toLocaleString()}/month`;
+    card.querySelector('[data-tier-details]').textContent = `${tier.productLimit} active products. Annual: ₦${Number(tier.annualPrice).toLocaleString()}.`;
+  });
 }
 init();
