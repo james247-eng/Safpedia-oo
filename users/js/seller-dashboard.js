@@ -8,6 +8,7 @@ import { onAuthStateChanged, signOut } from 'https://www.gstatic.com/firebasejs/
 let currentUser = null;
 let tierConfig = {};
 let subscriptionSummary = null;
+const VENDOR_SUBSCRIPTION_INTENT_KEY = 'safpedia-vendor-subscription-intent';
 
 function subscriptionDate(value) {
     if (!value) return null;
@@ -112,11 +113,22 @@ async function loadSubscriptionSummary() {
         tierConfig = json.tiers || {};
         subscriptionSummary = json;
         renderSubscriptionSummary(json);
+        resumeVendorSubscriptionIntent();
     } catch (err) {
         console.error('loadSubscriptionSummary error:', err);
         document.getElementById('subscription-status-panel').textContent = `Could not load subscription: ${err.message}`;
         document.getElementById('subscription-payments-list').innerHTML = '<div class="error-state">Could not load payment history.</div>';
     }
+}
+
+async function resumeVendorSubscriptionIntent() {
+    let intent;
+    try { intent = JSON.parse(localStorage.getItem(VENDOR_SUBSCRIPTION_INTENT_KEY) || 'null'); } catch { intent = null; }
+    if (!intent) return;
+    if (!intent.createdAt || Date.now() - Number(intent.createdAt) > 24 * 60 * 60 * 1000) { localStorage.removeItem(VENDOR_SUBSCRIPTION_INTENT_KEY); return; }
+    if (!tierConfig[intent.tier] || !['safbloom', 'safscale'].includes(intent.tier) || !['monthly', 'annual'].includes(intent.billingCycle)) return;
+    const button = document.createElement('button');
+    try { const started = await initiateSubscriptionPayment(intent.tier, intent.billingCycle, button); if (started) localStorage.removeItem(VENDOR_SUBSCRIPTION_INTENT_KEY); } catch (err) { console.error('Subscription intent resume failed:', err); }
 }
 
 function renderSubscriptionSummary(summary) {
@@ -194,8 +206,10 @@ async function initiateSubscriptionPayment(tier, billingCycle, button) {
         const json = await res.json();
         if (!res.ok || !json.authorization_url) throw new Error(json.error || 'Could not start payment');
         window.location.assign(json.authorization_url);
+        return true;
     } catch (err) {
         alert(`Subscription payment could not start: ${err.message}`); button.disabled = false;
+        return false;
     }
 }
 

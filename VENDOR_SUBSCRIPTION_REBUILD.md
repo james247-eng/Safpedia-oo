@@ -193,6 +193,9 @@ Trigger case: buyer pays, doesn't receive what they paid for, vendor won't refun
 
 ## 12. Build milestones
 
+- [x] **M9 - Pricing page & copy update.** Completed as part of M11: `pages/pricing.html` reflects the three tiers and retired commission-model copy has been removed.
+- [x] **M11 - Pricing page vendor CTA + intent-preserving auth redirect.** Pricing-page vendor tier cards, CTA intent capture, additive `auth.js` redirect extension, and subscription auto-resume on `sellers-page.html`.
+
 - [x] **M1 — Data model & core gate.** `lib/vendor-subscriptions.js` (tier config + gate function), new vendor fields, product-limit + status checks wired into `handleCreateProduct` in `api/marketplace/[action].js`.
 - [x] **M2 — Subscription payment flow.** New action to initialize a subscription payment (Paystack, marketplace account, `orderType: 'vendor_subscription'` metadata), webhook handling in `api/marketplace/webhook.js` for subscription `charge.success`, writes to `subscriptionPayments` subcollection.
 - [x] **M3 — Product delete (hard) endpoint.** New handler: Firestore doc removal + Cloudinary asset destroy.

@@ -40,6 +40,9 @@ module.exports = async (req, res) => {
       return res.status(500).json({ error: 'Could not load storefront' });
     }
   }
+  if (req.method === 'GET' && req.query.action === 'get-tier-config') {
+    return res.status(200).json({ tiers: TIERS });
+  }
   if (req.method !== 'POST') {
     return res.status(405).json({ error: 'Method not allowed' });
   }

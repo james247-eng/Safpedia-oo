@@ -4,7 +4,7 @@
   <meta charset="UTF-8">
   <script>document.documentElement.classList.add('js-ready');</script>
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <meta name="description" content="SAFpedia pricing — selling is free. We only take a 10% platform fee on successful sales, tracked automatically in your dashboard.">
+  <meta name="description" content="SAFpedia vendor subscription tiers for storefronts, product limits, and seller support.">
   <title>Pricing — SAFpedia</title>
 
   <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -85,73 +85,35 @@
       </div>
 
       <h1 class="page-hero-title">
-        Free to sell. <span class="accent">You only pay when you get paid.</span>
+        Choose the tier that fits your storefront.
       </h1>
 
       <p class="page-hero-subtitle">
-        No subscription, no listing fees, no setup cost. SAFpedia takes a flat 10% platform fee — and only on sales that actually go through.
+        Pay a simple recurring subscription to unlock product listing, keep your sale revenue, and grow with the support your tier provides.
       </p>
     </div>
   </section>
 
-  <!-- MAIN PRICE CARD -->
+  <!-- VENDOR SUBSCRIPTION TIERS -->
   <section class="price-section">
     <div class="section-container">
-      <div class="price-card reveal">
-        <span class="price-tag">Selling on SAFpedia</span>
-        <div class="price-figure">₦0 <span>to join and start selling</span></div>
-        <p class="price-caption">You only pay a fee when a sale is successfully completed.</p>
-
-        <div class="price-divider"></div>
-
-        <div class="price-line">
-          <span class="price-line-label"><ion-icon name="storefront-outline"></ion-icon> Open a storefront</span>
-          <span>Free</span>
-        </div>
-        <div class="price-line">
-          <span class="price-line-label"><ion-icon name="pricetags-outline"></ion-icon> List courses, ebooks, or products</span>
-          <span>Free, unlimited</span>
-        </div>
-        <div class="price-line">
-          <span class="price-line-label"><ion-icon name="card-outline"></ion-icon> Platform fee per successful sale</span>
-          <span style="color:var(--color-red); font-weight:700;">10%</span>
-        </div>
-        <div class="price-line">
-          <span class="price-line-label"><ion-icon name="close-circle-outline"></ion-icon> Fee on failed or abandoned checkout</span>
-          <span>₦0</span>
-        </div>
+      <div id="vendor-tier-cards" class="included-grid">
+        <div class="price-card reveal"><span class="price-tag">Safseed</span><div class="price-figure">Free</div><p class="price-caption">Storefront with up to 3 active products.</p><button class="btn btn-outline vendor-tier-cta" data-tier="safseed">Sign up free</button></div>
+        <div class="price-card reveal" data-tier-card="safbloom"><span class="price-tag">SafBloom</span><div class="price-figure" data-price-monthly>Loading...</div><p class="price-caption" data-tier-details></p><div class="billing-toggle"><button type="button" class="billing-choice active" data-cycle="monthly">Monthly</button><button type="button" class="billing-choice" data-cycle="annual">Annual</button></div><button class="btn btn-primary vendor-tier-cta" data-tier="safbloom">Subscribe</button></div>
+        <div class="price-card reveal" data-tier-card="safscale"><span class="price-tag">SafScale</span><div class="price-figure" data-price-monthly>Loading...</div><p class="price-caption" data-tier-details></p><div class="billing-toggle"><button type="button" class="billing-choice active" data-cycle="monthly">Monthly</button><button type="button" class="billing-choice" data-cycle="annual">Annual</button></div><button class="btn btn-primary vendor-tier-cta" data-tier="safscale">Subscribe</button></div>
       </div>
     </div>
   </section>
 
-  <!-- FEE EXAMPLE -->
-  <section class="example-section">
-    <div class="section-container">
-      <div class="example-card reveal">
-        <h4>How it plays out on a sale</h4>
-        <div class="example-row">
-          <span>You list an ebook at</span>
-          <span class="amount">₦10,000</span>
-        </div>
-        <div class="example-row">
-          <span>Platform fee (10%), deducted after checkout</span>
-          <span class="amount deduct">− ₦1,000</span>
-        </div>
-        <div class="example-row total">
-          <span>You receive</span>
-          <span class="amount keep">₦9,000</span>
-        </div>
-      </div>
-    </div>
-  </section>
+
 
   <!-- WHAT'S INCLUDED -->
   <section class="included-section">
     <div class="section-container">
       <div class="section-header reveal">
         <div class="section-badge">What's Included</div>
-        <h2 class="section-title">No fee covers more than you'd think</h2>
-        <p class="section-description">The 10% isn't just a transaction cut — it's what keeps the whole storefront running for you.</p>
+        <h2 class="section-title">More than a listing plan</h2>
+        <p class="section-description">Each subscription tier combines product capacity, seller tools, and support for your storefront.</p>
       </div>
 
       <div class="included-grid">
@@ -173,7 +135,7 @@
         <div class="included-card reveal">
           <ion-icon name="people-outline"></ion-icon>
           <h4>Built-in referral network</h4>
-          <p>Other members can promote your listings — you only pay commission on resulting sales.</p>
+          <p>Other members can promote your listings while you keep your product sale revenue.</p>
         </div>
         <div class="included-card reveal">
           <ion-icon name="chatbubbles-outline"></ion-icon>
@@ -198,7 +160,7 @@
           <h2 class="section-title">Every sale and every naira, tracked automatically</h2>
           <p class="section-description">
             The moment a sale clears, it shows up in your dashboard — no spreadsheets, no manual reconciliation.
-            See what sold, what you earned after the 10% fee, and what's pending payout, all in one screen.
+            See what sold, your full product sale amounts, and what's pending payout, all in one screen.
           </p>
 
           <div class="about-features">
@@ -206,14 +168,14 @@
               <div class="feature-icon"><ion-icon name="receipt-outline"></ion-icon></div>
               <div class="feature-text">
                 <h4>Live sales feed</h4>
-                <p>Every successful checkout appears instantly, with the fee already broken out.</p>
+                <p>Every successful checkout appears instantly with the full sale amount recorded.</p>
               </div>
             </div>
             <div class="feature-item">
               <div class="feature-icon"><ion-icon name="wallet-outline"></ion-icon></div>
               <div class="feature-text">
                 <h4>Earnings breakdown</h4>
-                <p>Course sales, product sales, and referral commission shown separately, not lumped together.</p>
+                <p>Course sales, product sales, and referral activity shown separately, not lumped together.</p>
               </div>
             </div>
             <div class="feature-item">
@@ -245,45 +207,45 @@
     <div class="section-container">
       <div class="section-header reveal">
         <div class="section-badge">Common Questions</div>
-        <h2 class="section-title">About the fee</h2>
+        <h2 class="section-title">About subscriptions</h2>
         <p class="section-description">The details people usually ask about.</p>
       </div>
 
       <div class="faq-list">
         <div class="faq-item">
           <div class="faq-question">
-            <span>Is there a monthly or yearly subscription?</span>
+            <span>Can I pay monthly or annually?</span>
             <ion-icon name="add-outline"></ion-icon>
           </div>
-          <div class="faq-answer"><p>No. Joining and listing are free indefinitely. The only charge is the 10% fee, and only when a sale actually completes.</p></div>
+          <div class="faq-answer"><p>Yes. SafBloom and SafScale support monthly and discounted annual billing. Safseed is free for life.</p></div>
         </div>
         <div class="faq-item">
           <div class="faq-question">
-            <span>When exactly is the 10% deducted?</span>
+            <span>Do vendors pay commission on product sales?</span>
             <ion-icon name="add-outline"></ion-icon>
           </div>
-          <div class="faq-answer"><p>Immediately after a successful checkout. The fee is recorded against that sale automatically — you never get billed separately.</p></div>
+          <div class="faq-answer"><p>No. Subscription fees are the platform revenue mechanism, and vendors keep 100% of each product sale.</p></div>
         </div>
         <div class="faq-item">
           <div class="faq-question">
-            <span>Does the fee apply to referral commissions I pay out?</span>
+            <span>What happens when my subscription expires?</span>
             <ion-icon name="add-outline"></ion-icon>
           </div>
-          <div class="faq-answer"><p>The 10% platform fee is calculated on the sale total. Any referral commission you've set comes out of your remaining share, not on top of it.</p></div>
+          <div class="faq-answer"><p>New product listing is paused and subscription-lapsed listings are deactivated until you renew.</p></div>
         </div>
         <div class="faq-item">
           <div class="faq-question">
             <span>What if a buyer requests a refund?</span>
             <ion-icon name="add-outline"></ion-icon>
           </div>
-          <div class="faq-answer"><p>If a sale is refunded, the platform fee tied to that sale is reversed too — you're not left covering a fee on money you no longer have.</p></div>
+          <div class="faq-answer"><p>Refunds and disputes are handled through the marketplace support process.</p></div>
         </div>
         <div class="faq-item">
           <div class="faq-question">
-            <span>Is the 10% different for courses vs marketplace products?</span>
+            <span>Which tier should I choose?</span>
             <ion-icon name="add-outline"></ion-icon>
           </div>
-          <div class="faq-answer"><p>No — it's a flat 10% across courses, ebooks, and marketplace listings, so there's nothing to calculate differently by category.</p></div>
+          <div class="faq-answer"><p>Choose based on the number of active products and the support features your storefront needs.</p></div>
         </div>
       </div>
     </div>
@@ -294,7 +256,7 @@
     <div class="cta-container">
       <div class="cta-content">
         <h2>Ready to start selling for free?</h2>
-        <p>Create your account, list your first item, and only pay when you actually make a sale.</p>
+        <p>Create your account, choose a tier, and start building your storefront.</p>
         <a href="/sign-up.html" class="btn btn-white">
           Create Free Account
           <ion-icon name="arrow-forward-outline"></ion-icon>

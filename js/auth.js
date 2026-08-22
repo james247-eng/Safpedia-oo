@@ -12,6 +12,22 @@ import {
 import { showToast, showLoading } from './toast-notification.js';
 import './notification-center.js';
 
+const VENDOR_SUBSCRIPTION_INTENT_KEY = 'safpedia-vendor-subscription-intent';
+function getVendorSubscriptionIntentRedirect(userRole) {
+  if (userRole === 'admin') return null;
+  try {
+    const raw = localStorage.getItem(VENDOR_SUBSCRIPTION_INTENT_KEY);
+    if (!raw) return null;
+    const intent = JSON.parse(raw);
+    if (!intent || Date.now() - Number(intent.createdAt) > 24 * 60 * 60 * 1000) {
+      localStorage.removeItem(VENDOR_SUBSCRIPTION_INTENT_KEY);
+      return null;
+    }
+    if (!['safbloom', 'safscale'].includes(intent.tier) || !['monthly', 'annual'].includes(intent.billingCycle)) return null;
+    return '/users/sellers-page.html#subscription-pane';
+  } catch { return null; }
+}
+
 // Initialize Analytics using the shared app instance behind the config if needed
 const analytics = getAnalytics(auth.app);
 
@@ -94,7 +110,7 @@ if (signupForm && signupBtn) {
       showToast('Account created successfully! Redirecting...', 'success');
       
       setTimeout(() => { 
-        window.location.href = '/users/dashboard.html'; 
+        window.location.href = getVendorSubscriptionIntentRedirect(userData.role) || '/users/dashboard.html';
       }, 1000);
 
     } catch (error) {
@@ -184,7 +200,7 @@ if (loginForm && loginBtn) {
         if (userRole === 'admin') {
           window.location.href = '/safpedia concept admin dashboard/dashboard.html';
         } else {
-          window.location.href = '/users/dashboard.html';
+          window.location.href = getVendorSubscriptionIntentRedirect(userRole) || '/users/dashboard.html';
         }
       }, 500);
 
@@ -265,7 +281,7 @@ async function handleSocialAuth(provider, providerName) {
       if (userRole === 'admin') {
         window.location.href = '/safpedia concept admin dashboard/dashboard.html';
       } else {
-        window.location.href = '/users/dashboard.html';
+        window.location.href = getVendorSubscriptionIntentRedirect(userRole) || '/users/dashboard.html';
       }
     }, 500);
 
@@ -468,7 +484,7 @@ async function updateProfileIcon(user) {
         if (userRole === 'admin') {
           window.location.href = '/safpedia concept admin dashboard/dashboard.html';
         } else {
-          window.location.href = '/users/dashboard.html';
+          window.location.href = getVendorSubscriptionIntentRedirect(userRole) || '/users/dashboard.html';
         }
       };
       
@@ -498,7 +514,7 @@ function setDefaultLoggedInIcon(user) {
   `;
   
   profileIcon.onclick = () => {
-    window.location.href = '/users/dashboard.html';
+    window.location.href = getVendorSubscriptionIntentRedirect('user') || '/users/dashboard.html';
   };
 }
 
