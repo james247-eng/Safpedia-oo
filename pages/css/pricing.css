@@ -250,15 +250,26 @@ button { font-family: inherit; cursor: pointer; border: none; background: none; 
 @media (max-width: 520px) { .footer-grid { grid-template-columns: 1fr; } }
 
 /* =============================================================
-   Main price card — single flat model, not a tiered comparison
+   TIER CARDS — dedicated grid (kept separate from .included-grid
+   below so the 3-card pricing layout can control its own
+   breakpoints without being pulled into an awkward 2-column
+   step when the "What's Included" cards need one).
    ============================================================= */
 .price-section { padding: 88px 0 40px; }
+
+.tier-cards-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 24px;
+  align-items: stretch;
+}
+
 .price-card {
-  max-width: 640px; margin: 0 auto;
   background: var(--color-white); border: 1.5px solid var(--color-border);
-  border-radius: var(--r-lg); padding: 48px 40px; text-align: center;
+  border-radius: var(--r-lg); padding: 44px 32px; text-align: center;
   box-shadow: var(--shadow-card);
   position: relative; overflow: hidden;
+  display: flex; flex-direction: column;
 }
 .price-card::before {
   content: ""; position: absolute; top: 0; left: 0; right: 0; height: 5px;
@@ -267,22 +278,59 @@ button { font-family: inherit; cursor: pointer; border: none; background: none; 
 .price-card .price-tag {
   display: inline-block; font-size: 12px; font-weight: 700; letter-spacing: 0.06em; text-transform: uppercase;
   color: var(--color-blue); background: var(--color-blue-light); padding: 6px 14px; border-radius: 999px; margin-bottom: 20px;
+  align-self: center;
 }
 .price-card .price-figure {
-  font-family: var(--font-display); font-size: clamp(2.4rem, 6vw, 3.4rem); font-weight: 600;
+  font-family: var(--font-display); font-size: clamp(2.2rem, 5vw, 2.8rem); font-weight: 600;
   color: var(--color-text); line-height: 1; margin-bottom: 6px;
 }
 .price-card .price-figure span { font-size: 18px; font-weight: 500; color: var(--color-text-muted); }
-.price-card .price-caption { font-size: 15px; color: var(--color-text-muted); margin-bottom: 28px; }
-.price-divider { height: 1px; background: var(--color-border); margin: 28px 0; }
-.price-line {
-  display: flex; align-items: center; justify-content: space-between;
-  padding: 12px 0; font-size: 14.5px; color: var(--color-text-muted);
-  border-bottom: 1px dashed var(--color-border);
+.price-card .price-caption { font-size: 14.5px; color: var(--color-text-muted); margin-bottom: 24px; }
+
+/* Feature list inside each tier card */
+.price-features {
+  list-style: none; margin: 0 0 24px; padding: 0;
+  text-align: left; display: flex; flex-direction: column; gap: 12px;
+  flex: 1; /* pushes toggle/CTA to the bottom so cards align evenly */
 }
-.price-line:last-child { border-bottom: none; }
-.price-line ion-icon { color: var(--color-blue); font-size: 18px; margin-right: 8px; }
-.price-line-label { display: flex; align-items: center; text-align: left; color: var(--color-text); font-weight: 500; }
+.price-features li {
+  display: flex; align-items: flex-start; gap: 10px;
+  font-size: 14px; color: var(--color-text);
+}
+.price-features li ion-icon {
+  color: var(--color-blue); font-size: 18px; flex-shrink: 0; margin-top: 1px;
+}
+
+/* Billing toggle (Monthly / Annual) — was previously unstyled */
+.billing-toggle {
+  display: flex; width: 100%;
+  background: var(--color-bg-alt); border: 1px solid var(--color-border);
+  border-radius: 999px; padding: 4px; margin-bottom: 18px;
+}
+.billing-choice {
+  flex: 1; padding: 9px 12px; font-size: 13.5px; font-weight: 600;
+  color: var(--color-text-muted); border-radius: 999px;
+  transition: background 0.2s ease, color 0.2s ease;
+}
+.billing-choice.active {
+  background: var(--color-white); color: var(--color-blue);
+  box-shadow: 0 2px 6px rgba(11, 46, 89, 0.12);
+}
+
+.price-card .vendor-tier-cta { width: 100%; }
+
+/* Popular tier emphasis */
+.price-card-popular {
+  border-color: var(--color-blue);
+  box-shadow: var(--shadow-pop);
+  transform: translateY(-6px);
+}
+.popular-badge {
+  position: absolute; top: 16px; right: 16px;
+  background: var(--color-blue); color: var(--color-white);
+  font-size: 10.5px; font-weight: 700; letter-spacing: 0.05em; text-transform: uppercase;
+  padding: 6px 12px; border-radius: 999px;
+}
 
 /* Fee example */
 .example-section { padding: 40px 0 96px; }
@@ -313,9 +361,32 @@ button { font-family: inherit; cursor: pointer; border: none; background: none; 
 @media (max-width: 860px) { .included-grid { grid-template-columns: 1fr 1fr; } }
 @media (max-width: 520px) { .included-grid { grid-template-columns: 1fr; } }
 
+/* =============================================================
+   RESPONSIVE — tier cards
+   Goes straight from 3 columns to 1 (no 2-column mid-step),
+   so a 3rd card never sits alone with excess space around it.
+   Card fills the available width at every size instead of
+   shrinking inside oversized margins.
+   ============================================================= */
+@media (max-width: 900px) {
+  .tier-cards-grid {
+    grid-template-columns: 1fr;
+    max-width: 460px;
+    margin: 0 auto;
+    gap: 20px;
+  }
+  .price-card-popular { transform: none; }
+}
+
 @media (max-width: 520px) {
-  .price-card { padding: 36px 24px; }
-  .price-line { flex-wrap: wrap; gap: 4px; }
+  .price-section { padding: 56px 0 32px; }
+  .price-section .section-container { padding: 0 16px; }
+  .price-card { padding: 34px 22px; }
+  .tier-cards-grid { max-width: 100%; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .price-card, .price-card-popular { transition: none; }
 }
 
 /* Scroll reveal */

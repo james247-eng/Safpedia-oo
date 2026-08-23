@@ -97,10 +97,56 @@
   <!-- VENDOR SUBSCRIPTION TIERS -->
   <section class="price-section">
     <div class="section-container">
-      <div id="vendor-tier-cards" class="included-grid">
-        <div class="price-card reveal"><span class="price-tag">Safseed</span><div class="price-figure">Free</div><p class="price-caption">Storefront with up to 3 active products.</p><button class="btn btn-outline vendor-tier-cta" data-tier="safseed">Sign up free</button></div>
-        <div class="price-card reveal" data-tier-card="safbloom"><span class="price-tag">SafBloom</span><div class="price-figure" data-price-monthly>Loading...</div><p class="price-caption" data-tier-details></p><div class="billing-toggle"><button type="button" class="billing-choice active" data-cycle="monthly">Monthly</button><button type="button" class="billing-choice" data-cycle="annual">Annual</button></div><button class="btn btn-primary vendor-tier-cta" data-tier="safbloom">Subscribe</button></div>
-        <div class="price-card reveal" data-tier-card="safscale"><span class="price-tag">SafScale</span><div class="price-figure" data-price-monthly>Loading...</div><p class="price-caption" data-tier-details></p><div class="billing-toggle"><button type="button" class="billing-choice active" data-cycle="monthly">Monthly</button><button type="button" class="billing-choice" data-cycle="annual">Annual</button></div><button class="btn btn-primary vendor-tier-cta" data-tier="safscale">Subscribe</button></div>
+      <div id="vendor-tier-cards" class="tier-cards-grid">
+
+        <div class="price-card reveal">
+          <span class="price-tag">Safseed</span>
+          <div class="price-figure">Free</div>
+          <p class="price-caption">Storefront with up to 3 active products.</p>
+          <ul class="price-features">
+            <li><ion-icon name="checkmark-circle"></ion-icon><span>Up to 3 active listings</span></li>
+            <li><ion-icon name="checkmark-circle"></ion-icon><span>Basic storefront page</span></li>
+            <li><ion-icon name="checkmark-circle"></ion-icon><span>Community support</span></li>
+          </ul>
+          <button class="btn btn-outline vendor-tier-cta" data-tier="safseed">Sign up free</button>
+        </div>
+
+        <div class="price-card reveal" data-tier-card="safbloom">
+          <span class="price-tag">SafBloom</span>
+          <div class="price-figure" data-price-monthly>Loading...</div>
+          <p class="price-caption" data-tier-details></p>
+          <ul class="price-features">
+            <li><ion-icon name="checkmark-circle"></ion-icon><span>Up to 30 active listings</span></li>
+            <li><ion-icon name="checkmark-circle"></ion-icon><span>Referral network access</span></li>
+            <li><ion-icon name="checkmark-circle"></ion-icon><span>Priority buyer support</span></li>
+            <li><ion-icon name="checkmark-circle"></ion-icon><span>Storefront customization</span></li>
+          </ul>
+          <div class="billing-toggle">
+            <button type="button" class="billing-choice active" data-cycle="monthly">Monthly</button>
+            <button type="button" class="billing-choice" data-cycle="annual">Annual</button>
+          </div>
+          <button class="btn btn-primary vendor-tier-cta" data-tier="safbloom">Subscribe</button>
+        </div>
+
+        <div class="price-card price-card-popular reveal" data-tier-card="safscale">
+          <span class="popular-badge">Most Popular</span>
+          <span class="price-tag">SafScale</span>
+          <div class="price-figure" data-price-monthly>Loading...</div>
+          <p class="price-caption" data-tier-details></p>
+          <ul class="price-features">
+            <li><ion-icon name="checkmark-circle"></ion-icon><span>Up to 75 active listings</span></li>
+            <li><ion-icon name="checkmark-circle"></ion-icon><span>Referral network access</span></li>
+            <li><ion-icon name="checkmark-circle"></ion-icon><span>Priority buyer support</span></li>
+            <li><ion-icon name="checkmark-circle"></ion-icon><span>Storefront customization</span></li>
+            <li><ion-icon name="checkmark-circle"></ion-icon><span>Featured marketplace placement</span></li>
+          </ul>
+          <div class="billing-toggle">
+            <button type="button" class="billing-choice active" data-cycle="monthly">Monthly</button>
+            <button type="button" class="billing-choice" data-cycle="annual">Annual</button>
+          </div>
+          <button class="btn btn-primary vendor-tier-cta" data-tier="safscale">Subscribe</button>
+        </div>
+
       </div>
     </div>
   </section>
