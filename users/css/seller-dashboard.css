@@ -465,19 +465,22 @@
   margin-bottom: 2rem;
   color:green;
 }
-
+.sub-tier-name strong {
+  color: var(--ink)!important;
+  font-weight: 600;
+}
 .sub-status {
   color: var(--slate);
-  margin-bottom: 1rem;
+  margin-bottom: 3rem;
 }
 
 .sub-expiry {
   color: var(--blue-dark);
   font-weight: 600;
-  margin-bottom: 1rem;
+  margin-bottom: 3rem;
 }
 
 .sub-expiry--free {
   color: var(--slate);
-  font-weight: 400;
+  font-weight: 200;
 }

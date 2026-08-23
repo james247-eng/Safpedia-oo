@@ -139,9 +139,9 @@ function renderSubscriptionSummary(summary) {
     const expired = paidTier && vendor.subscriptionStatus === 'expired';
     const status = paidTier ? (expired ? 'Expired' : 'Active') : 'Free tier (no status needed)';
 document.getElementById('subscription-status-panel').innerHTML = `
-    <p class="sub-tier-name">Current Tier: <strong>${tier.displayName || 'Safseed'}</strong></p>
-    <p class="sub-status">Status: ${status}</p>
-    ${paidTier ? `<p class="sub-expiry">Expires: ${formatSubscriptionDate(vendor.subscriptionExpiresAt)}</p>` : '<p class="sub-expiry sub-expiry--free">Safseed is free and does not expire.</p>'}
+    <p class="sub-tier-name"><strong>Current Tier: </strong>${tier.displayName || 'Safseed'}</p>
+    <p class="sub-status"><strong>Status: </strong> ${status}</p>
+    ${paidTier ? `<p class="sub-expiry"><strong>Expires: </strong> ${formatSubscriptionDate(vendor.subscriptionExpiresAt)}</p>` : '<p class="sub-expiry sub-expiry--free"><strong>Safseed is free and does not expire.</strong></p>'}
 `;
 
     const actions = document.getElementById('subscription-actions');
