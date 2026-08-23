@@ -381,7 +381,7 @@ async function notifyDisputeOutcome(admin, db, dispute, resolution, refundStatus
     const message = `Dispute ${dispute.reference} was updated to ${resolution}.`;
     await Promise.all([
       sendNotification({ recipientUid: dispute.buyerUid, title: 'Dispute updated', message, link: '/users/marketplace-orders.html', type: 'dispute_resolved' }),
-      sendNotification({ recipientUid: dispute.vendorUid, title: 'Dispute updated', message, link: '/seller-dashboard.html?tab=disputes', type: 'dispute_resolved' })
+      sendNotification({ recipientUid: dispute.vendorUid, title: 'Dispute updated', message, link: '/users/sellers-page.html#disputes-pane', type: 'dispute_resolved' })
     ]);
   } catch (err) { console.error('Dispute outcome notification failed:', err.message); }
 }

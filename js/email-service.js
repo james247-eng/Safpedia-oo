@@ -45,7 +45,7 @@ export async function sendBuyerOrderConfirmation({ email, name, orderRef, totalA
         subject: `Order Confirmed #${orderRef} - Safpedia Marketplace`,
         headline: `Thank You for Your Order!`,
         bodyContent: `Your purchase of "${itemTitle}" (Order #${orderRef}) totaling ₦${totalAmount.toLocaleString()} was successful. The vendor has been notified to process your order.`,
-        actionUrl: `https://safpedia-oo.vercel.app/users/marketplace-orders.html?tab=confirmed`,
+        actionUrl: `https://safpedia-oo.vercel.app/users/marketplace-orders.html`,
         actionText: `View Order Details`
     });
 }
@@ -59,7 +59,7 @@ export async function sendVendorNewOrderAlert({ vendorEmail, vendorName, orderRe
         subject: `New Sale Alert! Order #${orderRef}`,
         headline: `You Made a Sale! 🛒`,
         bodyContent: `Great news! You received an order for ${qty}${unitLabel} of "${itemTitle}". Earnings credited to your pending balance: ₦${earnings.toLocaleString()}. Please process this order promptly.`,
-        actionUrl: `https://safpedia-oo.vercel.app/users/seller-dashboard.html?tab=orders`,
+        actionUrl: `https://safpedia-oo.vercel.app/users/sellers-page.html#orders-pane`,
         actionText: `Manage Order`
     });
 }
@@ -73,7 +73,7 @@ export async function sendBuyerShippingAlert({ buyerEmail, buyerName, itemTitle,
         subject: `Your Order is On Its Way! 📦`,
         headline: `Item Shipped!`,
         bodyContent: `Your order for "${itemTitle}" has been shipped by the seller. ${noteText}`,
-        actionUrl: `https://safpedia-oo.vercel.app/users/marketplace-orders.html?tab=shipped`,
+        actionUrl: `https://safpedia-oo.vercel.app/users/marketplace-orders.html`,
         actionText: `Track Package`
     });
 }
@@ -89,7 +89,7 @@ export async function sendPayoutStatusAlert({ vendorEmail, vendorName, amount, s
         bodyContent: message || (isSuccess 
             ? `Your payout of ₦${amount.toLocaleString()} has been successfully transferred to your bank account.`
             : `Your payout request of ₦${amount.toLocaleString()} could not be processed. Funds have been returned to your balance.`),
-        actionUrl: `https://safpedia-oo.vercel.app/users/seller-dashboard.html?tab=payouts`,
+        actionUrl: `https://safpedia-oo.vercel.app/users/sellers-page.html#payouts-pane`,
         actionText: `View Payouts`
     });
 }
@@ -102,7 +102,7 @@ export async function sendStockWarningAlert({ vendorEmail, vendorName, itemTitle
         subject: `Low Stock Alert: ${itemTitle}`,
         headline: `Inventory Warning ⚠️`,
         bodyContent: `Your listed product "${itemTitle}" only has ${stockRemaining} unit(s) left in stock. Update your inventory to prevent missing sales.`,
-        actionUrl: `https://safpedia-oo.vercel.app/users/seller-dashboard.html?tab=products`,
+        actionUrl: `https://safpedia-oo.vercel.app/users/sellers-page.html#products-pane`,
         actionText: `Update Inventory`
     });
 }

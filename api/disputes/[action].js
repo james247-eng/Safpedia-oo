@@ -81,7 +81,7 @@ async function listDisputes(req, res, db, user) {
 async function notifyVendorDispute(admin, db, vendorUid, reference, reason) {
   try {
     const vendor = await getRecipient(admin, db, vendorUid, ['user', 'vendors']);
-    const link = `${APP_URL}/seller-dashboard.html?tab=disputes`;
+    const link = `${APP_URL}/users/sellers-page.html#disputes-pane`;
     await Promise.all([
       sendEmail({ toEmail: vendor.email, toName: vendor.name, subject: 'A buyer reported a problem with an order', headline: 'New order dispute', bodyContent: `A buyer opened a dispute for order ${reference}. Reason: ${reason}.`, actionUrl: link, actionText: 'Review dispute' }),
       sendNotification({ recipientUid: vendorUid, title: 'New order dispute', message: `A buyer reported a problem with order ${reference}.`, link, type: 'dispute_opened' })

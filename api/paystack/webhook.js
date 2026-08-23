@@ -270,7 +270,7 @@ async function notifyCourseEnrollment({ userId, studentName, studentEmail, cours
 async function notifyAffiliateCommission({ admin, db, affiliateUid, commission, courseTitle, reference }) {
   try {
     const affiliate = await getRecipient(admin, db, affiliateUid, ['user', 'affiliates']);
-    const affiliateLink = `${APP_URL}/affiliate-dashboard.html`;
+    const affiliateLink = `${APP_URL}/users/affiliate.html`;
     await Promise.all([
       sendEmail({
         toEmail: affiliate.email,

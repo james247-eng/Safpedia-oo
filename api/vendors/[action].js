@@ -472,7 +472,7 @@ async function handleGetSubscriptionSummary(req, res, admin, db) {
 async function notifyBuyerOrderShipped({ admin, db, sale, reference, trackingNumber, carrier }) {
   try {
     const buyer = await getRecipient(admin, db, sale.buyerUid, ['user']);
-    const orderLink = `${APP_URL}/users/dashboard.html`;
+    const orderLink = `${APP_URL}/users/marketplace-orders.html`;
     const trackingDetails = [carrier, trackingNumber].filter(Boolean).join(' / ');
     const trackingMessage = trackingDetails ? ` Tracking: ${trackingDetails}.` : '';
 
@@ -502,7 +502,7 @@ async function notifyBuyerOrderShipped({ admin, db, sale, reference, trackingNum
 async function notifyPayoutRequested({ admin, db, vendorUid, amount, reference }) {
   try {
     const vendor = await getRecipient(admin, db, vendorUid, ['user', 'vendors']);
-    const payoutLink = `${APP_URL}/seller-dashboard.html?tab=payouts`;
+    const payoutLink = `${APP_URL}/users/sellers-page.html#payouts-pane`;
 
     await sendEmail({
       toEmail: vendor.email,
@@ -515,7 +515,7 @@ async function notifyPayoutRequested({ admin, db, vendorUid, amount, reference }
     });
 
     const admins = await db.collection('user').where('role', '==', 'admin').get();
-    const adminLink = `${APP_URL}/safpedia%20concept%20admin%20dashboard/dashboard.html`;
+    const adminLink = `${APP_URL}/safpedia%20concept%20admin%20dashboard/vendor-management.html#payouts-pane`;
     await Promise.all(admins.docs.map((adminDoc) => sendNotification({
       recipientUid: adminDoc.id,
       title: 'Vendor payout requested',

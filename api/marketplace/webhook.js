@@ -374,8 +374,8 @@ async function notifyMarketplaceSale({
       getRecipient(admin, db, buyerUid, ['user']),
       getRecipient(admin, db, vendorUid, ['user', 'vendors'])
     ]);
-    const orderLink = `${APP_URL}/users/dashboard.html`;
-    const vendorOrdersLink = `${APP_URL}/seller-dashboard.html?tab=orders`;
+    const orderLink = `${APP_URL}/users/marketplace-orders.html`;
+    const vendorOrdersLink = `${APP_URL}/users/sellers-page.html#orders-pane`;
 
     await Promise.all([
       sendEmail({
@@ -413,7 +413,7 @@ async function notifyMarketplaceSale({
     ]);
 
     if (productType === 'physical' && stockRemaining <= 2) {
-      const productsLink = `${APP_URL}/seller-dashboard.html?tab=products`;
+      const productsLink = `${APP_URL}/users/sellers-page.html#products-pane`;
       await Promise.all([
         sendEmail({
           toEmail: vendor.email,
@@ -442,7 +442,7 @@ async function notifyVendorTransfer({ admin, db, vendorUid, amount, eventType, r
   try {
     const vendor = await getRecipient(admin, db, vendorUid, ['user', 'vendors']);
     const succeeded = eventType === 'transfer.success';
-    const payoutLink = `${APP_URL}/seller-dashboard.html?tab=payouts`;
+    const payoutLink = `${APP_URL}/users/sellers-page.html#payouts-pane`;
 
     await Promise.all([
       sendEmail({
@@ -474,7 +474,7 @@ async function notifyVendorTransfer({ admin, db, vendorUid, amount, eventType, r
 async function notifyVendorSubscription({ admin, db, vendorUid, tierName, billingCycle, amountNaira, reference, expires }) {
   try {
     const vendor = await getRecipient(admin, db, vendorUid, ['user', 'vendors']);
-    const subscriptionLink = `${APP_URL}/seller-dashboard.html?tab=subscription`;
+    const subscriptionLink = `${APP_URL}/users/sellers-page.html#subscription-pane`;
     const expiryDate = expires.toDate().toLocaleDateString('en-NG');
     await Promise.all([
       sendEmail({

@@ -36,6 +36,43 @@ function formatTime(timestamp) {
   }).format(date);
 }
 
+function normalizeNotificationLink(link, type) {
+  if (!link) return '';
+
+  try {
+    const url = new URL(link, window.location.href);
+    const pathname = decodeURIComponent(url.pathname);
+    const sellerPage = '/users/sellers-page.html';
+    const marketplaceOrdersPage = '/users/marketplace-orders.html';
+
+    if (pathname.endsWith('/seller-dashboard.html')) {
+      const tab = url.searchParams.get('tab');
+      const tabId = tab ? `${tab}-pane` : '';
+      url.pathname = sellerPage;
+      url.search = '';
+      url.hash = tabId;
+    } else if (pathname.endsWith('/affiliate-dashboard.html')) {
+      url.pathname = '/users/affiliate.html';
+    } else if (
+      pathname.endsWith('/safpedia concept admin dashboard/dashboard.html') &&
+      type === 'vendor_payout_request'
+    ) {
+      url.pathname = '/safpedia concept admin dashboard/vendor-management.html';
+      url.hash = 'payouts-pane';
+    } else if (
+      pathname.endsWith('/users/dashboard.html') &&
+      ['order_confirmation', 'order_shipped', 'dispute_vendor_response', 'dispute_resolved'].includes(type)
+    ) {
+      url.pathname = marketplaceOrdersPage;
+    }
+
+    return url.href;
+  } catch (error) {
+    console.warn('Could not normalize notification link:', error);
+    return link;
+  }
+}
+
 function renderNotifications(container, notifications) {
   container.replaceChildren();
 
@@ -48,9 +85,10 @@ function renderNotifications(container, notifications) {
   }
 
   notifications.slice(0, DISPLAY_LIMIT).forEach((notification) => {
-    const item = document.createElement(notification.link ? 'a' : 'div');
+    const link = normalizeNotificationLink(notification.link, notification.type);
+    const item = document.createElement(link ? 'a' : 'div');
     item.className = 'notification-item';
-    if (notification.link) item.href = notification.link;
+    if (link) item.href = link;
 
     const title = document.createElement('span');
     title.className = 'notification-item-title';

@@ -52,7 +52,7 @@ module.exports = async (req, res) => {
 
 async function notifyVendorSubscriptionLapsed({ admin, db, vendorUid }) {
   const vendor = await getRecipient(admin, db, vendorUid, ['user', 'vendors']);
-  const renewLink = `${APP_URL}/seller-dashboard.html?tab=subscription`;
+  const renewLink = `${APP_URL}/users/sellers-page.html#subscription-pane`;
   await Promise.all([
     sendEmail({ toEmail: vendor.email, toName: vendor.name, subject: 'Your vendor subscription has expired', headline: 'Subscription expired - products deactivated', bodyContent: 'Your subscription lapsed and active products were deactivated. Renew to reactivate products marked as subscription-lapsed.', actionUrl: renewLink, actionText: 'Renew Subscription' }),
     sendNotification({ recipientUid: vendorUid, title: 'Subscription expired', message: 'Your subscription lapsed and active products were deactivated. Renew to reactivate them.', link: renewLink, type: 'vendor_subscription_lapsed' })
