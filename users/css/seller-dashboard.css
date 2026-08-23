@@ -458,3 +458,23 @@
 .order-detail-section .btn {
     margin-top: 10px;
 }
+
+
+.sub-tier-name {
+  font-size: 1.1rem;
+  margin-bottom: 0.25rem;
+}
+
+.sub-status {
+  color: var(--slate);
+}
+
+.sub-expiry {
+  color: var(--blue-dark);
+  font-weight: 600;
+}
+
+.sub-expiry--free {
+  color: var(--slate);
+  font-weight: 400;
+}
