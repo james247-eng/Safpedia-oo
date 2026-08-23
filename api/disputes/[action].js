@@ -30,8 +30,12 @@ async function createDispute(req, res, admin, db, user) {
   const sale = matches.docs[0].data();
   if (sale.buyerUid !== user.uid) return res.status(403).json({ error: 'You cannot dispute this order' });
 
-  const existing = await db.collection('disputes').where('reference', '==', reference.trim()).where('status', 'in', ['open', 'investigating']).limit(1).get();
-  if (!existing.empty) return res.status(409).json({ error: 'An active dispute already exists for this order', disputeId: existing.docs[0].id });
+  // Query by reference only, then inspect status in memory. Combining
+  // reference equality with a status `in` filter requires a composite index;
+  // dispute creation must not depend on an undeclared deployment-side index.
+  const existing = await db.collection('disputes').where('reference', '==', reference.trim()).get();
+  const activeExisting = existing.docs.find((doc) => ['open', 'investigating'].includes(doc.data().status));
+  if (activeExisting) return res.status(409).json({ error: 'An active dispute already exists for this order', disputeId: activeExisting.id });
 
   const now = admin.firestore.Timestamp.now();
   const disputeRef = db.collection('disputes').doc();

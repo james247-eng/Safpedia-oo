@@ -7,7 +7,7 @@
 import { auth, db } from '../../../firebase-config.js';
 import '../../../js/notification-center.js';
 import { onAuthStateChanged, signOut } from 'https://www.gstatic.com/firebasejs/12.17.1/firebase-auth.js';
-import { collection, getDocs, addDoc, updateDoc, deleteDoc, doc, query, where, orderBy, limit, Timestamp, getDoc } from 'https://www.gstatic.com/firebasejs/12.17.1/firebase-firestore.js';
+import { collection, collectionGroup, getDocs, addDoc, updateDoc, deleteDoc, doc, query, where, orderBy, limit, Timestamp, getDoc } from 'https://www.gstatic.com/firebasejs/12.17.1/firebase-firestore.js';
 
 // ====================================================================
 // GLOBAL VARIABLES
@@ -969,8 +969,84 @@ window.deleteCourse = async (courseId) => {
 // VIEW USER
 // ====================================================================
 window.viewUser = async (userId) => {
-  alert('User details coming soon...');
+  const modal = document.getElementById('user-details-modal');
+  const body = document.getElementById('user-details-body');
+  modal.classList.add('active');
+  body.innerHTML = '<div class="empty-state">Loading user details...</div>';
+
+  try {
+    const [userSnap, courseSnap, marketplaceSnap, affiliateSnap] = await Promise.all([
+      getDoc(doc(db, 'user', userId)),
+      getDocs(collection(db, 'user', userId, 'purchases')),
+      getDocs(query(collectionGroup(db, 'sales'), where('buyerUid', '==', userId))),
+      getDoc(doc(db, 'affiliates', userId))
+    ]);
+    if (!userSnap.exists()) throw new Error('User profile not found');
+
+    const user = userSnap.data();
+    const affiliate = affiliateSnap.exists() ? affiliateSnap.data() : null;
+    const commissionSnap = affiliate
+      ? await getDocs(collection(db, 'affiliates', userId, 'commissions'))
+      : null;
+    const byNewest = field => (a, b) => (toUserDetailDate(b[field])?.getTime() || 0) - (toUserDetailDate(a[field])?.getTime() || 0);
+    const courses = courseSnap.docs.map(item => ({ id: item.id, ...item.data() })).sort(byNewest('paid_at'));
+    const marketplace = marketplaceSnap.docs.map(item => ({ id: item.id, ...item.data() })).sort(byNewest('createdAt'));
+    const commissions = commissionSnap
+      ? commissionSnap.docs.map(item => ({ id: item.id, ...item.data() })).sort(byNewest('createdAt'))
+      : [];
+
+    const name = `${user.firstName || ''} ${user.lastName || ''}`.trim() || 'Unnamed user';
+    document.getElementById('user-details-title').textContent = name;
+    const fields = [
+      ['User ID', userId], ['Email', user.email || 'N/A'], ['Phone', user.phone || 'N/A'],
+      ['Role', user.role || 'user'], ['Auth provider', user.authProvider || 'N/A'],
+      ['Preferred course', user.preferredCourse || 'N/A'], ['Joined', formatUserDetailDate(user.createdAt)],
+      ['Last updated', formatUserDetailDate(user.updatedAt)], ['Affiliate', (user.isAffiliate || affiliate) ? 'Yes' : 'No'],
+      ['Enrolled courses', Array.isArray(user.enrolledCourses) ? user.enrolledCourses.length : 0]
+    ];
+
+    body.innerHTML = `
+      <section class="user-details-section"><h3>Profile</h3>
+        <dl class="user-profile-grid">${fields.map(([label, value]) => `<div><dt>${escapeUserDetail(label)}</dt><dd>${escapeUserDetail(value)}</dd></div>`).join('')}</dl>
+        ${Array.isArray(user.enrolledCourses) && user.enrolledCourses.length ? `<p class="user-detail-note"><strong>Enrolled course IDs:</strong> ${user.enrolledCourses.map(escapeUserDetail).join(', ')}</p>` : ''}
+      </section>
+      <section class="user-details-section"><h3>Course purchases <span>${courses.length}</span></h3>${renderUserHistory(
+        ['Course', 'Reference', 'Amount', 'Status', 'Date'],
+        courses.map(p => `<tr><td>${escapeUserDetail(p.courseTitle || p.courseId || 'Unknown course')}</td><td>${escapeUserDetail(p.reference || p.id)}</td><td>${formatUserNaira((p.amount || 0) / 100)}</td><td>${escapeUserDetail(p.status || 'paid')}</td><td>${escapeUserDetail(formatUserDetailDate(p.paid_at || p.createdAt))}</td></tr>`),
+        'No course purchases found for this user.'
+      )}</section>
+      <section class="user-details-section"><h3>Marketplace purchases <span>${marketplace.length}</span></h3>${renderUserHistory(
+        ['Product', 'Reference', 'Amount', 'Fulfillment', 'Date'],
+        marketplace.map(p => `<tr><td>${escapeUserDetail(p.productTitle || p.productId || 'Unknown product')}</td><td>${escapeUserDetail(p.reference || p.id)}</td><td>${formatUserNaira(p.amount)}</td><td>${escapeUserDetail(p.fulfillmentStatus || 'N/A')}</td><td>${escapeUserDetail(formatUserDetailDate(p.createdAt))}</td></tr>`),
+        'No marketplace purchases found for this user.'
+      )}</section>
+      <section class="user-details-section"><h3>Affiliate earnings <span>${commissions.length}</span></h3>${affiliate ? `
+        <div class="affiliate-summary"><span>Status: <strong>${escapeUserDetail(affiliate.status || 'N/A')}</strong></span><span>Total earned: <strong>${formatUserNaira(affiliate.totalEarned)}</strong></span><span>Pending payout: <strong>${formatUserNaira(affiliate.pendingPayout)}</strong></span><span>Total referred sales: <strong>${escapeUserDetail(affiliate.totalSales || 0)}</strong></span></div>
+        ${renderUserHistory(['Course', 'Reference', 'Sale', 'Commission', 'Date'], commissions.map(c => `<tr><td>${escapeUserDetail(c.courseTitle || c.courseId || 'Unknown course')}</td><td>${escapeUserDetail(c.reference || c.id)}</td><td>${formatUserNaira(c.saleAmount)}</td><td>${formatUserNaira(c.commissionAmount)}</td><td>${escapeUserDetail(formatUserDetailDate(c.createdAt))}</td></tr>`), 'No affiliate commission entries found.')}
+      ` : '<p class="user-details-empty">This user does not have an affiliate account.</p>'}</section>`;
+  } catch (error) {
+    console.error('Error loading user details:', error);
+    body.innerHTML = `<div class="empty-state">Could not load user details: ${escapeUserDetail(error.message)}</div>`;
+  }
 };
+
+function escapeUserDetail(value) {
+  return String(value ?? '').replaceAll('&', '&amp;').replaceAll('<', '&lt;').replaceAll('>', '&gt;').replaceAll('"', '&quot;').replaceAll("'", '&#039;');
+}
+function toUserDetailDate(value) {
+  if (!value) return null;
+  if (typeof value.toDate === 'function') return value.toDate();
+  const date = new Date(value);
+  return Number.isNaN(date.getTime()) ? null : date;
+}
+function formatUserDetailDate(value) { const date = toUserDetailDate(value); return date ? date.toLocaleString() : 'N/A'; }
+function formatUserNaira(value) { return `₦${Number(value || 0).toLocaleString()}`; }
+function renderUserHistory(headers, rows, emptyMessage) {
+  if (!rows.length) return `<p class="user-details-empty">${escapeUserDetail(emptyMessage)}</p>`;
+  return `<div class="table-container user-details-table-wrap"><table class="user-details-table"><thead><tr>${headers.map(h => `<th>${escapeUserDetail(h)}</th>`).join('')}</tr></thead><tbody>${rows.join('')}</tbody></table></div>`;
+}
+document.getElementById('close-user-details-modal').addEventListener('click', () => document.getElementById('user-details-modal').classList.remove('active'));
+document.getElementById('user-details-modal').addEventListener('click', event => { if (event.target === event.currentTarget) event.currentTarget.classList.remove('active'); });
 
 // ====================================================================
 // SHOW ALERT

@@ -154,6 +154,13 @@ async function handleSuspendProduct(req, res, admin, db, adminUser) {
     return res.status(404).json({ error: 'Product not found' });
   }
 
+  if (!suspend && productSnap.data().subscriptionLapsed === true) {
+    return res.status(409).json({
+      error: 'This product was deactivated because the vendor subscription lapsed. The vendor must renew before it can be reactivated.',
+      reasonCode: 'subscription_lapsed'
+    });
+  }
+
   const update = {
     isActive: !suspend,
     adminSuspended: suspend,

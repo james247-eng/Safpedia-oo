@@ -57,7 +57,15 @@ async function loadOrders() {
             orders.push({ id: docSnap.id, ...docSnap.data() });
         });
 
-        await loadDisputes();
+        // A dispute-list read must not prevent the buyer's orders (and the
+        // report action) from rendering. Rules/index availability can fail
+        // independently of the sales query.
+        try {
+            await loadDisputes();
+        } catch (disputeError) {
+            console.warn('Could not load existing disputes:', disputeError);
+            disputesByReference = new Map();
+        }
         renderOrders(orders);
 
     } catch (err) {

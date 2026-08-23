@@ -424,9 +424,14 @@ function renderProducts(products) {
             statusBadge = '<span class="status-badge inactive">Inactive</span>';
         }
 
-        const actionLabel = (p.isActive && !p.adminSuspended) ? 'Suspend' : 'Reactivate';
-        const nextSuspendValue = !(p.isActive && !p.adminSuspended);
-        const statusKey = p.adminSuspended ? 'admin-suspended' : (p.isActive ? 'active' : 'inactive');
+        const subscriptionLapsed = p.subscriptionLapsed === true;
+        const actionLabel = subscriptionLapsed && !p.adminSuspended
+            ? 'Renew Required'
+            : ((p.isActive && !p.adminSuspended) ? 'Suspend' : 'Reactivate');
+        const nextSuspendValue = subscriptionLapsed && !p.adminSuspended
+            ? 'blocked-lapsed'
+            : (p.isActive && !p.adminSuspended);
+        const statusKey = p.adminSuspended ? 'admin-suspended' : (subscriptionLapsed ? 'subscription-lapsed' : (p.isActive ? 'active' : 'inactive'));
 
         return '<tr data-title="' + (p.title || '').toLowerCase() + '" data-vendor="' + (p.vendorFirstName || '').toLowerCase() + '" data-status="' + statusKey + '">' +
             '<td>' + p.title + '</td>' +
@@ -446,7 +451,13 @@ function renderProducts(products) {
         '</tr></thead><tbody>' + rows + '</tbody></table>';
 
     container.querySelectorAll('.btn-action').forEach((btn) => {
-        btn.addEventListener('click', () => toggleProductSuspension(btn.dataset.productId, btn.dataset.suspend === 'true', btn));
+        btn.addEventListener('click', () => {
+            if (btn.dataset.suspend === 'blocked-lapsed') {
+                alert('This product was deactivated because the vendor subscription lapsed. The vendor must renew before it can be reactivated.');
+                return;
+            }
+            toggleProductSuspension(btn.dataset.productId, btn.dataset.suspend === 'true', btn);
+        });
     });
 }
 

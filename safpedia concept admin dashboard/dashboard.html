@@ -502,6 +502,19 @@
   </div>
 </template>
 
+  <!-- Read-only User Details Modal -->
+  <div class="modal" id="user-details-modal" role="dialog" aria-modal="true" aria-labelledby="user-details-title">
+    <div class="modal-content user-details-modal-content" tabindex="-1">
+      <div class="modal-header">
+        <h2 class="modal-title" id="user-details-title">User Details</h2>
+        <button type="button" class="close-modal" id="close-user-details-modal" aria-label="Close user details">&times;</button>
+      </div>
+      <div id="user-details-body" class="user-details-body">
+        <div class="empty-state">Loading user details...</div>
+      </div>
+    </div>
+  </div>
+
   <!-- Approve Affiliate Modal -->
   <div class="modal" id="approve-affiliate-modal" role="dialog" aria-modal="true" aria-labelledby="approve-affiliate-title">
     <div class="modal-content" style="max-width: 480px;" tabindex="-1">
