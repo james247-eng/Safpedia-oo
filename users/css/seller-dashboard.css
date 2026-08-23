@@ -463,11 +463,11 @@
 .sub-tier-name {
   font-size: 1.1rem;
   margin-bottom: 2rem;
-  color:green;
 }
 .sub-tier-name strong {
   color: var(--ink)!important;
   font-weight: 600;
+  margin-right: 10px;
 }
 .sub-status {
   color: var(--slate);
@@ -475,7 +475,6 @@
 }
 
 .sub-expiry {
-  color: var(--blue-dark);
   font-weight: 600;
   margin-bottom: 3rem;
 }
