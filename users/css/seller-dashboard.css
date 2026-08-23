@@ -464,7 +464,7 @@
   font-size: 1.1rem;
   margin-bottom: 2rem;
 }
-.sub-tier-name strong {
+#subscription-status-panel strong {
   color: var(--ink)!important;
   font-weight: 600;
   margin-right: 10px;
