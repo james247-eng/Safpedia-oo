@@ -2,6 +2,7 @@
 
 const { getFirebaseAdmin } = require('../../../lib/firebase-admin');
 const { requireAdmin } = require('../../../lib/auth');
+const { TIERS } = require('../../../lib/vendor-subscriptions');
 const { sendEmail, sendNotification, getRecipient } = require('../../utils/[action]');
 
 const BATCH_LIMIT = 400; // stay comfortably under Firestore's 500-write batch cap
@@ -88,25 +89,26 @@ module.exports = async (req, res) => {
  * counters if the sales collection grows very large.
  */
 async function handleGetPlatformStats(req, res, admin, db) {
-  const salesSnap = await db.collectionGroup('sales').get();
+  const [salesSnap, vendorsSnap, subscriptionPaymentsSnap] = await Promise.all([
+    db.collectionGroup('sales').get(),
+    db.collection('vendors').get(),
+    db.collectionGroup('subscriptionPayments').get()
+  ]);
 
   let totalVolume = 0;
-  let totalCommission = 0;
   let saleCount = 0;
 
   salesSnap.forEach((doc) => {
     const s = doc.data();
     totalVolume += s.amount || 0;
-    totalCommission += s.commissionAmount || 0;
     saleCount += 1;
   });
-
-  const vendorsSnap = await db.collection('vendors').get();
 
   let totalPendingPayout = 0;
   let totalAwaitingPayout = 0;
   let totalPaidOut = 0;
   let vendorCount = 0;
+  const activeVendorCountByTier = Object.fromEntries(Object.keys(TIERS).map((tierKey) => [tierKey, 0]));
 
   vendorsSnap.forEach((doc) => {
     const v = doc.data();
@@ -114,13 +116,45 @@ async function handleGetPlatformStats(req, res, admin, db) {
     totalAwaitingPayout += v.awaitingPayout || 0;
     totalPaidOut += v.totalPaidOut || 0;
     vendorCount += 1;
+
+    const tierKey = Object.prototype.hasOwnProperty.call(TIERS, v.subscriptionTier)
+      ? v.subscriptionTier
+      : 'safseed';
+    if (tierKey === 'safseed' || v.subscriptionStatus === 'active') {
+      activeVendorCountByTier[tierKey] += 1;
+    }
   });
+
+  let totalSubscriptionRevenue = 0;
+  const subscriptionRevenueByTier = Object.fromEntries(Object.keys(TIERS).map((tierKey) => [tierKey, 0]));
+  subscriptionPaymentsSnap.forEach((doc) => {
+    const payment = doc.data();
+    if (payment.status !== 'success') return;
+    const tierKey = payment.tier;
+    if (!Object.prototype.hasOwnProperty.call(TIERS, tierKey)) return;
+    const amount = typeof payment.amount === 'number' ? payment.amount : 0;
+    totalSubscriptionRevenue += amount;
+    subscriptionRevenueByTier[tierKey] += amount;
+  });
+
+  const mostPopularTierKey = Object.keys(TIERS).reduce((leader, tierKey) =>
+    activeVendorCountByTier[tierKey] > activeVendorCountByTier[leader] ? tierKey : leader
+  , 'safseed');
+  const tierLabels = Object.fromEntries(Object.entries(TIERS).map(([tierKey, tier]) => [tierKey, tier.displayName]));
 
   return res.status(200).json({
     success: true,
     totalVolume,
-    totalCommission,
     saleCount,
+    totalSubscriptionRevenue,
+    subscriptionRevenueByTier,
+    activeVendorCountByTier,
+    mostPopularTier: {
+      key: mostPopularTierKey,
+      displayName: TIERS[mostPopularTierKey].displayName,
+      activeVendorCount: activeVendorCountByTier[mostPopularTierKey]
+    },
+    tierLabels,
     totalPendingPayout,
     totalAwaitingPayout,
     totalPaidOut,

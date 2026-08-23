@@ -118,7 +118,15 @@ async function loadOverviewStats() {
 
 function renderOverviewStats(stats) {
     const grid = document.getElementById('stats-grid');
-    const vendorPayableTotal = stats.totalVolume - stats.totalCommission;
+    const tierLabels = stats.tierLabels || {};
+    const tierCounts = stats.activeVendorCountByTier || {};
+    const tierRevenue = stats.subscriptionRevenueByTier || {};
+    const tierCard = (tierKey) =>
+        '<div class="stat-card">' +
+            '<span class="stat-label">' + (tierLabels[tierKey] || tierKey) + ' Vendors</span>' +
+            '<span class="stat-value">' + (tierCounts[tierKey] || 0) + '</span>' +
+            '<span class="stat-sub">Active · Revenue: ' + fmt(tierRevenue[tierKey] || 0) + '</span>' +
+        '</div>';
 
     grid.innerHTML =
         '<div class="stat-card">' +
@@ -127,10 +135,21 @@ function renderOverviewStats(stats) {
             '<span class="stat-sub">' + stats.saleCount + ' order' + (stats.saleCount === 1 ? '' : 's') + '</span>' +
         '</div>' +
         '<div class="stat-card highlight">' +
-            '<span class="stat-label">Platform Commission Earned</span>' +
-            '<span class="stat-value">' + fmt(stats.totalCommission) + '</span>' +
-            '<span class="stat-sub">Vendors\' cut: ' + fmt(vendorPayableTotal) + '</span>' +
+            '<span class="stat-label">Subscription Revenue</span>' +
+            '<span class="stat-value">' + fmt(stats.totalSubscriptionRevenue) + '</span>' +
+            '<span class="stat-sub">Successful vendor subscription payments</span>' +
         '</div>' +
+        '<div class="stat-card">' +
+            '<span class="stat-label">Revenue by Paid Tier</span>' +
+            '<span class="stat-value">' + fmt(tierRevenue.safbloom || 0) + '</span>' +
+            '<span class="stat-sub">' + (tierLabels.safbloom || 'Paid tier') + ' · ' + fmt(tierRevenue.safscale || 0) + ' ' + (tierLabels.safscale || 'Paid tier') + '</span>' +
+        '</div>' +
+        '<div class="stat-card">' +
+            '<span class="stat-label">Most Popular Tier</span>' +
+            '<span class="stat-value">' + (stats.mostPopularTier?.displayName || '—') + '</span>' +
+            '<span class="stat-sub">' + (stats.mostPopularTier?.activeVendorCount || 0) + ' active vendor' + ((stats.mostPopularTier?.activeVendorCount || 0) === 1 ? '' : 's') + '</span>' +
+        '</div>' +
+        tierCard('safseed') + tierCard('safbloom') + tierCard('safscale') +
         '<div class="stat-card">' +
             '<span class="stat-label">Total Paid Out to Vendors</span>' +
             '<span class="stat-value">' + fmt(stats.totalPaidOut) + '</span>' +
@@ -146,7 +165,7 @@ function renderOverviewStats(stats) {
             '<span class="stat-sub">Available for vendors to withdraw</span>' +
         '</div>' +
         '<div class="stat-card">' +
-            '<span class="stat-label">Vendors With Payout Setup</span>' +
+            '<span class="stat-label">Total Vendor Accounts</span>' +
             '<span class="stat-value">' + stats.vendorCount + '</span>' +
         '</div>';
 }
