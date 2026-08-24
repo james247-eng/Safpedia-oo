@@ -131,154 +131,67 @@ async function resumeVendorSubscriptionIntent() {
     try { const started = await initiateSubscriptionPayment(intent.tier, intent.billingCycle, button); if (started) localStorage.removeItem(VENDOR_SUBSCRIPTION_INTENT_KEY); } catch (err) { console.error('Subscription intent resume failed:', err); }
 }
 
-// ====================================================================
-// SUBSCRIPTION TAB — rendering
-// ====================================================================
 function renderSubscriptionSummary(summary) {
     const vendor = summary.vendor || {};
     const tierKey = tierConfig[vendor.subscriptionTier] ? vendor.subscriptionTier : 'safseed';
     const tier = tierConfig[tierKey] || {};
     const paidTier = tierKey !== 'safseed';
     const expired = paidTier && vendor.subscriptionStatus === 'expired';
-
-    const statusLabel = paidTier ? (expired ? 'Expired' : 'Active') : 'Free plan';
-    const statusClass = paidTier ? (expired ? 'status-expired' : 'status-active') : 'status-free';
-
-    const panel = document.getElementById('subscription-status-panel');
-    panel.className = `plan-summary-card${expired ? ' is-expired' : ''}`;
-    panel.innerHTML = `
-        <div class="plan-summary-main">
-            <span class="plan-summary-label">Current Plan</span>
-            <span class="plan-summary-tier">${tier.displayName || 'Safseed'}</span>
-        </div>
-        <div class="plan-summary-meta">
-            <span class="plan-status-pill ${statusClass}">${statusLabel}</span>
-            <span class="plan-summary-expiry">
-                ${paidTier
-                    ? `Renews/Expires: <strong>${formatSubscriptionDate(vendor.subscriptionExpiresAt)}</strong>`
-                    : '<strong>Free forever</strong> — no expiry'}
-            </span>
-        </div>
-    `;
+    const status = paidTier ? (expired ? 'Expired' : 'Active') : 'Free tier (no status needed)';
+document.getElementById('subscription-status-panel').innerHTML = `
+    <p class="sub-tier-name"><strong>Current Tier: </strong>${tier.displayName || 'Safseed'}</p>
+    <p class="sub-status"><strong>Status: </strong> ${status}</p>
+    ${paidTier ? `<p class="sub-expiry"><strong>Expires: </strong> ${formatSubscriptionDate(vendor.subscriptionExpiresAt)}</p>` : '<p class="sub-expiry sub-expiry--free"><strong>Safseed is free and does not expire.</strong></p>'}
+`;
 
     const actions = document.getElementById('subscription-actions');
     actions.innerHTML = '';
-
-    if (expired) {
-        const callout = document.createElement('div');
-        callout.className = 'subscription-callout callout-expired';
-        const message = document.createElement('span');
-        message.textContent = `Your ${tier.displayName} subscription has expired. Renew now to keep listing new products.`;
-        callout.appendChild(message);
-        callout.appendChild(subscriptionButton(tierKey, 'monthly', 'Renew Now', 'btn-primary'));
-        actions.appendChild(callout);
+    if (expired) actions.appendChild(subscriptionButton(tierKey, 'monthly', 'Renew'));
+    if (!paidTier || expired) {
+        actions.appendChild(buildTierChoices());
+    } else {
+        actions.appendChild(buildTierChoices('Change plan'));
     }
-
-    actions.appendChild(buildTierChoices(tierKey, !paidTier || expired ? 'Choose a plan' : 'Change plan'));
     renderSubscriptionPayments(summary.payments || []);
 }
 
-function subscriptionButton(tier, billingCycle, label, variant = 'btn-primary') {
+function subscriptionButton(tier, billingCycle, label) {
     const button = document.createElement('button');
-    button.type = 'button';
-    button.className = `btn ${variant} btn-sm`;
-    button.textContent = label;
+    button.type = 'button'; button.className = 'btn btn-primary'; button.textContent = label;
     button.addEventListener('click', () => initiateSubscriptionPayment(tier, billingCycle, button));
     return button;
 }
 
-function buildTierChoices(currentTierKey, label = 'Upgrade') {
+function buildTierChoices(label = 'Upgrade') {
     const wrapper = document.createElement('div');
     wrapper.className = 'subscription-tier-choices';
-
-    const heading = document.createElement('h3');
-    heading.textContent = label;
-    wrapper.appendChild(heading);
-
+    const heading = document.createElement('h3'); heading.textContent = label; wrapper.appendChild(heading);
     Object.entries(tierConfig).filter(([key]) => key !== 'safseed').forEach(([key, tier]) => {
-        const isCurrent = key === currentTierKey;
-
-        const row = document.createElement('div');
-        row.className = `subscription-tier-row${isCurrent ? ' is-current-tier' : ''}`;
-
-        const info = document.createElement('div');
-        info.className = 'tier-row-info';
-        info.innerHTML = `
-            <span class="tier-row-name">${tier.displayName}${isCurrent ? '<span class="current-tier-tag">Current</span>' : ''}</span>
-            <span class="tier-row-price">${naira(tier.monthlyPrice)}/month &middot; ${naira(tier.annualPrice)}/year</span>
-        `;
-
-        const actionsWrap = document.createElement('div');
-        actionsWrap.className = 'tier-row-actions';
-        actionsWrap.append(
-            subscriptionButton(key, 'monthly', 'Monthly', 'btn-primary'),
-            subscriptionButton(key, 'annual', 'Annual', 'btn-secondary')
-        );
-
-        row.append(info, actionsWrap);
-        wrapper.appendChild(row);
+        const row = document.createElement('div'); row.className = 'subscription-tier-row';
+        const details = document.createElement('span');
+        details.textContent = `${tier.displayName}: ${naira(tier.monthlyPrice)}/month or ${naira(tier.annualPrice)}/year`;
+        const monthly = subscriptionButton(key, 'monthly', 'Monthly');
+        const annual = subscriptionButton(key, 'annual', 'Annual');
+        row.append(details, monthly, annual); wrapper.appendChild(row);
     });
-
     return wrapper;
 }
 
 function renderSubscriptionPayments(payments) {
     const container = document.getElementById('subscription-payments-list');
-
-    if (!payments.length) {
-        container.innerHTML = '<div class="empty-state">No subscription payments yet.</div>';
-        return;
-    }
-
-    const statusClass = (status) => {
-        if (status === 'success') return 'success';
-        if (status === 'failed') return 'failed';
-        return 'pending';
-    };
-
-    const rows = payments.map((payment) => {
+    if (!payments.length) { container.innerHTML = '<div class="empty-state">No subscription payments yet.</div>'; return; }
+    container.innerHTML = '';
+    payments.forEach((payment) => {
         const tier = tierConfig[payment.tier];
-        const ref = payment.reference || payment.id;
-        return `
-            <tr>
-                <td>${tier?.displayName || payment.tier || 'Subscription'}</td>
-                <td>${naira(payment.amount)}</td>
-                <td>${payment.billingCycle || 'monthly'}</td>
-                <td><span class="payment-status-pill ${statusClass(payment.status)}">${payment.status || 'unknown'}</span></td>
-                <td>${formatSubscriptionDate(payment.createdAt)}</td>
-                <td><code>${ref}</code></td>
-                <td><button type="button" class="btn btn-secondary btn-sm copy-reference-btn" data-reference="${ref}">Copy</button></td>
-            </tr>
-        `;
-    }).join('');
-
-    container.innerHTML = `
-        <table class="subscription-payments-table">
-            <thead>
-                <tr>
-                    <th>Plan</th>
-                    <th>Amount</th>
-                    <th>Cycle</th>
-                    <th>Status</th>
-                    <th>Date</th>
-                    <th>Reference</th>
-                    <th></th>
-                </tr>
-            </thead>
-            <tbody>${rows}</tbody>
-        </table>
-    `;
-
-    container.querySelectorAll('.copy-reference-btn').forEach((btn) => {
-        btn.addEventListener('click', async () => {
-            try {
-                await navigator.clipboard.writeText(btn.dataset.reference);
-                btn.textContent = 'Copied';
-                setTimeout(() => { btn.textContent = 'Copy'; }, 1500);
-            } catch {
-                btn.textContent = 'Copy failed';
-            }
+        const row = document.createElement('div'); row.className = 'subscription-payment-row';
+        const reference = document.createElement('code'); reference.textContent = payment.reference || payment.id;
+        const copy = document.createElement('button'); copy.type = 'button'; copy.className = 'btn btn-secondary btn-sm'; copy.textContent = 'Copy';
+        copy.addEventListener('click', async () => {
+            try { await navigator.clipboard.writeText(payment.reference || payment.id); copy.textContent = 'Copied'; setTimeout(() => { copy.textContent = 'Copy'; }, 1500); }
+            catch { copy.textContent = 'Copy failed'; }
         });
+        row.append(`${tier?.displayName || payment.tier || 'Subscription'} | ${naira(payment.amount)} | ${payment.billingCycle || 'monthly'} | ${payment.status || 'unknown'} | ${formatSubscriptionDate(payment.createdAt)} | `, reference, copy);
+        container.appendChild(row);
     });
 }
 
