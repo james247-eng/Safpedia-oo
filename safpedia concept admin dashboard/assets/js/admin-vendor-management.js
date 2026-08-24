@@ -596,11 +596,76 @@ async function adminPost(action, body) {
     const json = await res.json(); if (!res.ok) throw new Error(json.error || 'Admin action failed'); return json;
 }
 
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 document.getElementById('modal-storefront-toggle-btn').addEventListener('click', async (event) => {
-    const button = event.currentTarget; button.disabled = true;
-    try { await adminPost('toggle-storefront', { vendorUid: activeModalVendorUid, storefrontActive: button.dataset.active !== 'true' }); await refreshOpenVendor(); }
-    catch (err) { alert('Error: ' + err.message); button.disabled = false; }
+    const button = event.currentTarget; 
+    button.disabled = true;
+    
+    // Explicit toggle check: if active === 'true', next state is false (deactivate); otherwise true (reactivate)
+    const nextState = button.dataset.active !== 'true';
+
+    try { 
+        await adminPost('toggle-storefront', { 
+            vendorUid: activeModalVendorUid, 
+            storefrontActive: nextState 
+        }); 
+        await refreshOpenVendor(); 
+    } catch (err) { 
+        alert('Error: ' + err.message); 
+        button.disabled = false; 
+    }
 });
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 async function setOverride(overrideActive, button) {
     button.disabled = true;

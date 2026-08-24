@@ -16,7 +16,7 @@ module.exports = async (req, res) => {
     return res.status(405).json({ error: 'Method not allowed' });
   } catch (err) {
     console.error(`disputes/${action} error:`, err);
-    return res.status(err.statusCode || 500).json({ error: err.message });
+    return res.status(err.statusCode || 500).json({ error: err.message || 'Internal server error' });
   }
 };
 
@@ -30,16 +30,27 @@ async function createDispute(req, res, admin, db, user) {
   const sale = matches.docs[0].data();
   if (sale.buyerUid !== user.uid) return res.status(403).json({ error: 'You cannot dispute this order' });
 
-  // Query by reference only, then inspect status in memory. Combining
-  // reference equality with a status `in` filter requires a composite index;
-  // dispute creation must not depend on an undeclared deployment-side index.
   const existing = await db.collection('disputes').where('reference', '==', reference.trim()).get();
   const activeExisting = existing.docs.find((doc) => ['open', 'investigating'].includes(doc.data().status));
   if (activeExisting) return res.status(409).json({ error: 'An active dispute already exists for this order', disputeId: activeExisting.id });
 
   const now = admin.firestore.Timestamp.now();
   const disputeRef = db.collection('disputes').doc();
-  await disputeRef.set({ reference: reference.trim(), buyerUid: user.uid, vendorUid: sale.vendorUid, productId: sale.productId, status: 'open', reason: reason.trim(), buyerStatement: buyerStatement.trim(), vendorStatement: null, adminNotes: [], resolution: null, createdAt: now, updatedAt: now });
+  await disputeRef.set({ 
+    reference: reference.trim(), 
+    buyerUid: user.uid, 
+    vendorUid: sale.vendorUid, 
+    productId: sale.productId, 
+    status: 'open', 
+    reason: reason.trim(), 
+    buyerStatement: buyerStatement.trim(), 
+    vendorStatement: null, 
+    adminNotes: [], 
+    resolution: null, 
+    createdAt: now, 
+    updatedAt: now 
+  });
+
   notifyVendorDispute(admin, db, sale.vendorUid, reference.trim(), reason.trim()).catch(() => {});
   return res.status(201).json({ success: true, disputeId: disputeRef.id, status: 'open' });
 }
@@ -61,7 +72,7 @@ async function respondToDispute(req, res, admin, db, user) {
 
 async function notifyBuyerVendorResponse(admin, db, buyerUid, reference) {
   try {
-    const buyer = await getRecipient(admin, db, buyerUid, ['user']);
+    const buyer = await getRecipient(admin, db, buyerUid, ['user', 'users']);
     const link = `${APP_URL}/users/marketplace-orders.html`;
     await Promise.all([
       sendEmail({ toEmail: buyer.email, toName: buyer.name, subject: 'Vendor responded to your dispute', headline: 'Your dispute has a vendor response', bodyContent: `The vendor responded to your dispute for order ${reference}.`, actionUrl: link, actionText: 'View your orders' }),
@@ -84,7 +95,7 @@ async function listDisputes(req, res, db, user) {
 
 async function notifyVendorDispute(admin, db, vendorUid, reference, reason) {
   try {
-    const vendor = await getRecipient(admin, db, vendorUid, ['user', 'vendors']);
+    const vendor = await getRecipient(admin, db, vendorUid, ['user', 'users', 'vendors']);
     const link = `${APP_URL}/users/sellers-page.html#disputes-pane`;
     await Promise.all([
       sendEmail({ toEmail: vendor.email, toName: vendor.name, subject: 'A buyer reported a problem with an order', headline: 'New order dispute', bodyContent: `A buyer opened a dispute for order ${reference}. Reason: ${reason}.`, actionUrl: link, actionText: 'Review dispute' }),

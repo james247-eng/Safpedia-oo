@@ -58,7 +58,13 @@ async function sendNotification({ recipientUid, title, message, link, type }) {
   }
   try {
     const admin = getFirebaseAdmin();
-    const notificationRef = await admin.firestore().collection('users').doc(recipientUid).collection('notifications').add({
+    const db = admin.firestore();
+
+    // Check if user document exists under 'user' singular or 'users' plural
+    const userDoc = await db.collection('user').doc(recipientUid).get();
+    const targetCollection = userDoc.exists ? 'user' : 'users';
+
+    const notificationRef = await db.collection(targetCollection).doc(recipientUid).collection('notifications').add({
       title,
       message,
       link: link || '',
