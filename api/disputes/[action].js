@@ -21,7 +21,19 @@ module.exports = async (req, res) => {
 };
 
 async function createDispute(req, res, admin, db, user) {
-  const { reference, reason, buyerStatement } = req.body || {};
+  const { reference, vendorUid, reason, buyerStatement } = req.body || {};
+  // Storefront complaints are not tied to a particular order.
+  if (!reference && vendorUid) {
+    if (typeof vendorUid !== 'string' || !reason || !buyerStatement) return res.status(400).json({ error: 'vendorUid, reason, and buyerStatement are required' });
+    if (vendorUid === user.uid) return res.status(400).json({ error: 'You cannot complain about your own store' });
+    const vendorSnap = await db.collection('user').doc(vendorUid).get();
+    if (!vendorSnap.exists) return res.status(404).json({ error: 'Vendor not found' });
+    const now = admin.firestore.Timestamp.now();
+    const ref = db.collection('disputes').doc();
+    await ref.set({ reference: null, buyerUid: user.uid, vendorUid, productId: null, status: 'open', reason: reason.trim(), buyerStatement: buyerStatement.trim(), vendorStatement: null, adminNotes: [], resolution: null, createdAt: now, updatedAt: now, source: 'vendor_store' });
+    notifyVendorDispute(admin, db, vendorUid, 'storefront complaint', reason.trim()).catch(() => {});
+    return res.status(201).json({ success: true, complaintId: ref.id, status: 'open' });
+  }
   if (!reference || typeof reference !== 'string' || !reason || typeof reason !== 'string' || !buyerStatement || typeof buyerStatement !== 'string') {
     return res.status(400).json({ error: 'reference, reason, and buyerStatement are required' });
   }

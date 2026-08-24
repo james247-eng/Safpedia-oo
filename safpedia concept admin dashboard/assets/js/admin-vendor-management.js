@@ -125,7 +125,7 @@ function renderOverviewStats(stats) {
         '<div class="stat-card">' +
             '<span class="stat-label">' + (tierLabels[tierKey] || tierKey) + ' Vendors</span>' +
             '<span class="stat-value">' + (tierCounts[tierKey] || 0) + '</span>' +
-            '<span class="stat-sub">Active · Revenue: ' + fmt(tierRevenue[tierKey] || 0) + '</span>' +
+            '<span class="stat-sub">Active Â· Revenue: ' + fmt(tierRevenue[tierKey] || 0) + '</span>' +
         '</div>';
 
     grid.innerHTML =
@@ -142,11 +142,11 @@ function renderOverviewStats(stats) {
         '<div class="stat-card">' +
             '<span class="stat-label">Revenue by Paid Tier</span>' +
             '<span class="stat-value">' + fmt(tierRevenue.safbloom || 0) + '</span>' +
-            '<span class="stat-sub">' + (tierLabels.safbloom || 'Paid tier') + ' · ' + fmt(tierRevenue.safscale || 0) + ' ' + (tierLabels.safscale || 'Paid tier') + '</span>' +
+            '<span class="stat-sub">' + (tierLabels.safbloom || 'Paid tier') + ' Â· ' + fmt(tierRevenue.safscale || 0) + ' ' + (tierLabels.safscale || 'Paid tier') + '</span>' +
         '</div>' +
         '<div class="stat-card">' +
             '<span class="stat-label">Most Popular Tier</span>' +
-            '<span class="stat-value">' + (stats.mostPopularTier?.displayName || '—') + '</span>' +
+            '<span class="stat-value">' + (stats.mostPopularTier?.displayName || 'â€”') + '</span>' +
             '<span class="stat-sub">' + (stats.mostPopularTier?.activeVendorCount || 0) + ' active vendor' + ((stats.mostPopularTier?.activeVendorCount || 0) === 1 ? '' : 's') + '</span>' +
         '</div>' +
         tierCard('safseed') + tierCard('safbloom') + tierCard('safscale') +
@@ -585,7 +585,8 @@ async function loadModalSubscriptionPayments(vendorUid) {
         const snap = await getDocs(query(collection(db, 'vendors', vendorUid, 'subscriptionPayments'), orderBy('createdAt', 'desc')));
         const payments = []; snap.forEach((d) => payments.push(Object.assign({ id: d.id }, d.data())));
         if (!payments.length) { container.innerHTML = '<div class="empty-state">No subscription payments yet.</div>'; return; }
-        const rows = payments.map((p) => '<tr><td>' + (p.tier || '—') + '</td><td>' + fmt(p.amount) + '</td><td>' + (p.billingCycle || '—') + '</td><td>' + (p.status || '—') + '</td><td>' + dateLabel(p.createdAt) + '</td><td>' + (p.reference || p.id) + '</td></tr>').join('');
+        const maskReference = (value) => { const s = String(value || ''); return s.length > 8 ? s.slice(0, 4) + '****' + s.slice(-4) : '********'; };
+        const rows = payments.map((p) => '<tr><td>' + (p.tier || 'â€”') + '</td><td>' + fmt(p.amount) + '</td><td>' + (p.billingCycle || 'â€”') + '</td><td>' + (p.status || 'â€”') + '</td><td>' + dateLabel(p.createdAt) + '</td><td>' + (p.reference || p.id) + '</td></tr>').join('');
         container.innerHTML = '<table class="admin-table"><thead><tr><th>Tier</th><th>Amount</th><th>Cycle</th><th>Status</th><th>Date</th><th>Reference</th></tr></thead><tbody>' + rows + '</tbody></table>';
     } catch (err) { container.innerHTML = '<div class="error-state">' + err.message + '</div>'; }
 }
@@ -695,7 +696,7 @@ document.getElementById('subscription-reference-lookup-btn').addEventListener('c
         const payment = json.payment;
         const vendor = vendorSummaries.find((v) => v.vendorUid === json.vendorUid);
         const vendorLabel = vendor ? vendor.vendorFirstName + ' (' + vendor.email + ')' : json.vendorUid;
-        result.innerHTML = '<div class="payment-lookup-result"><strong>' + vendorLabel + '</strong><span>' + (payment.tier || '—') + ' | ' + fmt(payment.amount) + ' | ' + (payment.billingCycle || '—') + ' | ' + (payment.status || '—') + ' | ' + dateLabel(payment.createdAt) + '</span><code>' + (payment.reference || payment.id) + '</code><button type="button" class="btn-action" id="lookup-open-vendor-btn">Open Vendor</button></div>';
+        result.innerHTML = '<div class="payment-lookup-result"><strong>' + vendorLabel + '</strong><span>' + (payment.tier || 'â€”') + ' | ' + fmt(payment.amount) + ' | ' + (payment.billingCycle || 'â€”') + ' | ' + (payment.status || 'â€”') + ' | ' + dateLabel(payment.createdAt) + '</span><code>' + (payment.reference || payment.id) + '</code><button type="button" class="btn-action" id="lookup-open-vendor-btn">Open Vendor</button></div>';
         document.getElementById('lookup-open-vendor-btn').addEventListener('click', () => openVendorDetail(json.vendorUid));
     } catch (err) { result.innerHTML = '<div class="error-state">' + err.message + '</div>'; }
 });

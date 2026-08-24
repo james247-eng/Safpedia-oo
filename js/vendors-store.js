@@ -17,11 +17,14 @@ import { getAuth, onAuthStateChanged } from 'https://www.gstatic.com/firebasejs/
 
 const app = initializeApp(firebaseConfig);
 const auth = getAuth(app);
+let currentUser = null;
+let activeVendorUid = null;
 
 // ====================================================================
 // AUTH STATUS
 // ====================================================================
 onAuthStateChanged(auth, (user) => {
+    currentUser = user;
     const container = document.getElementById('auth-status-container');
     if (user) {
         container.innerHTML = `
@@ -40,6 +43,7 @@ async function loadVendorStore() {
     const grid = document.getElementById('products-grid');
     const params = new URLSearchParams(window.location.search);
     const vendorUid = params.get('vendor');
+    activeVendorUid = vendorUid;
 
     if (!vendorUid) {
         document.getElementById('vendor-store-title').textContent = 'Store not found';
@@ -115,3 +119,22 @@ function renderProductGrid(items) {
 }
 
 loadVendorStore();
+
+const modal = document.getElementById('complaint-modal');
+document.getElementById('lodge-complaint-btn').addEventListener('click', () => {
+    if (!currentUser) { window.location.href = '/sign-in.html'; return; }
+    modal.classList.remove('hidden');
+});
+document.getElementById('complaint-modal-close').addEventListener('click', () => modal.classList.add('hidden'));
+document.getElementById('complaint-form').addEventListener('submit', async (event) => {
+    event.preventDefault();
+    const message = document.getElementById('complaint-form-message'); const button = event.currentTarget.querySelector('button[type="submit"]');
+    button.disabled = true; message.textContent = '';
+    try {
+        const token = await currentUser.getIdToken();
+        const response = await fetch('/api/disputes/create-dispute', { method: 'POST', headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` }, body: JSON.stringify({ vendorUid: activeVendorUid, reason: document.getElementById('complaint-reason').value, buyerStatement: document.getElementById('complaint-statement').value }) });
+        const text = await response.text(); let result; try { result = JSON.parse(text); } catch { throw new Error(text || 'Server returned an invalid response'); }
+        if (!response.ok) throw new Error(result.error || 'Could not submit complaint');
+        modal.classList.add('hidden'); event.currentTarget.reset(); alert('Your complaint was submitted.');
+    } catch (error) { message.textContent = error.message; } finally { button.disabled = false; }
+});

@@ -41,3 +41,9 @@
     color: #4a7dff;
     text-decoration: underline;
 }
+.complaint-modal.hidden { display:none; }
+.complaint-modal { position:fixed; inset:0; background:rgba(0,0,0,.55); display:grid; place-items:center; z-index:20; padding:20px; }
+.complaint-dialog { background:#fff; border-radius:12px; max-width:520px; width:100%; padding:28px; position:relative; }
+.complaint-dialog label { display:block; margin:14px 0; font-weight:600; }
+.complaint-dialog select,.complaint-dialog textarea { display:block; width:100%; margin-top:6px; padding:10px; border:1px solid #d1d5db; border-radius:6px; font:inherit; }
+.complaint-close { position:absolute; right:14px; top:10px; border:0; background:none; font-size:28px; cursor:pointer; }
