@@ -566,6 +566,23 @@
 .tier-row-actions { display: flex; gap: 8px; flex-wrap: wrap; }
 .tier-row-actions .btn { min-width: 92px; }
 
+/* ---- Collapsed "Upgrade Plan" entry point (lower active paid tier) ---- */
+.subscription-upgrade-toggle .btn ion-icon { font-size: 18px; }
+
+/* ---- "Already on highest plan" note (replaces tier cards entirely) ---- */
+.plan-maxed-note {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    font-size: 13.5px;
+    color: var(--ink-soft);
+    padding: 16px 18px;
+    background: var(--surface);
+    border: 1px dashed var(--border);
+    border-radius: var(--radius-md);
+}
+.plan-maxed-note ion-icon { color: #0f8a63; font-size: 20px; flex-shrink: 0; }
+
 /* ---- Payment history table ---- */
 .subscription-payments-table {
     width: 100%;

@@ -164,7 +164,16 @@ function renderSubscriptionSummary(summary) {
     const actions = document.getElementById('subscription-actions');
     actions.innerHTML = '';
 
+    // Data-driven "highest tier" check — compares productLimit across whatever
+    // paid tiers the API returns, so this doesn't need updating if a 4th tier
+    // is ever added. See getHighestPaidTierKey().
+    const highestTierKey = getHighestPaidTierKey();
+    const isOnHighestTier = paidTier && tierKey === highestTierKey;
+
     if (expired) {
+        // Lapsed, regardless of which tier it was: show the renewal nudge and
+        // the full tier list so they can renew the same plan or pick a
+        // different one.
         const callout = document.createElement('div');
         callout.className = 'subscription-callout callout-expired';
         const message = document.createElement('span');
@@ -172,10 +181,38 @@ function renderSubscriptionSummary(summary) {
         callout.appendChild(message);
         callout.appendChild(subscriptionButton(tierKey, 'monthly', 'Renew Now', 'btn-primary'));
         actions.appendChild(callout);
+        actions.appendChild(buildTierChoices(tierKey, 'Choose a plan'));
+    } else if (isOnHighestTier) {
+        // Active and already on the best plan — nothing to upgrade to, so
+        // don't show tier cards or subscribe buttons at all. A short note
+        // fills the space instead of leaving it looking broken/empty.
+        const note = document.createElement('div');
+        note.className = 'plan-maxed-note';
+        note.innerHTML = `<ion-icon name="checkmark-circle-outline"></ion-icon><span>You're on our highest plan (${tier.displayName}) — there's nothing left to upgrade to.</span>`;
+        actions.appendChild(note);
+    } else if (!paidTier) {
+        // Free tier: this IS the primary call to action, so show it directly.
+        actions.appendChild(buildTierChoices(tierKey, 'Choose a plan'));
+    } else {
+        // Active on a lower paid tier: collapse behind a single Upgrade
+        // button instead of showing every tier + Monthly/Annual button pair
+        // up front.
+        actions.appendChild(buildUpgradeToggle(tierKey));
     }
 
-    actions.appendChild(buildTierChoices(tierKey, !paidTier || expired ? 'Choose a plan' : 'Change plan'));
     renderSubscriptionPayments(summary.payments || []);
+}
+
+// Finds whichever paid tier has the highest productLimit. Returns null if
+// the API returns no paid tiers at all (shouldn't happen in practice).
+function getHighestPaidTierKey() {
+    const paidEntries = Object.entries(tierConfig).filter(([key]) => key !== 'safseed');
+    if (!paidEntries.length) return null;
+    return paidEntries.reduce((bestKey, [key, tier]) => {
+        if (!bestKey) return key;
+        const bestLimit = tierConfig[bestKey]?.productLimit || 0;
+        return (tier.productLimit || 0) > bestLimit ? key : bestKey;
+    }, null);
 }
 
 function subscriptionButton(tier, billingCycle, label, variant = 'btn-primary') {
@@ -185,6 +222,25 @@ function subscriptionButton(tier, billingCycle, label, variant = 'btn-primary') 
     button.textContent = label;
     button.addEventListener('click', () => initiateSubscriptionPayment(tier, billingCycle, button));
     return button;
+}
+
+// Collapsed entry point for an active vendor sitting on a lower paid tier.
+// Renders a single Upgrade button; clicking it swaps itself out for the
+// full tier list in place, so the busy tier cards stay hidden until asked for.
+function buildUpgradeToggle(currentTierKey) {
+    const wrapper = document.createElement('div');
+    wrapper.className = 'subscription-upgrade-toggle';
+
+    const button = document.createElement('button');
+    button.type = 'button';
+    button.className = 'btn btn-primary';
+    button.innerHTML = '<ion-icon name="arrow-up-circle-outline"></ion-icon> Upgrade Plan';
+    button.addEventListener('click', () => {
+        wrapper.replaceWith(buildTierChoices(currentTierKey, 'Upgrade'));
+    });
+
+    wrapper.appendChild(button);
+    return wrapper;
 }
 
 function buildTierChoices(currentTierKey, label = 'Upgrade') {
