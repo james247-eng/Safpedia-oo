@@ -1,21 +1,21 @@
 /* css/admin-vendor-management.css */
 
 :root {
-    --bg-primary: #faf8f4;
+    --bg-primary: #f4f6fa;
     --bg-secondary: #ffffff;
-    --bg-inset: #f5f1e9;
-    --sidebar-bg: #16233f;
-    --text-main: #16233f;
-    --text-muted: #8a8578;
-    --border: #eae5da;
-    --border-strong: #ddd6c7;
-    --color-primary: #1e40af;
-    --color-gold: #a3720f;
-    --color-gold-bg: #fdf3e0;
-    --color-success: #0f7a4c;
-    --color-success-bg: #e8f5ed;
-    --color-danger: #b3401f;
-    --color-danger-bg: #fbeee9;
+    --bg-inset: #eef2f7;
+    --sidebar-bg: #ffffff;
+    --text-main: #1e293b;
+    --text-muted: #64748b;
+    --border: #e2e8f0;
+    --border-strong: #cbd5e1;
+    --color-primary: #2563eb;
+    --color-gold: #d97706;
+    --color-gold-bg: #fef3c7;
+    --color-success: #16a34a;
+    --color-success-bg: #dcfce7;
+    --color-danger: #dc2626;
+    --color-danger-bg: #fee2e2;
 }
 
 * {
@@ -39,7 +39,7 @@ a {
 }
 
 /* ====================================================================
-   MOBILE TOP BAR — visible below 900px only
+   MOBILE TOP BAR
 ==================================================================== */
 .mobile-topbar {
     display: none;
@@ -77,6 +77,7 @@ a {
 .mobile-topbar .brand-logo {
     font-weight: 700;
     font-size: 1.05rem;
+    color: var(--color-primary);
 }
 
 /* Desktop header toggle */
@@ -104,7 +105,7 @@ a {
     display: none;
     position: fixed;
     inset: 0;
-    background: rgba(22, 35, 63, 0.4);
+    background: rgba(15, 23, 42, 0.3);
     z-index: 35;
 }
 .sidebar-overlay.visible {
@@ -119,12 +120,12 @@ a {
     min-height: 100vh;
 }
 
-/* Sidebar — hidden by default, slides in smoothly */
+/* Sidebar — light background panel */
 .sidebar-panel {
     width: 264px;
     flex-shrink: 0;
     background: var(--sidebar-bg);
-    border-right: none;
+    border-right: 1px solid var(--border);
     display: flex;
     flex-direction: column;
     padding: 28px 16px;
@@ -140,24 +141,24 @@ a {
 
 .sidebar-panel.sidebar-open {
     transform: translateX(0);
-    box-shadow: 8px 0 24px rgba(22, 35, 63, 0.16);
+    box-shadow: 8px 0 24px rgba(0, 0, 0, 0.08);
 }
 
 .sidebar-panel .brand-logo {
     font-weight: 700;
     font-size: 1.3rem;
     letter-spacing: -0.3px;
-    color: #fff;
+    color: var(--color-primary);
     margin-bottom: 0;
     padding: 4px 12px 20px;
-    border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+    border-bottom: 1px solid var(--border);
 }
 
 .sidebar-panel .brand-subtitle {
     display: block;
     font-size: 0.78rem;
     font-weight: 500;
-    color: rgba(255, 255, 255, 0.55);
+    color: var(--text-muted);
     margin-top: 4px;
 }
 
@@ -178,7 +179,7 @@ a {
     padding: 10px 14px;
     border-radius: 8px;
     cursor: pointer;
-    color: rgba(255, 255, 255, 0.62);
+    color: var(--text-muted);
     font-size: 0.845rem;
     font-weight: 500;
     margin-bottom: 0;
@@ -191,13 +192,13 @@ a {
 }
 
 .nav-item-btn:hover {
-    background: rgba(255, 255, 255, 0.06);
-    color: #fff;
+    background: var(--bg-inset);
+    color: var(--color-primary);
 }
 
 .nav-item-btn.active {
-    background: rgba(255, 255, 255, 0.1);
-    color: #fff;
+    background: #eff6ff;
+    color: var(--color-primary);
     font-weight: 600;
     box-shadow: none;
 }
@@ -209,12 +210,12 @@ a {
     top: 6px;
     bottom: 6px;
     width: 3px;
-    background: var(--color-gold);
+    background: var(--color-primary);
     border-radius: 0 3px 3px 0;
 }
 
 .nav-item-btn.active ion-icon {
-    color: var(--color-gold);
+    color: var(--color-primary);
 }
 
 .sidebar-footer {
@@ -223,14 +224,14 @@ a {
     gap: 12px;
     padding-top: 18px;
     margin-top: 18px;
-    border-top: 1px solid rgba(255, 255, 255, 0.1);
+    border-top: 1px solid var(--border);
 }
 
 .admin-avatar {
     width: 36px;
     height: 36px;
     border-radius: 50%;
-    background: #e5eafb;
+    background: #dbeafe;
     color: var(--color-primary);
     display: flex;
     align-items: center;
@@ -248,7 +249,7 @@ a {
 .sidebar-footer #admin-display-email {
     font-size: 0.8rem;
     font-weight: 600;
-    color: #fff;
+    color: var(--text-main);
     overflow: hidden;
     text-overflow: ellipsis;
     white-space: nowrap;
@@ -256,13 +257,13 @@ a {
 
 .sidebar-footer a {
     font-size: 0.74rem;
-    color: rgba(255, 255, 255, 0.55);
+    color: var(--text-muted);
 }
 .sidebar-footer a:hover {
-    color: #fff;
+    color: var(--color-primary);
 }
 
-/* Main workspace — full width (sidebar is overlay) */
+/* Main workspace */
 .main-workspace-view {
     flex: 1;
     padding: 24px 32px 40px;
@@ -273,7 +274,7 @@ a {
 }
 
 /* ====================================================================
-   PAGE HEADER (notification + avatar)
+   PAGE HEADER
 ==================================================================== */
 .page-header.header {
     display: flex;
@@ -312,12 +313,12 @@ a {
 }
 
 .user-info .admin-avatar {
-    background: #e5eafb;
+    background: #dbeafe;
     color: var(--color-primary);
 }
 
 /* ====================================================================
-   DASHBOARD SECTIONS (tabs)
+   DASHBOARD SECTIONS
 ==================================================================== */
 .dashboard-section-card {
     display: none;
@@ -356,7 +357,7 @@ a {
 .modal-overlay {
     position: fixed;
     inset: 0;
-    background: rgba(22, 35, 63, 0.35);
+    background: rgba(15, 23, 42, 0.35);
     backdrop-filter: blur(3px);
     z-index: 200;
     display: flex;
@@ -374,7 +375,7 @@ a {
     max-height: min(90vh, 820px);
     overflow-y: auto;
     padding: 32px;
-    box-shadow: 0 20px 25px -5px rgba(22,35,63,0.1), 0 10px 10px -5px rgba(22,35,63,0.04);
+    box-shadow: 0 20px 25px -5px rgba(0,0,0,0.1), 0 10px 10px -5px rgba(0,0,0,0.04);
 }
 
 .modal-close-btn {
@@ -423,7 +424,7 @@ a {
 }
 
 /* ====================================================================
-   STATS GRID — ledger-stub cards, matches admin.css
+   STATS GRID
 ==================================================================== */
 .stats-grid {
     display: grid;
@@ -439,12 +440,12 @@ a {
     padding: 20px 20px 16px;
     border-radius: 12px;
     border: 1px solid var(--border);
-    box-shadow: 0 1px 2px rgba(22,35,63,0.04), 0 1px 3px rgba(22,35,63,0.03);
+    box-shadow: 0 1px 2px rgba(0,0,0,0.04), 0 1px 3px rgba(0,0,0,0.03);
 }
 
 .stat-card.highlight {
     background: var(--color-gold-bg);
-    border-color: #f3dfb3;
+    border-color: #fde68a;
 }
 
 .stat-label {
@@ -489,6 +490,7 @@ a {
     font-family: inherit;
     font-size: 0.87rem;
     background: var(--bg-inset);
+    color: var(--text-main);
 }
 
 .filter-row input {
@@ -583,11 +585,11 @@ a {
     gap: 6px;
 }
 .btn-view {
-    border-color: #b9c8ef;
+    border-color: #bfdbfe;
     color: var(--color-primary);
 }
 .btn-view:hover {
-    background: #eef2ff;
+    background: #eff6ff;
 }
 
 /* ====================================================================
@@ -607,7 +609,7 @@ a {
 .loading-placeholder { min-height: 150px; display: grid; place-items: center; padding: 32px; border: 1px dashed var(--border-strong); border-radius: 12px; background: linear-gradient(90deg, var(--bg-inset) 25%, #fff 37%, var(--bg-inset) 63%); background-size: 400% 100%; color: var(--text-muted); font-weight: 600; animation: vendor-state-shimmer 1.5s ease infinite; }
 @keyframes vendor-state-shimmer { to { background-position: -135% 0; } }
 .empty-state { min-height: 140px; display: grid; place-items: center; padding: 32px; border: 1px dashed var(--border-strong); border-radius: 12px; background: var(--bg-secondary); color: var(--text-muted); text-align: center; }
-.error-state { min-height: 140px; display: grid; place-items: center; padding: 32px; border: 1px solid #f0c9b8; border-radius: 12px; background: var(--color-danger-bg); color: var(--color-danger); text-align: center; line-height: 1.55; }
+.error-state { min-height: 140px; display: grid; place-items: center; padding: 32px; border: 1px solid #fecaca; border-radius: 12px; background: var(--color-danger-bg); color: var(--color-danger); text-align: center; line-height: 1.55; }
 
 .modal-overlay { backdrop-filter: blur(3px); }
 .modal-box { max-height: min(90vh, 820px); overflow-y: auto; }
