@@ -4,6 +4,7 @@ import { auth, db } from '../../firebase-config.js';
 import '../../js/notification-center.js';
 import { collection, doc } from 'https://www.gstatic.com/firebasejs/12.17.1/firebase-firestore.js';
 import { onAuthStateChanged, signOut } from 'https://www.gstatic.com/firebasejs/12.17.1/firebase-auth.js';
+import { requireFreshAuth } from '../../js/bank-reauth.js';
 
 let currentUser = null;
 let tierConfig = {};
@@ -960,7 +961,17 @@ document.getElementById('bank-account-form').addEventListener('submit', async (e
             throw new Error('Select a bank and enter your account number');
         }
 
-        const idToken = await currentUser.getIdToken();
+        // SECURITY: require fresh re-authentication before touching payout
+        // bank details — a hijacked session shouldn't be able to silently
+        // redirect future payouts. Mirrored server-side in
+        // /api/vendors/add-bank-account via an auth_time freshness check.
+        const confirmed = await requireFreshAuth(currentUser);
+        if (!confirmed) {
+            alert('Bank account not changed — identity verification was cancelled.');
+            return;
+        }
+
+        const idToken = await currentUser.getIdToken(true); // force-refresh so auth_time reflects the reauth just completed
         const res = await fetch('/api/vendors/add-bank-account', {
             method: 'POST',
             headers: {
