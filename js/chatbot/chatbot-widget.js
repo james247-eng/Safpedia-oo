@@ -20,6 +20,7 @@ export function initChatbot(shadowRoot) {
 
   function open() {
     panel.hidden = false;
+    panel.removeAttribute('hidden');
     bubble.classList.add('cb-bubble--active');
     opened = true;
     if (!state.messages.length) {
@@ -28,12 +29,26 @@ export function initChatbot(shadowRoot) {
     input.focus();
   }
 
-  function close() {
+  function close(e) {
+    if (e) {
+      e.stopPropagation();
+      e.preventDefault();
+    }
     panel.hidden = true;
+    panel.setAttribute('hidden', '');
     bubble.classList.remove('cb-bubble--active');
+    opened = false;
   }
 
-  bubble.addEventListener('click', () => (opened ? close() : open()));
+  bubble.addEventListener('click', (e) => {
+    e.stopPropagation();
+    if (opened) {
+      close(e);
+    } else {
+      open();
+    }
+  });
+
   closeBtn.addEventListener('click', close);
 
   renderQuickReplies(quickRepliesEl, (text) => handleSend(text));
