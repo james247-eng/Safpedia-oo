@@ -16,12 +16,12 @@
       throw new Error(`Chatbot stylesheet failed to load (${cssRes.status})`);
     }
 
-    const styleEl = document.createElement('style');
-    styleEl.textContent = await cssRes.text();
-    shadowRoot.appendChild(styleEl);
-
     const { initChatbot } = await import(widgetUrl.href);
     initChatbot(shadowRoot);
+
+    const styleEl = document.createElement('style');
+    styleEl.textContent = await cssRes.text();
+    shadowRoot.prepend(styleEl);
   } catch (error) {
     console.error('Chatbot failed to load:', error);
     host.remove();
