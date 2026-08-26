@@ -11,6 +11,7 @@ import '../../js/notification-center.js';
 import { onAuthStateChanged, signOut } from 'https://www.gstatic.com/firebasejs/12.17.1/firebase-auth.js';
 import { doc, getDoc, collection, getDocs, orderBy, query } from 'https://www.gstatic.com/firebasejs/12.17.1/firebase-firestore.js';
 import { showToast, showLoading } from '../../js/toast-notification.js';
+import { requireFreshAuth } from '../../js/bank-reauth.js';
 
 let currentUser = null;
 
@@ -208,9 +209,19 @@ async function saveBankAccount() {
     return;
   }
 
+  // SECURITY: require fresh re-authentication before touching payout bank
+  // details — a hijacked session shouldn't be able to silently redirect
+  // future commission payouts. Mirrored server-side in
+  // /api/affiliates/add-bank-account via an auth_time freshness check.
+  const confirmed = await requireFreshAuth(currentUser);
+  if (!confirmed) {
+    showToast('Bank account not changed — identity verification was cancelled.', 'warning');
+    return;
+  }
+
   const dismiss = showLoading('Verifying account...');
   try {
-    const idToken = await currentUser.getIdToken();
+    const idToken = await currentUser.getIdToken(true); // force-refresh so auth_time reflects the reauth just completed
     const res = await fetch('/api/affiliates/add-bank-account', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${idToken}` },
