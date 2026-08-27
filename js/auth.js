@@ -6,8 +6,9 @@ import {
   signInWithEmailAndPassword,
   onAuthStateChanged,
   GoogleAuthProvider,
-  FacebookAuthProvider,
-  signInWithPopup
+  signInWithPopup,
+  sendEmailVerification,
+  signOut
 } from "https://www.gstatic.com/firebasejs/12.17.1/firebase-auth.js";
 import { showToast, showLoading } from './toast-notification.js';
 import './notification-center.js';
@@ -101,17 +102,29 @@ if (signupForm && signupBtn) {
         return;
       }
 
+      // Send the verification email, then sign the user out until they
+      // confirm it — login is blocked for unverified accounts (see below).
+      try {
+        await sendEmailVerification(user);
+      } catch (verifyErr) {
+        console.error('Failed to send verification email:', verifyErr);
+      }
+      await signOut(auth);
+
       // Dismiss loading
       dismissLoading();
 
-      // ⭐ SIMPLE: ALWAYS GO TO DASHBOARD
-      // The dashboard will check localStorage for pending enrollment
-      console.log('✅ Account created successfully, redirecting to dashboard...');
-      showToast('Account created successfully! Redirecting...', 'success');
-      
-      setTimeout(() => { 
-        window.location.href = getVendorSubscriptionIntentRedirect(userData.role) || '/users/dashboard.html';
-      }, 1000);
+      console.log('✅ Account created, verification email sent.');
+      const msg = 'Account created! Check your email for a verification link, then sign in.';
+      if (alert_container) {
+        alert_container.textContent = msg;
+        alert_container.classList.add('success');
+      }
+      showToast(msg, 'success');
+
+      setTimeout(() => {
+        window.location.href = 'sign-in.html';
+      }, 2000);
 
     } catch (error) {
       // Dismiss loading
@@ -169,6 +182,27 @@ if (loginForm && loginBtn) {
     try {
       const userCredential = await signInWithEmailAndPassword(auth, log_in_email, log_in_password);
       const user = userCredential.user;
+
+      // Block unverified email/password accounts. Google sign-in users
+      // skip this check (handled separately in handleSocialAuth) since
+      // Google already verifies the email address.
+      if (!user.emailVerified) {
+        try {
+          await sendEmailVerification(user);
+        } catch (verifyErr) {
+          console.error('Failed to resend verification email:', verifyErr);
+        }
+        await signOut(auth);
+
+        dismissLoading();
+        loginBtn.disabled = false;
+        loginBtn.textContent = originalText;
+
+        const msg = 'Please verify your email before signing in. We\'ve sent a new verification link to your inbox.';
+        if (alert_container) alert_container.textContent = msg;
+        showToast(msg, 'error');
+        return;
+      }
 
       // Fetch user role from Firestore
       const userDocRef = doc(db, 'user', user.uid);
@@ -234,12 +268,13 @@ if (loginForm && loginBtn) {
 }
 
 // ====================================================================
-// SOCIAL AUTH HANDLERS (Google + Facebook)
+// SOCIAL AUTH HANDLERS (Google)
 // Works on both sign-up.html and sign-in.html — same buttons, same
-// Firestore user-doc shape as the email/password signup flow.
+// Firestore user-doc shape as the email/password signup flow. Google
+// accounts are treated as already email-verified, so no verification
+// check is applied here.
 // ====================================================================
 const googleProvider = new GoogleAuthProvider();
-const facebookProvider = new FacebookAuthProvider();
 
 async function handleSocialAuth(provider, providerName) {
   const dismissLoading = showLoading(`Signing in with ${providerName}...`);
@@ -307,10 +342,6 @@ async function handleSocialAuth(provider, providerName) {
 
 document.querySelectorAll('.google-signin-btn').forEach((btn) => {
   btn.addEventListener('click', () => handleSocialAuth(googleProvider, 'Google'));
-});
-
-document.querySelectorAll('.facebook-signin-btn').forEach((btn) => {
-  btn.addEventListener('click', () => handleSocialAuth(facebookProvider, 'Facebook'));
 });
 
 // ====================================================================
