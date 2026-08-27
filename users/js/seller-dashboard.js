@@ -115,11 +115,16 @@ async function loadVendorDisputes() {
     }
     try {
         const token = await currentUser.getIdToken();
+        console.log('[DISPUTE-DEBUG] currentUser.uid:', currentUser.uid);
         const res = await fetch('/api/disputes/list-disputes', { headers: { Authorization: `Bearer ${token}` } });
         const json = await res.json();
+        console.log('[DISPUTE-DEBUG] API response status:', res.status);
+        console.log('[DISPUTE-DEBUG] disputes returned by API:', json.disputes);
         
         if (!res.ok) throw new Error(json.error || 'Could not load disputes');
+        console.log('[DISPUTE-DEBUG] count before filter:', json.disputes?.length);
         const disputes = json.disputes.filter((d) => d.vendorUid === currentUser.uid);
+        console.log('[DISPUTE-DEBUG] count after filter:', disputes.length);
         
         if (!disputes.length) {
             container.innerHTML = '<div class="empty-state">No disputes filed against your sales.</div>';

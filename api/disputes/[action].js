@@ -146,12 +146,14 @@ async function notifyBuyerVendorResponse(admin, db, buyerUid, reference) {
 }
 
 async function listDisputes(req, res, db, user) {
+  console.log('[DISPUTE-DEBUG] authenticated user.uid:', user.uid);
   const status = typeof req.query.status === 'string' ? req.query.status.trim() : '';
   
   const [buyerSnap, vendorSnap] = await Promise.all([
     db.collection('disputes').where('buyerUid', '==', user.uid).get(),
     db.collection('disputes').where('vendorUid', '==', user.uid).get()
   ]);
+  console.log('[DISPUTE-DEBUG] buyerSnap.size:', buyerSnap.size, 'vendorSnap.size:', vendorSnap.size);
 
   const map = new Map();
   const allDocs = [...buyerSnap.docs, ...vendorSnap.docs];
