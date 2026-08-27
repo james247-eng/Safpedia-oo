@@ -686,7 +686,7 @@ function renderDisputeModalContent(d) {
     resolutionSelect.value = '';
     resolutionNoteInput.value = '';
 
-    const isClosed = d.status !== 'open';
+    const isClosed = !['open', 'investigating'].includes(d.status);
     resolutionSelect.disabled = isClosed;
     resolutionNoteInput.disabled = isClosed;
     resolveBtn.disabled = isClosed;
