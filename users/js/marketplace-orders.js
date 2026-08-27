@@ -190,6 +190,7 @@ function openDisputeDetailsModal(reference) {
     const isResolved = ['resolved_buyer', 'resolved_vendor', 'closed'].includes(status);
     const resolution = dispute.resolution || '';
     const refundFailed = dispute.refundStatus === 'failed' || String(resolution).startsWith('refund_failed');
+    const publicResolution = String(resolution).startsWith('refund_failed') ? '' : resolution;
     let refundLine = '';
     if (isResolved) {
         if (dispute.refundStatus === 'triggered') refundLine = 'A refund has been issued to your original payment method.';
@@ -205,7 +206,7 @@ function openDisputeDetailsModal(reference) {
             <dt>Your statement</dt><dd>${escapeHtml(dispute.buyerStatement || 'Not provided')}</dd>
             <dt>Vendor response</dt><dd>${escapeHtml(dispute.vendorStatement || 'No response yet')}</dd>
             <dt>Status</dt><dd>${escapeHtml(statusLabel)}</dd>
-            ${isResolved && resolution ? `<dt>Resolution</dt><dd>${escapeHtml(resolution)}</dd>` : ''}
+            ${isResolved && publicResolution ? `<dt>Resolution</dt><dd>${escapeHtml(publicResolution)}</dd>` : ''}
             ${refundLine ? `<dt>Refund</dt><dd>${escapeHtml(refundLine)}</dd>` : ''}
         </dl>
     `;
