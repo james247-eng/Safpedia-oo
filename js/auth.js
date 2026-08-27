@@ -13,22 +13,6 @@ import {
 import { showToast, showLoading } from './toast-notification.js';
 import './notification-center.js';
 
-const VENDOR_SUBSCRIPTION_INTENT_KEY = 'safpedia-vendor-subscription-intent';
-function getVendorSubscriptionIntentRedirect(userRole) {
-  if (userRole === 'admin') return null;
-  try {
-    const raw = localStorage.getItem(VENDOR_SUBSCRIPTION_INTENT_KEY);
-    if (!raw) return null;
-    const intent = JSON.parse(raw);
-    if (!intent || Date.now() - Number(intent.createdAt) > 24 * 60 * 60 * 1000) {
-      localStorage.removeItem(VENDOR_SUBSCRIPTION_INTENT_KEY);
-      return null;
-    }
-    if (!['safbloom', 'safscale'].includes(intent.tier) || !['monthly', 'annual'].includes(intent.billingCycle)) return null;
-    return '/users/sellers-page.html#subscription-pane';
-  } catch { return null; }
-}
-
 // Initialize Analytics using the shared app instance behind the config if needed
 const analytics = getAnalytics(auth.app);
 
@@ -102,29 +86,35 @@ if (signupForm && signupBtn) {
         return;
       }
 
-      // Send the verification email, then sign the user out until they
-      // confirm it — login is blocked for unverified accounts (see below).
+      // ⭐ SEND EMAIL VERIFICATION
+      // Firebase-hosted link — no backend, no email provider needed.
+      // The "Continue" link on the verification page sends them to sign-in.
       try {
-        await sendEmailVerification(user);
+        await sendEmailVerification(user, {
+          url: `${window.location.origin}/sign-in.html?verified=1`,
+        });
       } catch (verifyErr) {
         console.error('Failed to send verification email:', verifyErr);
       }
+
+      // Sign out immediately — don't leave an unverified session active.
+      // They'll sign back in (and get gated) once they've clicked the link.
       await signOut(auth);
 
       // Dismiss loading
       dismissLoading();
 
       console.log('✅ Account created, verification email sent.');
-      const msg = 'Account created! Check your email for a verification link, then sign in.';
-      if (alert_container) {
-        alert_container.textContent = msg;
-        alert_container.classList.add('success');
+      const msg = alert_container;
+      if (msg) {
+        msg.textContent = `We sent a verification link to ${email}. Please verify your email, then sign in.`;
+        msg.classList.add('success');
       }
-      showToast(msg, 'success');
+      showToast('Account created! Check your email to verify.', 'success');
 
       setTimeout(() => {
-        window.location.href = 'sign-in.html';
-      }, 2000);
+        window.location.href = '/sign-in.html';
+      }, 2500);
 
     } catch (error) {
       // Dismiss loading
@@ -183,24 +173,40 @@ if (loginForm && loginBtn) {
       const userCredential = await signInWithEmailAndPassword(auth, log_in_email, log_in_password);
       const user = userCredential.user;
 
-      // Block unverified email/password accounts. Google sign-in users
-      // skip this check (handled separately in handleSocialAuth) since
-      // Google already verifies the email address.
+      // ⭐ EMAIL VERIFICATION GATE
+      // Block unverified accounts from reaching the dashboard.
       if (!user.emailVerified) {
-        try {
-          await sendEmailVerification(user);
-        } catch (verifyErr) {
-          console.error('Failed to resend verification email:', verifyErr);
-        }
-        await signOut(auth);
-
         dismissLoading();
         loginBtn.disabled = false;
         loginBtn.textContent = originalText;
 
-        const msg = 'Please verify your email before signing in. We\'ve sent a new verification link to your inbox.';
-        if (alert_container) alert_container.textContent = msg;
-        showToast(msg, 'error');
+        if (alert_container) {
+          alert_container.classList.remove('success');
+          alert_container.innerHTML = `Please verify your email before signing in. <button type="button" id="resend-verify-btn" style="margin-left:6px;text-decoration:underline;background:none;color:inherit;font-weight:600;">Resend email</button>`;
+
+          const resendBtn = document.getElementById('resend-verify-btn');
+          if (resendBtn) {
+            resendBtn.addEventListener('click', async () => {
+              resendBtn.disabled = true;
+              resendBtn.textContent = 'Sending...';
+              try {
+                await sendEmailVerification(user, {
+                  url: `${window.location.origin}/sign-in.html?verified=1`,
+                });
+                showToast('Verification email resent!', 'success');
+                resendBtn.textContent = 'Sent!';
+              } catch (resendErr) {
+                console.error('Resend verification error:', resendErr);
+                showToast('Could not resend email. Try again shortly.', 'error');
+                resendBtn.disabled = false;
+                resendBtn.textContent = 'Resend email';
+              }
+            });
+          }
+        }
+        showToast('Please verify your email first', 'error');
+
+        await signOut(auth);
         return;
       }
 
@@ -234,7 +240,7 @@ if (loginForm && loginBtn) {
         if (userRole === 'admin') {
           window.location.href = '/safpedia concept admin dashboard/dashboard.html';
         } else {
-          window.location.href = getVendorSubscriptionIntentRedirect(userRole) || '/users/dashboard.html';
+          window.location.href = '/users/dashboard.html';
         }
       }, 500);
 
@@ -270,9 +276,7 @@ if (loginForm && loginBtn) {
 // ====================================================================
 // SOCIAL AUTH HANDLERS (Google)
 // Works on both sign-up.html and sign-in.html — same buttons, same
-// Firestore user-doc shape as the email/password signup flow. Google
-// accounts are treated as already email-verified, so no verification
-// check is applied here.
+// Firestore user-doc shape as the email/password signup flow.
 // ====================================================================
 const googleProvider = new GoogleAuthProvider();
 
@@ -316,7 +320,7 @@ async function handleSocialAuth(provider, providerName) {
       if (userRole === 'admin') {
         window.location.href = '/safpedia concept admin dashboard/dashboard.html';
       } else {
-        window.location.href = getVendorSubscriptionIntentRedirect(userRole) || '/users/dashboard.html';
+        window.location.href = '/users/dashboard.html';
       }
     }, 500);
 
@@ -515,7 +519,7 @@ async function updateProfileIcon(user) {
         if (userRole === 'admin') {
           window.location.href = '/safpedia concept admin dashboard/dashboard.html';
         } else {
-          window.location.href = getVendorSubscriptionIntentRedirect(userRole) || '/users/dashboard.html';
+          window.location.href = '/users/dashboard.html';
         }
       };
       
@@ -545,7 +549,7 @@ function setDefaultLoggedInIcon(user) {
   `;
   
   profileIcon.onclick = () => {
-    window.location.href = getVendorSubscriptionIntentRedirect('user') || '/users/dashboard.html';
+    window.location.href = '/users/dashboard.html';
   };
 }
 

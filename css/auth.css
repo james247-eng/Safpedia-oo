@@ -304,6 +304,13 @@ body.auth-body::before {
 
 .btn-container button:disabled { opacity: 0.6; cursor: not-allowed; transform: none; }
 
+.verify-note {
+  text-align: center;
+  font-size: 0.8rem;
+  color: var(--slate);
+  margin-top: 0.75rem;
+}
+
 /* ---- Links & result messages ---- */
 .auth-links { text-align: center; margin-top: 1.5rem; font-size: 0.9rem; }
 .auth-links a { color: var(--blue); font-weight: 600; }
@@ -437,7 +444,3 @@ body.auth-body::before {
 
 .social-btn.google-signin-btn ion-icon { color: #EA4335; }
 .social-btn.facebook-signin-btn ion-icon { color: #1877F2; }
-
-@media (max-width: 400px) {
-  .social-btn-group { grid-template-columns: 1fr; }
-}
