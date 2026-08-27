@@ -11,6 +11,19 @@ let tierConfig = {};
 let subscriptionSummary = null;
 const VENDOR_SUBSCRIPTION_INTENT_KEY = 'safpedia-vendor-subscription-intent';
 
+// ====================================================================
+// SECURITY HELPER: DOM HTML Entity Encoding (Client-side XSS Protection)
+// ====================================================================
+function escapeHtml(str) {
+    if (str === null || str === undefined) return '';
+    return String(str)
+        .replace(/&/g, '&amp;')
+        .replace(/</g, '&lt;')
+        .replace(/>/g, '&gt;')
+        .replace(/"/g, '&quot;')
+        .replace(/'/g, '&#039;');
+}
+
 function subscriptionDate(value) {
     if (!value) return null;
     if (typeof value === 'string' || value instanceof Date) return new Date(value);
@@ -75,7 +88,7 @@ document.getElementById('seller-logout-trigger')?.addEventListener('click', asyn
 });
 
 // ====================================================================
-// STATUS MESSAGE HELPER (kept dependency-free — no assumed toast module)
+// STATUS MESSAGE HELPER
 // ====================================================================
 function showStatus(message, isError = false) {
     const el = document.getElementById('upload-progress');
@@ -91,16 +104,73 @@ function clearStatus() {
     el.classList.remove('status-error');
 }
 
+// ====================================================================
+// VENDOR DISPUTES (Updated for security & populated display names)
+// ====================================================================
 async function loadVendorDisputes() {
     const container = document.getElementById('vendor-disputes-list');
     try {
-        const token = await currentUser.getIdToken(); const res = await fetch('/api/disputes/list-disputes', { headers: { Authorization: `Bearer ${token}` } }); const json = await res.json();
+        const token = await currentUser.getIdToken();
+        const res = await fetch('/api/disputes/list-disputes', { headers: { Authorization: `Bearer ${token}` } });
+        const json = await res.json();
+        
         if (!res.ok) throw new Error(json.error || 'Could not load disputes');
         const disputes = json.disputes.filter((d) => d.vendorUid === currentUser.uid);
-        if (!disputes.length) { container.innerHTML = '<div class="empty-state">No disputes filed against your sales.</div>'; return; }
-        container.innerHTML = disputes.map((d) => `<div class="dashboard-section-card"><p><strong>${d.reference}</strong> — ${d.status}</p><p>Reason: ${d.reason}</p><p>Buyer: ${d.buyerStatement}</p>${d.vendorStatement ? `<p>Your response: ${d.vendorStatement}</p>` : ''}${['open','investigating'].includes(d.status) ? `<form class="vendor-dispute-response" data-id="${d.id}"><textarea required placeholder="Your response to the buyer"></textarea><button class="btn btn-primary" type="submit">Send response</button></form>` : `<p>Resolution: ${d.resolution || d.status}</p>`}</div>`).join('');
-        container.querySelectorAll('.vendor-dispute-response').forEach((form) => form.addEventListener('submit', async (e) => { e.preventDefault(); const token = await currentUser.getIdToken(); const response = await fetch('/api/disputes/respond-to-dispute', { method: 'POST', headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` }, body: JSON.stringify({ disputeId: form.dataset.id, vendorStatement: form.querySelector('textarea').value }) }); const body = await response.json(); if (!response.ok) return alert(body.error || 'Could not respond'); loadVendorDisputes(); }));
-    } catch (err) { container.innerHTML = `<div class="error-state">${err.message}</div>`; }
+        
+        if (!disputes.length) {
+            container.innerHTML = '<div class="empty-state">No disputes filed against your sales.</div>';
+            return;
+        }
+
+        container.innerHTML = disputes.map((d) => {
+            const productTitle = escapeHtml(d.productTitle || 'Marketplace Item');
+            const ref = escapeHtml(d.reference || 'Store Complaint');
+            const status = escapeHtml(d.status || 'open');
+            const reason = escapeHtml(d.reason || 'N/A');
+            const buyerName = escapeHtml(d.buyerName || 'Customer');
+            const buyerEmail = escapeHtml(d.buyerEmail || '');
+            const buyerStatement = escapeHtml(d.buyerStatement || '');
+            const vendorStatement = escapeHtml(d.vendorStatement || '');
+            const resolution = escapeHtml(d.resolution || d.status);
+
+            const buyerContact = buyerEmail ? `${buyerName} (${buyerEmail})` : buyerName;
+
+            return `
+                <div class="dashboard-section-card dispute-item-card">
+                    <p><strong>${productTitle}</strong> — <span class="badge-f">${status}</span></p>
+                    <p><small>Order Ref: <code>${ref}</code></small></p>
+                    <p><strong>Buyer:</strong> ${buyerContact}</p>
+                    <p><strong>Reason:</strong> ${reason}</p>
+                    <p><strong>Buyer Statement:</strong> ${buyerStatement}</p>
+                    ${vendorStatement ? `<p><strong>Your Response:</strong> ${vendorStatement}</p>` : ''}
+                    ${['open', 'investigating'].includes(d.status) ? `
+                        <form class="vendor-dispute-response" data-id="${escapeHtml(d.id)}">
+                            <textarea required placeholder="Your response to the buyer and admin"></textarea>
+                            <button class="btn btn-primary" type="submit">Send response</button>
+                        </form>
+                    ` : `<p><strong>Resolution:</strong> ${resolution}</p>`}
+                </div>
+            `;
+        }).join('');
+
+        container.querySelectorAll('.vendor-dispute-response').forEach((form) => {
+            form.addEventListener('submit', async (e) => {
+                e.preventDefault();
+                const token = await currentUser.getIdToken();
+                const textarea = form.querySelector('textarea');
+                const response = await fetch('/api/disputes/respond-to-dispute', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` },
+                    body: JSON.stringify({ disputeId: form.dataset.id, vendorStatement: textarea.value })
+                });
+                const body = await response.json();
+                if (!response.ok) return alert(body.error || 'Could not respond');
+                loadVendorDisputes();
+            });
+        });
+    } catch (err) {
+        container.innerHTML = `<div class="error-state">${escapeHtml(err.message)}</div>`;
+    }
 }
 
 async function loadSubscriptionSummary() {
@@ -150,7 +220,7 @@ function renderSubscriptionSummary(summary) {
     panel.innerHTML = `
         <div class="plan-summary-main">
             <span class="plan-summary-label">Current Plan</span>
-            <span class="plan-summary-tier">${tier.displayName || 'Safseed'}</span>
+            <span class="plan-summary-tier">${escapeHtml(tier.displayName || 'Safseed')}</span>
         </div>
         <div class="plan-summary-meta">
             <span class="plan-status-pill ${statusClass}">${statusLabel}</span>
@@ -165,16 +235,10 @@ function renderSubscriptionSummary(summary) {
     const actions = document.getElementById('subscription-actions');
     actions.innerHTML = '';
 
-    // Data-driven "highest tier" check — compares productLimit across whatever
-    // paid tiers the API returns, so this doesn't need updating if a 4th tier
-    // is ever added. See getHighestPaidTierKey().
     const highestTierKey = getHighestPaidTierKey();
     const isOnHighestTier = paidTier && tierKey === highestTierKey;
 
     if (expired) {
-        // Lapsed, regardless of which tier it was: show the renewal nudge and
-        // the full tier list so they can renew the same plan or pick a
-        // different one.
         const callout = document.createElement('div');
         callout.className = 'subscription-callout callout-expired';
         const message = document.createElement('span');
@@ -184,28 +248,19 @@ function renderSubscriptionSummary(summary) {
         actions.appendChild(callout);
         actions.appendChild(buildTierChoices(tierKey, 'Choose a plan'));
     } else if (isOnHighestTier) {
-        // Active and already on the best plan — nothing to upgrade to, so
-        // don't show tier cards or subscribe buttons at all. A short note
-        // fills the space instead of leaving it looking broken/empty.
         const note = document.createElement('div');
         note.className = 'plan-maxed-note';
-        note.innerHTML = `<ion-icon name="checkmark-circle-outline"></ion-icon><span>You're on our highest plan (${tier.displayName}) — there's nothing left to upgrade to.</span>`;
+        note.innerHTML = `<ion-icon name="checkmark-circle-outline"></ion-icon><span>You're on our highest plan (${escapeHtml(tier.displayName)}) — there's nothing left to upgrade to.</span>`;
         actions.appendChild(note);
     } else if (!paidTier) {
-        // Free tier: this IS the primary call to action, so show it directly.
         actions.appendChild(buildTierChoices(tierKey, 'Choose a plan'));
     } else {
-        // Active on a lower paid tier: collapse behind a single Upgrade
-        // button instead of showing every tier + Monthly/Annual button pair
-        // up front.
         actions.appendChild(buildUpgradeToggle(tierKey));
     }
 
     renderSubscriptionPayments(summary.payments || []);
 }
 
-// Finds whichever paid tier has the highest productLimit. Returns null if
-// the API returns no paid tiers at all (shouldn't happen in practice).
 function getHighestPaidTierKey() {
     const paidEntries = Object.entries(tierConfig).filter(([key]) => key !== 'safseed');
     if (!paidEntries.length) return null;
@@ -225,9 +280,6 @@ function subscriptionButton(tier, billingCycle, label, variant = 'btn-primary') 
     return button;
 }
 
-// Collapsed entry point for an active vendor sitting on a lower paid tier.
-// Renders a single Upgrade button; clicking it swaps itself out for the
-// full tier list in place, so the busy tier cards stay hidden until asked for.
 function buildUpgradeToggle(currentTierKey) {
     const wrapper = document.createElement('div');
     wrapper.className = 'subscription-upgrade-toggle';
@@ -261,7 +313,7 @@ function buildTierChoices(currentTierKey, label = 'Upgrade') {
         const info = document.createElement('div');
         info.className = 'tier-row-info';
         info.innerHTML = `
-            <span class="tier-row-name">${tier.displayName}${isCurrent ? '<span class="current-tier-tag">Current</span>' : ''}</span>
+            <span class="tier-row-name">${escapeHtml(tier.displayName)}${isCurrent ? '<span class="current-tier-tag">Current</span>' : ''}</span>
             <span class="tier-row-price">${naira(tier.monthlyPrice)}/month &middot; ${naira(tier.annualPrice)}/year</span>
         `;
 
@@ -298,13 +350,13 @@ function renderSubscriptionPayments(payments) {
         const ref = payment.reference || payment.id;
         return `
             <tr>
-                <td>${tier?.displayName || payment.tier || 'Subscription'}</td>
+                <td>${escapeHtml(tier?.displayName || payment.tier || 'Subscription')}</td>
                 <td>${naira(payment.amount)}</td>
-                <td>${payment.billingCycle || 'monthly'}</td>
-                <td><span class="payment-status-pill ${statusClass(payment.status)}">${payment.status || 'unknown'}</span></td>
+                <td>${escapeHtml(payment.billingCycle || 'monthly')}</td>
+                <td><span class="payment-status-pill ${statusClass(payment.status)}">${escapeHtml(payment.status || 'unknown')}</span></td>
                 <td>${formatSubscriptionDate(payment.createdAt)}</td>
-                <td><code>${ref}</code></td>
-                <td><button type="button" class="btn btn-secondary btn-sm copy-reference-btn" data-reference="${ref}">Copy</button></td>
+                <td><code>${escapeHtml(ref)}</code></td>
+                <td><button type="button" class="btn btn-secondary btn-sm copy-reference-btn" data-reference="${escapeHtml(ref)}">Copy</button></td>
             </tr>
         `;
     }).join('');
@@ -358,7 +410,7 @@ async function initiateSubscriptionPayment(tier, billingCycle, button) {
 }
 
 // ====================================================================
-// HELPER: mask account number (show only last 4 digits)
+// HELPER: mask account number
 // ====================================================================
 function maskAccountNumber(accountNumber) {
     if (!accountNumber || typeof accountNumber !== 'string') return '••••';
@@ -387,7 +439,7 @@ async function loadVendorProfile() {
 
     } catch (err) {
         console.error('loadVendorProfile error:', err);
-        grid.innerHTML = `<div class="error-state">Could not load your products: ${err.message}</div>`;
+        grid.innerHTML = `<div class="error-state">Could not load your products: ${escapeHtml(err.message)}</div>`;
     }
 }
 
@@ -405,8 +457,8 @@ function renderBankAccount(bankAccount) {
     }
     const masked = maskAccountNumber(bankAccount.accountNumber);
     el.innerHTML = `
-        <p><strong>${bankAccount.accountName}</strong></p>
-        <p>${masked} — Bank code ${bankAccount.bankCode}</p>
+        <p><strong>${escapeHtml(bankAccount.accountName)}</strong></p>
+        <p>${masked} — Bank code ${escapeHtml(bankAccount.bankCode)}</p>
     `;
 }
 
@@ -439,22 +491,22 @@ function renderProducts(products) {
 
         card.innerHTML = `
             <div class="card-banner">
-                <img src="${cover}" alt="${p.title}">
+                <img src="${escapeHtml(cover)}" alt="${escapeHtml(p.title)}">
                 ${statusBadge}
             </div>
             <div class="card-details">
-                <span class="category-meta">${p.category}</span>
-                <h3 class="product-title">${p.title}</h3>
+                <span class="category-meta">${escapeHtml(p.category)}</span>
+                <h3 class="product-title">${escapeHtml(p.title)}</h3>
                 <div class="card-footer-row">
                     <span class="product-cost">₦${p.price.toLocaleString()}</span>
                     <span>${p.type === 'physical' ? `Stock: ${p.stock}` : 'Digital'}</span>
                 </div>
                 <p>Sales: ${p.totalSales}</p>
                 <div class="product-card-actions">
-                    <a href="/vendors-product-details.html?id=${p.id}" class="btn btn-secondary btn-sm" target="_blank">View</a>
-                    <button class="btn btn-secondary btn-sm edit-product-btn" data-id="${p.id}">Edit</button>
-                    <button class="btn btn-secondary btn-sm toggle-active-btn" data-id="${p.id}" data-active="${p.isActive}">${p.isActive ? 'Deactivate' : 'Activate'}</button>
-                    <button class="btn btn-secondary btn-sm delete-product-btn" data-id="${p.id}">Delete</button>
+                    <a href="/vendors-product-details.html?id=${escapeHtml(p.id)}" class="btn btn-secondary btn-sm" target="_blank">View</a>
+                    <button class="btn btn-secondary btn-sm edit-product-btn" data-id="${escapeHtml(p.id)}">Edit</button>
+                    <button class="btn btn-secondary btn-sm toggle-active-btn" data-id="${escapeHtml(p.id)}" data-active="${p.isActive}">${p.isActive ? 'Deactivate' : 'Activate'}</button>
+                    <button class="btn btn-secondary btn-sm delete-product-btn" data-id="${escapeHtml(p.id)}">Delete</button>
                 </div>
             </div>
         `;
@@ -546,7 +598,7 @@ async function deleteProduct(productId) {
 }
 
 // ====================================================================
-// ADD PRODUCT — TYPE TOGGLE
+// ADD PRODUCT — TYPE TOGGLE & DRAFT
 // ====================================================================
 document.querySelectorAll('input[name="product-type"]').forEach((radio) => {
     radio.addEventListener('change', (e) => {
@@ -557,7 +609,6 @@ document.querySelectorAll('input[name="product-type"]').forEach((radio) => {
 });
 
 function draftSnapshot() {
-    const form = document.getElementById('add-product-form');
     return {
         title: document.getElementById('product-title').value,
         description: document.getElementById('product-description').value,
@@ -630,7 +681,7 @@ async function uploadToCloudinary(file, signed) {
     const res = await fetch(url, { method: 'POST', body: formData });
     const json = await res.json();
     if (json.error) throw new Error(json.error.message);
-    return json; // { public_id, format, secure_url, bytes, ... }
+    return json;
 }
 
 // ====================================================================
@@ -670,10 +721,8 @@ document.getElementById('add-product-form').addEventListener('submit', async (e)
             }
         }
 
-        // Draft ID generated locally, shared across upload calls and create-product.
         const productId = doc(collection(db, 'vendorProducts')).id;
 
-        // ---- Upload images ----
         const images = [];
         for (let i = 0; i < imageFiles.length; i++) {
             showStatus(`Uploading photo ${i + 1} of ${imageFiles.length}...`);
@@ -682,7 +731,6 @@ document.getElementById('add-product-form').addEventListener('submit', async (e)
             images.push({ publicId: uploaded.public_id });
         }
 
-        // ---- Upload digital file ----
         let digitalAsset = null;
         if (type === 'digital') {
             showStatus('Uploading product file...');
@@ -692,7 +740,6 @@ document.getElementById('add-product-form').addEventListener('submit', async (e)
             digitalAsset = { publicId: uploaded.public_id, format: fileExtension };
         }
 
-        // ---- Create the product ----
         showStatus('Publishing product...');
         const idToken = await currentUser.getIdToken();
         const createRes = await fetch('/api/marketplace/create-product', {
@@ -772,7 +819,7 @@ async function loadOrders() {
 
     } catch (err) {
         console.error('loadOrders error:', err);
-        container.innerHTML = `<div class="error-state">Could not load orders: ${err.message}</div>`;
+        container.innerHTML = `<div class="error-state">Could not load orders: ${escapeHtml(err.message)}</div>`;
     }
 }
 
@@ -798,9 +845,9 @@ function renderOrders(orders) {
         let actionCell = '—';
         if (o.productType === 'physical') {
             if (o.fulfillmentStatus === 'pending_shipment') {
-                actionCell = `<button class="btn btn-sm btn-secondary mark-shipped-btn" data-product-id="${o.productId}" data-reference="${o.reference}">Mark Shipped</button>`;
+                actionCell = `<button class="btn btn-sm btn-secondary mark-shipped-btn" data-product-id="${escapeHtml(o.productId)}" data-reference="${escapeHtml(o.reference)}">Mark Shipped</button>`;
             } else if (o.fulfillmentStatus === 'shipped') {
-                actionCell = `<button class="btn btn-sm btn-secondary mark-delivered-btn" data-product-id="${o.productId}" data-reference="${o.reference}">Mark Delivered</button>`;
+                actionCell = `<button class="btn btn-sm btn-secondary mark-delivered-btn" data-product-id="${escapeHtml(o.productId)}" data-reference="${escapeHtml(o.reference)}">Mark Delivered</button>`;
             } else if (o.fulfillmentStatus === 'delivered') {
                 actionCell = 'Delivered';
             }
@@ -810,7 +857,7 @@ function renderOrders(orders) {
 
         return `
             <tr>
-                <td>${o.productTitle}</td>
+                <td>${escapeHtml(o.productTitle)}</td>
                 <td>${o.quantity}</td>
                 <td>₦${(o.vendorAmount || 0).toLocaleString()}</td>
                 <td>${o.productType === 'physical' ? 'Physical' : 'Digital'}</td>
@@ -961,17 +1008,13 @@ document.getElementById('bank-account-form').addEventListener('submit', async (e
             throw new Error('Select a bank and enter your account number');
         }
 
-        // SECURITY: require fresh re-authentication before touching payout
-        // bank details — a hijacked session shouldn't be able to silently
-        // redirect future payouts. Mirrored server-side in
-        // /api/vendors/add-bank-account via an auth_time freshness check.
         const confirmed = await requireFreshAuth(currentUser);
         if (!confirmed) {
             alert('Bank account not changed — identity verification was cancelled.');
             return;
         }
 
-        const idToken = await currentUser.getIdToken(true); // force-refresh so auth_time reflects the reauth just completed
+        const idToken = await currentUser.getIdToken(true);
         const res = await fetch('/api/vendors/add-bank-account', {
             method: 'POST',
             headers: {
@@ -1026,10 +1069,7 @@ document.getElementById('request-payout-btn').addEventListener('click', async ()
 });
 
 // ====================================================================
-// DEEP-LINK TAB ROUTING (additive)
-// Same pattern as dashboard.js — lets another page send a seller
-// straight to e.g. "sellers-page.html#payouts-pane" with that tab
-// already open. Doesn't touch the existing click-based tab switcher.
+// DEEP-LINK TAB ROUTING
 // ====================================================================
 function openTabFromHash() {
     const targetId = window.location.hash.slice(1);
