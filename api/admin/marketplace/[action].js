@@ -3,7 +3,7 @@
 const { getFirebaseAdmin } = require('../../../lib/firebase-admin');
 const { requireAdmin } = require('../../../lib/auth');
 const { TIERS } = require('../../../lib/vendor-subscriptions');
-const { sendEmail, sendNotification, getRecipient } = require('../../utils/notifications');
+const { sendEmail, sendNotification, getRecipient } = require('../../utils/[action]');
 
 const BATCH_LIMIT = 400; // stay comfortably under Firestore's 500-write batch cap
 
@@ -47,7 +47,10 @@ module.exports = async (req, res) => {
       return await handleGetAuditLog(req, res, db);
     }
     if (req.method === 'GET' && action === 'admin-list-disputes') {
-      return await handleAdminListDisputes(req, res, db, admin);
+      return await handleAdminListDisputes(req, res, db);
+    }
+    if (req.method === 'GET' && action === 'get-audit-log') {
+      return await handleGetAuditLog(req, res, db);
     }
 
     if (req.method !== 'POST') {
@@ -63,7 +66,7 @@ module.exports = async (req, res) => {
         return await handleToggleStorefront(req, res, admin, db, adminUser);
       case 'set-subscription-override':
         return await handleSetSubscriptionOverride(req, res, admin, db, adminUser);
-      case 'admin-list-disputes': return await handleAdminListDisputes(req, res, db, admin);
+      case 'admin-list-disputes': return await handleAdminListDisputes(req, res, db);
       case 'add-dispute-note': return await handleAddDisputeNote(req, res, admin, db, adminUser);
       case 'resolve-dispute': return await handleResolveDispute(req, res, admin, db, adminUser);
       default:
@@ -367,61 +370,10 @@ async function writeAdminAuditLog(db, admin, adminUser, entry) {
   }
 }
 
-/**
- * GET/POST /api/admin/marketplace/admin-list-disputes
- * Admin only. Returns every dispute, enriched with buyer/vendor display
- * names+emails and the product title — the raw documents only store
- * buyerUid/vendorUid/productId, which isn't useful to show an admin on its
- * own. Reuses getRecipient() (same helper the notification code already
- * uses) rather than a new lookup, and caches by uid/productId so a page of
- * disputes sharing repeat buyers/vendors/products doesn't do N redundant
- * reads for the same one.
- */
-async function handleAdminListDisputes(req, res, db, admin) {
+async function handleAdminListDisputes(req, res, db) {
   const status = typeof req.body?.status === 'string' ? req.body.status : (typeof req.query.status === 'string' ? req.query.status : '');
   const snap = await db.collection('disputes').get();
-  const disputes = snap.docs.map((d) => ({ id: d.id, ...d.data() }))
-    .filter((d) => !status || d.status === status)
-    .sort((a, b) => (a.status === 'open' ? 0 : 1) - (b.status === 'open' ? 0 : 1) || ((b.updatedAt?._seconds || b.updatedAt?.seconds || 0) - (a.updatedAt?._seconds || a.updatedAt?.seconds || 0)));
-
-  const nameCache = new Map();
-  const productCache = new Map();
-
-  async function resolveName(uid, collections) {
-    if (!uid) return { name: null, email: null };
-    if (nameCache.has(uid)) return nameCache.get(uid);
-    const resolved = await getRecipient(admin, db, uid, collections)
-      .then((r) => ({ name: r?.name || null, email: r?.email || null }))
-      .catch(() => ({ name: null, email: null }));
-    nameCache.set(uid, resolved);
-    return resolved;
-  }
-
-  async function resolveProductTitle(productId) {
-    if (!productId) return null;
-    if (productCache.has(productId)) return productCache.get(productId);
-    let title = null;
-    try {
-      const productSnap = await db.collection('vendorProducts').doc(productId).get();
-      if (productSnap.exists) title = productSnap.data().title || null;
-    } catch { /* leave null, fall back to raw id below */ }
-    productCache.set(productId, title);
-    return title;
-  }
-
-  await Promise.all(disputes.map(async (d) => {
-    const [buyer, vendor, productTitle] = await Promise.all([
-      resolveName(d.buyerUid, ['user', 'users']),
-      resolveName(d.vendorUid, ['user', 'users', 'vendors']),
-      resolveProductTitle(d.productId)
-    ]);
-    d.buyerName = buyer.name || d.buyerUid || 'Unknown buyer';
-    d.buyerEmail = buyer.email;
-    d.vendorName = vendor.name || d.vendorUid || 'Unknown vendor';
-    d.vendorEmail = vendor.email;
-    d.productTitle = productTitle || d.productId || 'Storefront complaint';
-  }));
-
+  const disputes = snap.docs.map((d) => ({ id: d.id, ...d.data() })).filter((d) => !status || d.status === status).sort((a, b) => (a.status === 'open' ? 0 : 1) - (b.status === 'open' ? 0 : 1) || ((b.updatedAt?._seconds || b.updatedAt?.seconds || 0) - (a.updatedAt?._seconds || a.updatedAt?.seconds || 0)));
   return res.status(200).json({ success: true, disputes });
 }
 
