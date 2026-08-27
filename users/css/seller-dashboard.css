@@ -189,6 +189,62 @@
     margin: 2px 0;
 }
 
+/* ---- Disputes ---- */
+.dispute-item-card {
+    position: relative;
+    padding: 20px;
+    margin-bottom: 16px;
+    background: var(--white);
+    border: 1px solid var(--border);
+    border-radius: var(--radius-md);
+    color: var(--ink);
+}
+
+.dispute-item-card p {
+    margin: 0 0 10px;
+    color: var(--ink-soft);
+    line-height: 1.5;
+}
+
+.dispute-item-card p:last-child {
+    margin-bottom: 0;
+}
+
+.dispute-status-badge {
+    display: inline-flex;
+    align-items: center;
+    padding: 4px 9px;
+    border-radius: 999px;
+    background: var(--blue-tint);
+    color: var(--blue);
+    font-size: 12px;
+    font-weight: 700;
+}
+
+.vendor-dispute-response {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 12px;
+    margin-top: 16px;
+}
+
+.vendor-dispute-response textarea {
+    width: 100%;
+    min-height: 110px;
+    padding: 10px 12px;
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    font: inherit;
+    resize: vertical;
+}
+
+.vendor-dispute-response textarea:focus {
+    outline: none;
+    border-color: var(--blue);
+    box-shadow: 0 0 0 3px rgba(74, 125, 255, 0.15);
+}
+
 /* ---- Orders table small screens ---- */
 @media (max-width: 700px) {
     .data-table-frame {

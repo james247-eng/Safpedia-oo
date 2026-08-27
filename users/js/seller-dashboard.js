@@ -145,8 +145,8 @@ async function loadVendorDisputes() {
             const buyerContact = buyerEmail ? `${buyerName} (${buyerEmail})` : buyerName;
 
             return `
-                <div class="dashboard-section-card dispute-item-card">
-                    <p><strong>${productTitle}</strong> — <span class="badge-f">${status}</span></p>
+                <div class="dispute-item-card">
+                    <p><strong>${productTitle}</strong> — <span class="dispute-status-badge">${status}</span></p>
                     <p><small>Order Ref: <code>${ref}</code></small></p>
                     <p><strong>Buyer:</strong> ${buyerContact}</p>
                     <p><strong>Reason:</strong> ${reason}</p>
