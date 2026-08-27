@@ -559,6 +559,130 @@ a {
     background: var(--bg-inset);
     color: var(--text-muted);
 }
+.status-badge.open {
+    background: var(--color-gold-bg);
+    color: var(--color-gold);
+}
+.status-badge.dispute-closed {
+    background: var(--bg-inset);
+    color: var(--text-muted);
+}
+.status-badge.resolved {
+    background: var(--color-success-bg);
+    color: var(--color-success);
+}
+
+/* Secondary line under a table cell's primary value, e.g. an email under a name */
+.table-subtext {
+    display: block;
+    font-size: 0.76rem;
+    color: var(--text-muted);
+    font-weight: 400;
+    margin-top: 2px;
+}
+
+/* ====================================================================
+   DISPUTE DETAIL MODAL
+==================================================================== */
+.dispute-party-name {
+    font-size: 15px;
+    font-weight: 600;
+    word-break: break-word;
+}
+.dispute-statement-block {
+    margin: 18px 0;
+    padding: 14px 16px;
+    background: var(--bg-inset);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+}
+.dispute-statement-block p {
+    margin: 0 0 8px;
+    font-size: 0.87rem;
+    line-height: 1.5;
+}
+.dispute-statement-block p:last-child {
+    margin-bottom: 0;
+}
+.dispute-banner {
+    padding: 11px 14px;
+    border-radius: 8px;
+    font-size: 0.85rem;
+    margin-bottom: 16px;
+    line-height: 1.5;
+}
+.dispute-banner.error {
+    background: var(--color-danger-bg);
+    color: var(--color-danger);
+    border: 1px solid #fecaca;
+}
+.dispute-banner.success {
+    background: var(--color-success-bg);
+    color: var(--color-success);
+    border: 1px solid #bbf7d0;
+}
+.dispute-notes-list {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    margin-bottom: 12px;
+    max-height: 180px;
+    overflow-y: auto;
+}
+.dispute-note-item {
+    background: var(--bg-inset);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    padding: 10px 12px;
+    font-size: 0.85rem;
+    line-height: 1.5;
+}
+.dispute-note-item small {
+    display: block;
+    margin-top: 4px;
+    color: var(--text-muted);
+    font-size: 0.72rem;
+}
+.dispute-notes-empty {
+    min-height: unset;
+    padding: 14px;
+    border-radius: 8px;
+    font-size: 0.85rem;
+}
+.dispute-textarea {
+    width: 100%;
+    min-height: 64px;
+    padding: 10px 12px;
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    font-family: inherit;
+    font-size: 0.87rem;
+    background: var(--bg-secondary);
+    color: var(--text-main);
+    resize: vertical;
+    margin-bottom: 10px;
+    box-sizing: border-box;
+}
+.dispute-select {
+    width: 100%;
+    padding: 9px 12px;
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    font-family: inherit;
+    font-size: 0.87rem;
+    background: var(--bg-inset);
+    color: var(--text-main);
+    margin-bottom: 10px;
+    box-sizing: border-box;
+}
+.dispute-select:disabled,
+.dispute-textarea:disabled {
+    opacity: 0.6;
+    cursor: not-allowed;
+}
+#dispute-modal-parties.modal-balance-row > div {
+    align-items: flex-start;
+}
 
 .btn-action {
     padding: 6px 14px;

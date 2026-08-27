@@ -49,9 +49,6 @@ module.exports = async (req, res) => {
     if (req.method === 'GET' && action === 'admin-list-disputes') {
       return await handleAdminListDisputes(req, res, db);
     }
-    if (req.method === 'GET' && action === 'get-audit-log') {
-      return await handleGetAuditLog(req, res, db);
-    }
 
     if (req.method !== 'POST') {
       return res.status(405).json({ error: 'Method not allowed' });
@@ -66,7 +63,6 @@ module.exports = async (req, res) => {
         return await handleToggleStorefront(req, res, admin, db, adminUser);
       case 'set-subscription-override':
         return await handleSetSubscriptionOverride(req, res, admin, db, adminUser);
-      case 'admin-list-disputes': return await handleAdminListDisputes(req, res, db);
       case 'add-dispute-note': return await handleAddDisputeNote(req, res, admin, db, adminUser);
       case 'resolve-dispute': return await handleResolveDispute(req, res, admin, db, adminUser);
       default:
@@ -374,7 +370,65 @@ async function handleAdminListDisputes(req, res, db) {
   const status = typeof req.body?.status === 'string' ? req.body.status : (typeof req.query.status === 'string' ? req.query.status : '');
   const snap = await db.collection('disputes').get();
   const disputes = snap.docs.map((d) => ({ id: d.id, ...d.data() })).filter((d) => !status || d.status === status).sort((a, b) => (a.status === 'open' ? 0 : 1) - (b.status === 'open' ? 0 : 1) || ((b.updatedAt?._seconds || b.updatedAt?.seconds || 0) - (a.updatedAt?._seconds || a.updatedAt?.seconds || 0)));
-  return res.status(200).json({ success: true, disputes });
+  const enriched = await enrichDisputesWithLabels(db, disputes);
+  return res.status(200).json({ success: true, disputes: enriched });
+}
+
+/**
+ * Attaches human-readable labels (buyer/vendor name + email, product title)
+ * to each dispute so the admin UI never has to show raw Firestore UIDs.
+ * Looks up each unique buyerUid/vendorUid/productId once via Promise.all,
+ * rather than once per dispute, so a dispute list doesn't re-fetch the same
+ * user/vendor doc repeatedly.
+ */
+async function enrichDisputesWithLabels(db, disputes) {
+  const buyerUids = [...new Set(disputes.map((d) => d.buyerUid).filter(Boolean))];
+  const vendorUids = [...new Set(disputes.map((d) => d.vendorUid).filter(Boolean))];
+  const productIds = [...new Set(disputes.map((d) => d.productId).filter(Boolean))];
+
+  const [buyerUserDocs, vendorUserDocs, vendorDocs, productDocs] = await Promise.all([
+    Promise.all(buyerUids.map((uid) => db.collection('user').doc(uid).get())),
+    Promise.all(vendorUids.map((uid) => db.collection('user').doc(uid).get())),
+    Promise.all(vendorUids.map((uid) => db.collection('vendors').doc(uid).get())),
+    Promise.all(productIds.map((id) => db.collection('vendorProducts').doc(id).get()))
+  ]);
+
+  const labelFor = (userData, vendorData) => {
+    const email = userData?.email || null;
+    const name = vendorData?.vendorFirstName || userData?.firstName || userData?.displayName || (email ? email.split('@')[0] : null);
+    return { name: name || 'Unknown', email: email || '\u2014' };
+  };
+
+  const buyerMap = new Map();
+  buyerUids.forEach((uid, i) => {
+    const userData = buyerUserDocs[i].exists ? buyerUserDocs[i].data() : null;
+    buyerMap.set(uid, labelFor(userData, null));
+  });
+
+  const vendorMap = new Map();
+  vendorUids.forEach((uid, i) => {
+    const userData = vendorUserDocs[i].exists ? vendorUserDocs[i].data() : null;
+    const vendorData = vendorDocs[i].exists ? vendorDocs[i].data() : null;
+    vendorMap.set(uid, labelFor(userData, vendorData));
+  });
+
+  const productMap = new Map();
+  productIds.forEach((id, i) => {
+    const snap = productDocs[i];
+    productMap.set(id, snap.exists ? (snap.data().title || 'Untitled product') : 'Deleted product');
+  });
+
+  return disputes.map((d) => {
+    const buyer = buyerMap.get(d.buyerUid) || { name: 'Unknown buyer', email: '\u2014' };
+    const vendor = vendorMap.get(d.vendorUid) || { name: 'Unknown vendor', email: '\u2014' };
+    return Object.assign({}, d, {
+      buyerName: buyer.name,
+      buyerEmail: buyer.email,
+      vendorName: vendor.name,
+      vendorEmail: vendor.email,
+      productTitle: d.productId ? (productMap.get(d.productId) || d.productId) : '\u2014'
+    });
+  });
 }
 
 async function handleAddDisputeNote(req, res, admin, db, adminUser) {

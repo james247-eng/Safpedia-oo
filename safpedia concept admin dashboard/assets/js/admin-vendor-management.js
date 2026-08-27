@@ -12,6 +12,14 @@ let currentUser = null;
 let allProducts = [];
 let vendorSummaries = [];
 let activeModalVendorUid = null;
+let disputeSummaries = [];
+let activeModalDisputeId = null;
+
+function escapeHtml(value) {
+    return String(value ?? '').replace(/[&<>"']/g, (ch) => ({
+        '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;'
+    }[ch]));
+}
 
 const sidebarPanel = document.getElementById('sidebar-panel');
 const sidebarOverlay = document.getElementById('sidebar-overlay');
@@ -553,82 +561,177 @@ async function loadAuditLog(vendorUid = '') {
 
 async function loadAdminDisputes() {
     const list = document.getElementById('admin-disputes-list');
+    list.innerHTML = '<div class="loading-placeholder">Loading disputes...</div>';
     try {
         const token = await currentUser.getIdToken();
         const res = await fetch('/api/admin/marketplace/admin-list-disputes', { headers: { Authorization: 'Bearer ' + token } });
         const json = await res.json();
         if (!res.ok) throw new Error(json.error || 'Could not load disputes');
+        disputeSummaries = json.disputes;
 
-        if (!json.disputes.length) {
-            list.innerHTML = '<div class="empty-state">No disputes found.</div>';
-            return;
-        }
+        if (!disputeSummaries.length) { list.innerHTML = '<div class="empty-state">No disputes found.</div>'; return; }
 
-        const rows = json.disputes.map((d) => {
-            const buyerCell = d.buyerName + (d.buyerEmail ? '<br><small>' + d.buyerEmail + '</small>' : '');
-            const vendorCell = d.vendorName + (d.vendorEmail ? '<br><small>' + d.vendorEmail + '</small>' : '');
-            return '<tr>' +
-                '<td>' + (d.reference || '\u2014') + '</td>' +
-                '<td>' + buyerCell + '</td>' +
-                '<td>' + vendorCell + '</td>' +
-                '<td>' + d.productTitle + '</td>' +
-                '<td>' + d.reason + '</td>' +
-                '<td>' + d.status + '</td>' +
-                '<td><button class="btn-action dispute-view-btn" data-id="' + d.id + '">View</button></td>' +
-            '</tr>';
-        }).join('');
+        const rows = disputeSummaries.map((d) =>
+            '<tr>' +
+                '<td>' + escapeHtml(d.reference) + '</td>' +
+                '<td>' + escapeHtml(d.buyerName) + '<span class="table-subtext">' + escapeHtml(d.buyerEmail) + '</span></td>' +
+                '<td>' + escapeHtml(d.vendorName) + '<span class="table-subtext">' + escapeHtml(d.vendorEmail) + '</span></td>' +
+                '<td>' + escapeHtml(d.productTitle) + '</td>' +
+                '<td>' + escapeHtml(d.reason) + '</td>' +
+                '<td>' + disputeStatusBadge(d.status) + '</td>' +
+                '<td><button class="btn-action btn-view dispute-view-btn" data-id="' + d.id + '">View</button></td>' +
+            '</tr>'
+        ).join('');
 
-        list.innerHTML = '<table class="admin-table"><thead><tr><th>Reference</th><th>Buyer</th><th>Vendor</th><th>Product</th><th>Reason</th><th>Status</th><th></th></tr></thead><tbody>' + rows + '</tbody></table>';
+        list.innerHTML =
+            '<table class="admin-table"><thead><tr>' +
+            '<th>Reference</th><th>Buyer</th><th>Vendor</th><th>Product</th><th>Reason</th><th>Status</th><th></th>' +
+            '</tr></thead><tbody>' + rows + '</tbody></table>';
 
-        list.querySelectorAll('.dispute-view-btn').forEach((b) => {
-            b.addEventListener('click', () => renderAdminDisputeDetail(json.disputes.find((d) => d.id === b.dataset.id)));
+        list.querySelectorAll('.dispute-view-btn').forEach((btn) => {
+            btn.addEventListener('click', () => openDisputeDetail(btn.dataset.id));
         });
     } catch (err) {
-        list.innerHTML = '<div class="error-state">' + err.message + '</div>';
+        list.innerHTML = '<div class="error-state">' + escapeHtml(err.message) + '</div>';
     }
 }
 
-function renderAdminDisputeDetail(d) {
-    const panel = document.getElementById('admin-dispute-detail');
-    const buyerLabel = d.buyerName + (d.buyerEmail ? ' (' + d.buyerEmail + ')' : '');
-    const vendorLabel = d.vendorName + (d.vendorEmail ? ' (' + d.vendorEmail + ')' : '');
+function disputeStatusBadge(status) {
+    if (status === 'open') return '<span class="status-badge open">Open</span>';
+    if (status === 'closed') return '<span class="status-badge dispute-closed">Closed</span>';
+    if (status === 'resolved_buyer' || status === 'resolved_vendor') return '<span class="status-badge resolved">Resolved</span>';
+    return '<span class="status-badge inactive">' + escapeHtml(status || 'Unknown') + '</span>';
+}
 
-    panel.innerHTML =
-        '<h3>' + (d.reference || 'Storefront complaint') + '</h3>' +
-        '<div class="modal-balance-row">' +
-            '<div><span class="stat-label">Buyer</span><span class="stat-value">' + buyerLabel + '</span></div>' +
-            '<div><span class="stat-label">Vendor</span><span class="stat-value">' + vendorLabel + '</span></div>' +
-            '<div><span class="stat-label">Product</span><span class="stat-value">' + d.productTitle + '</span></div>' +
-            '<div><span class="stat-label">Refund</span><span class="stat-value">' + (d.refundStatus || 'Not applicable') + '</span></div>' +
-        '</div>' +
-        '<p><strong>Buyer statement:</strong> ' + d.buyerStatement + '</p>' +
-        '<p><strong>Vendor statement:</strong> ' + (d.vendorStatement || 'No response yet') + '</p>' +
-        '<div>' + (d.adminNotes || []).map((n) => '<p>' + n.note + ' <small>' + n.adminUid + '</small></p>').join('') + '</div>' +
-        '<textarea id="admin-dispute-note" placeholder="Add internal note"></textarea>' +
-        '<button class="btn-action" id="admin-dispute-note-btn">Add Note</button>' +
-        '<select id="admin-dispute-resolution">' +
-            '<option value="">Choose resolution</option>' +
-            '<option value="resolved_buyer">Resolve for buyer (refund)</option>' +
-            '<option value="resolved_vendor">Resolve for vendor</option>' +
-            '<option value="closed">Close</option>' +
-        '</select>' +
-        '<textarea id="admin-dispute-resolution-note" placeholder="Resolution note"></textarea>' +
-        '<button class="btn-action" id="admin-dispute-resolve-btn">Apply Resolution</button>';
+function ensureDisputeModal() {
+    if (document.getElementById('dispute-detail-modal')) return;
 
-    document.getElementById('admin-dispute-note-btn').onclick = async () => {
-        await adminPost('add-dispute-note', { disputeId: d.id, note: document.getElementById('admin-dispute-note').value });
-        loadAdminDisputes();
-    };
-    document.getElementById('admin-dispute-resolve-btn').onclick = async () => {
-        const resolution = document.getElementById('admin-dispute-resolution').value;
-        if (!resolution) return;
+    const overlay = document.createElement('div');
+    overlay.id = 'dispute-detail-modal';
+    overlay.className = 'modal-overlay hidden';
+    overlay.innerHTML =
+        '<div class="modal-box">' +
+            '<button type="button" class="modal-close-btn" id="dispute-modal-close-btn">&times;</button>' +
+            '<h2 id="dispute-modal-title"></h2>' +
+            '<p class="modal-subtitle" id="dispute-modal-subtitle"></p>' +
+            '<div class="modal-balance-row" id="dispute-modal-parties"></div>' +
+            '<div class="dispute-statement-block" id="dispute-modal-statements"></div>' +
+            '<div id="dispute-modal-banner"></div>' +
+            '<h3>Internal Notes</h3>' +
+            '<div class="dispute-notes-list" id="dispute-modal-notes"></div>' +
+            '<textarea id="admin-dispute-note" class="dispute-textarea" placeholder="Add internal note"></textarea>' +
+            '<button type="button" class="btn-action" id="admin-dispute-note-btn">Add Note</button>' +
+            '<h3>Resolution</h3>' +
+            '<select id="admin-dispute-resolution" class="dispute-select">' +
+                '<option value="">Choose resolution</option>' +
+                '<option value="resolved_buyer">Resolve for buyer (refund)</option>' +
+                '<option value="resolved_vendor">Resolve for vendor</option>' +
+                '<option value="closed">Close</option>' +
+            '</select>' +
+            '<textarea id="admin-dispute-resolution-note" class="dispute-textarea" placeholder="Resolution note"></textarea>' +
+            '<button type="button" class="btn-action" id="admin-dispute-resolve-btn">Apply Resolution</button>' +
+        '</div>';
+    document.body.appendChild(overlay);
+
+    document.getElementById('dispute-modal-close-btn').addEventListener('click', closeDisputeModal);
+    overlay.addEventListener('click', (e) => {
+        if (e.target.id === 'dispute-detail-modal') closeDisputeModal();
+    });
+}
+
+function closeDisputeModal() {
+    const overlay = document.getElementById('dispute-detail-modal');
+    if (overlay) overlay.classList.add('hidden');
+    activeModalDisputeId = null;
+}
+
+function openDisputeDetail(disputeId) {
+    const dispute = disputeSummaries.find((d) => d.id === disputeId);
+    if (!dispute) return;
+    ensureDisputeModal();
+    activeModalDisputeId = disputeId;
+    renderDisputeModalContent(dispute);
+    document.getElementById('dispute-detail-modal').classList.remove('hidden');
+}
+
+function renderDisputeModalContent(d) {
+    document.getElementById('dispute-modal-title').textContent = d.reference;
+    document.getElementById('dispute-modal-subtitle').textContent = 'Reason: ' + (d.reason || '\u2014');
+
+    document.getElementById('dispute-modal-parties').innerHTML =
+        '<div><span class="stat-label">Buyer</span><span class="stat-value dispute-party-name">' + escapeHtml(d.buyerName) + '</span><span class="table-subtext">' + escapeHtml(d.buyerEmail) + '</span></div>' +
+        '<div><span class="stat-label">Vendor</span><span class="stat-value dispute-party-name">' + escapeHtml(d.vendorName) + '</span><span class="table-subtext">' + escapeHtml(d.vendorEmail) + '</span></div>' +
+        '<div><span class="stat-label">Product</span><span class="stat-value dispute-party-name">' + escapeHtml(d.productTitle) + '</span></div>';
+
+    document.getElementById('dispute-modal-statements').innerHTML =
+        '<p><strong>Buyer statement:</strong> ' + escapeHtml(d.buyerStatement) + '</p>' +
+        '<p><strong>Vendor statement:</strong> ' + escapeHtml(d.vendorStatement || 'No response yet') + '</p>' +
+        '<p><strong>Refund:</strong> ' + escapeHtml(d.refundStatus || 'Not applicable') + '</p>';
+
+    document.getElementById('dispute-modal-banner').innerHTML = '';
+
+    const notesContainer = document.getElementById('dispute-modal-notes');
+    const notes = d.adminNotes || [];
+    notesContainer.innerHTML = notes.length
+        ? notes.map((n) => '<div class="dispute-note-item">' + escapeHtml(n.note) + '<small>' + escapeHtml(n.adminUid) + '</small></div>').join('')
+        : '<div class="empty-state dispute-notes-empty">No notes yet.</div>';
+
+    const noteInput = document.getElementById('admin-dispute-note');
+    const resolutionSelect = document.getElementById('admin-dispute-resolution');
+    const resolutionNoteInput = document.getElementById('admin-dispute-resolution-note');
+    const resolveBtn = document.getElementById('admin-dispute-resolve-btn');
+    const noteBtn = document.getElementById('admin-dispute-note-btn');
+
+    noteInput.value = '';
+    resolutionSelect.value = '';
+    resolutionNoteInput.value = '';
+
+    const isClosed = d.status !== 'open';
+    resolutionSelect.disabled = isClosed;
+    resolutionNoteInput.disabled = isClosed;
+    resolveBtn.disabled = isClosed;
+    if (isClosed) {
+        document.getElementById('dispute-modal-banner').innerHTML =
+            '<div class="dispute-banner success">This dispute is already ' + escapeHtml(String(d.status).replace('_', ' ')) + '.</div>';
+    }
+
+    noteBtn.onclick = async () => {
+        const note = noteInput.value.trim();
+        if (!note) return;
+        noteBtn.disabled = true;
         try {
-            await adminPost('resolve-dispute', { disputeId: d.id, resolution, resolutionNote: document.getElementById('admin-dispute-resolution-note').value });
-            loadAdminDisputes();
+            await adminPost('add-dispute-note', { disputeId: d.id, note });
+            await refreshOpenDispute();
         } catch (err) {
-            alert(err.message);
+            document.getElementById('dispute-modal-banner').innerHTML = '<div class="dispute-banner error">' + escapeHtml(err.message) + '</div>';
+        } finally {
+            noteBtn.disabled = false;
         }
     };
+
+    resolveBtn.onclick = async () => {
+        const resolution = resolutionSelect.value;
+        if (!resolution) return;
+        resolveBtn.disabled = true;
+        document.getElementById('dispute-modal-banner').innerHTML = '';
+        try {
+            await adminPost('resolve-dispute', {
+                disputeId: d.id,
+                resolution,
+                resolutionNote: resolutionNoteInput.value.trim()
+            });
+            await refreshOpenDispute();
+        } catch (err) {
+            document.getElementById('dispute-modal-banner').innerHTML = '<div class="dispute-banner error">' + escapeHtml(err.message) + '</div>';
+            resolveBtn.disabled = false;
+        }
+    };
+}
+
+async function refreshOpenDispute() {
+    const id = activeModalDisputeId;
+    await loadAdminDisputes();
+    if (id) openDisputeDetail(id);
 }
 
 function dateLabel(value) {
@@ -671,6 +774,26 @@ async function adminPost(action, body) {
     const json = await res.json(); if (!res.ok) throw new Error(json.error || 'Admin action failed'); return json;
 }
 
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 document.getElementById('modal-storefront-toggle-btn').addEventListener('click', async (event) => {
     const button = event.currentTarget; 
     button.disabled = true;
@@ -689,6 +812,38 @@ document.getElementById('modal-storefront-toggle-btn').addEventListener('click',
         button.disabled = false; 
     }
 });
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 async function setOverride(overrideActive, button) {
     button.disabled = true;
