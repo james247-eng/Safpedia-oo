@@ -9,6 +9,23 @@ let currentUser = null;
 let disputesByReference = new Map();
 let activeDisputeReference = null;
 
+function escapeHtml(value) {
+    return String(value ?? '')
+        .replace(/&/g, '&amp;')
+        .replace(/</g, '&lt;')
+        .replace(/>/g, '&gt;')
+        .replace(/"/g, '&quot;')
+        .replace(/'/g, '&#039;');
+}
+
+const disputeStatusLabels = {
+    open: 'Under review',
+    investigating: 'Vendor responded — awaiting decision',
+    resolved_buyer: 'Resolved in your favor',
+    resolved_vendor: "Resolved in vendor's favor",
+    closed: 'Closed'
+};
+
 // ====================================================================
 // AUTH GUARD
 // ====================================================================
@@ -105,7 +122,7 @@ function renderOrders(orders) {
         }
 
         const dispute = disputesByReference.get(o.reference);
-        const disputeAction = dispute ? `<span class="status-badge">Dispute: ${dispute.status}</span>` : `<button class="btn btn-sm btn-secondary dispute-btn" data-reference="${o.reference}">Report a problem</button>`;
+        const disputeAction = dispute ? `<span class="status-badge dispute-status-trigger" data-reference="${escapeHtml(o.reference)}" role="button" tabindex="0" title="View dispute details">Dispute: ${escapeHtml(dispute.status)}</span>` : `<button class="btn btn-sm btn-secondary dispute-btn" data-reference="${escapeHtml(o.reference)}">Report a problem</button>`;
         return `
             <tr>
                 <td>${o.productTitle}</td>
@@ -138,10 +155,62 @@ function renderOrders(orders) {
         btn.addEventListener('click', () => getDownloadLink(btn.dataset.productId, btn.dataset.reference, btn));
     });
     container.querySelectorAll('.dispute-btn').forEach((btn) => btn.addEventListener('click', () => openDisputeModal(btn.dataset.reference)));
+    container.querySelectorAll('.dispute-status-trigger').forEach((badge) => {
+        const openDetails = () => openDisputeDetailsModal(badge.dataset.reference);
+        badge.addEventListener('click', openDetails);
+        badge.addEventListener('keydown', (event) => {
+            if (event.key === 'Enter' || event.key === ' ') {
+                event.preventDefault();
+                openDetails();
+            }
+        });
+    });
 }
 
 async function authedFetch(url, options = {}) { const token = await currentUser.getIdToken(); options.headers = Object.assign({}, options.headers, { Authorization: `Bearer ${token}` }); return fetch(url, options); }
 async function loadDisputes() { const res = await authedFetch('/api/disputes/list-disputes'); const json = await res.json(); if (!res.ok) throw new Error(json.error || 'Could not load disputes'); disputesByReference = new Map(json.disputes.map((d) => [d.reference, d])); }
+function openDisputeDetailsModal(reference) {
+    const dispute = disputesByReference.get(reference);
+    if (!dispute) return;
+
+    let modal = document.getElementById('dispute-details-modal');
+    if (!modal) {
+        modal = document.createElement('div');
+        modal.id = 'dispute-details-modal';
+        modal.className = 'modal-overlay hidden';
+        modal.innerHTML = '<div class="modal-box dispute-details-box"><button type="button" class="dispute-details-close" aria-label="Close dispute details">&times;</button><div class="dispute-details-content"></div></div>';
+        document.body.appendChild(modal);
+        const close = () => modal.classList.add('hidden');
+        modal.querySelector('.dispute-details-close').addEventListener('click', close);
+        modal.addEventListener('click', (event) => { if (event.target === modal) close(); });
+    }
+
+    const status = dispute.status || 'open';
+    const statusLabel = disputeStatusLabels[status] || 'Status unavailable';
+    const isResolved = ['resolved_buyer', 'resolved_vendor', 'closed'].includes(status);
+    const resolution = dispute.resolution || '';
+    const refundFailed = dispute.refundStatus === 'failed' || String(resolution).startsWith('refund_failed');
+    let refundLine = '';
+    if (isResolved) {
+        if (dispute.refundStatus === 'triggered') refundLine = 'A refund has been issued to your original payment method.';
+        else if (dispute.refundStatus === 'not_applicable') refundLine = 'No refund applies to this resolution.';
+        else if (refundFailed) refundLine = 'A refund was approved but could not be processed automatically. Our team will contact you to complete it manually.';
+    }
+
+    modal.querySelector('.dispute-details-content').innerHTML = `
+        <h3>Dispute details</h3>
+        <dl>
+            <dt>Reference</dt><dd>${escapeHtml(dispute.reference)}</dd>
+            <dt>Reason</dt><dd>${escapeHtml(dispute.reason || 'Not provided')}</dd>
+            <dt>Your statement</dt><dd>${escapeHtml(dispute.buyerStatement || 'Not provided')}</dd>
+            <dt>Vendor response</dt><dd>${escapeHtml(dispute.vendorStatement || 'No response yet')}</dd>
+            <dt>Status</dt><dd>${escapeHtml(statusLabel)}</dd>
+            ${isResolved && resolution ? `<dt>Resolution</dt><dd>${escapeHtml(resolution)}</dd>` : ''}
+            ${refundLine ? `<dt>Refund</dt><dd>${escapeHtml(refundLine)}</dd>` : ''}
+        </dl>
+    `;
+    modal.classList.remove('hidden');
+}
 function openDisputeModal(reference) { activeDisputeReference = reference; document.getElementById('dispute-form').reset(); document.getElementById('dispute-form-message').textContent = ''; document.getElementById('dispute-modal').classList.remove('hidden'); }
 document.getElementById('dispute-modal-close').addEventListener('click', () => document.getElementById('dispute-modal').classList.add('hidden'));
 document.getElementById('dispute-form').addEventListener('submit', async (event) => { event.preventDefault(); const message = document.getElementById('dispute-form-message'); const button = event.currentTarget.querySelector('button[type="submit"]'); button.disabled = true; try { const res = await authedFetch('/api/disputes/create-dispute', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ reference: activeDisputeReference, reason: document.getElementById('dispute-reason').value, buyerStatement: document.getElementById('dispute-statement').value }) }); const json = await res.json(); if (!res.ok) throw new Error(json.error || 'Could not create dispute'); document.getElementById('dispute-modal').classList.add('hidden'); await loadOrders(); } catch (err) { message.textContent = err.message; } finally { button.disabled = false; } });

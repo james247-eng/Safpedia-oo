@@ -40,6 +40,49 @@
     cursor: pointer;
 }
 
+.dispute-status-trigger {
+    cursor: pointer;
+}
+
+.dispute-status-trigger:focus-visible {
+    outline: 2px solid var(--blue);
+    outline-offset: 2px;
+}
+
+.dispute-details-box {
+    max-height: min(90vh, 720px);
+    overflow-y: auto;
+}
+
+.dispute-details-close {
+    color: var(--ink-soft);
+}
+
+.dispute-details-content h3 {
+    margin: 0 0 20px;
+    color: var(--ink);
+}
+
+.dispute-details-content dl {
+    display: grid;
+    grid-template-columns: minmax(120px, 0.35fr) 1fr;
+    gap: 12px 16px;
+    margin: 0;
+}
+
+.dispute-details-content dt {
+    color: var(--ink-soft);
+    font-weight: 700;
+}
+
+.dispute-details-content dd {
+    margin: 0;
+    color: var(--ink);
+    line-height: 1.5;
+    white-space: pre-wrap;
+    overflow-wrap: anywhere;
+}
+
 #dispute-form {
     display: grid;
     gap: 16px;
