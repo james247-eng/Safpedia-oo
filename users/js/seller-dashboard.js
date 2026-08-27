@@ -109,6 +109,10 @@ function clearStatus() {
 // ====================================================================
 async function loadVendorDisputes() {
     const container = document.getElementById('vendor-disputes-list');
+    if (!container) {
+        console.error('Vendor disputes list container not found (#vendor-disputes-list)');
+        return;
+    }
     try {
         const token = await currentUser.getIdToken();
         const res = await fetch('/api/disputes/list-disputes', { headers: { Authorization: `Bearer ${token}` } });
@@ -169,7 +173,9 @@ async function loadVendorDisputes() {
             });
         });
     } catch (err) {
-        container.innerHTML = `<div class="error-state">${escapeHtml(err.message)}</div>`;
+        const errorContainer = document.getElementById('vendor-disputes-list');
+        if (errorContainer) errorContainer.innerHTML = `<div class="error-state">${escapeHtml(err.message)}</div>`;
+        else console.error('Could not render vendor disputes error:', err);
     }
 }
 
