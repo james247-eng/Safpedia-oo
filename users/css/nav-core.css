@@ -1,0 +1,74 @@
+/* students/css/nav-core.css
+   ============================================
+   CENTRALIZED NAV — TAB BAR COMPONENT
+   ============================================
+   Loads alongside student-dashboard.css (shared dashboard shell) and
+   reuses its tokens (--blue, --ink, --ink-soft, --border, etc.) rather
+   than redefining them.
+
+   The sidebar shell, mobile topbar, and .nav-item-btn / .nav-group /
+   .nav-section-label styles already live in student-dashboard.css and
+   are untouched here — this file only adds the horizontal tab bar that
+   now sits at the top of each page's main content, replacing the old
+   sidebar sub-links.
+   ============================================ */
+
+.page-tab-bar {
+  display: flex;
+  gap: 4px;
+  margin-bottom: 28px;
+  border-bottom: 1px solid var(--border);
+  overflow-x: auto;
+  scrollbar-width: none;
+}
+
+.page-tab-bar::-webkit-scrollbar {
+  display: none;
+}
+
+.page-tab {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 12px 18px;
+  border: none;
+  background: transparent;
+  color: var(--ink-soft);
+  font-family: 'Inter', sans-serif;
+  font-weight: 600;
+  font-size: 14px;
+  white-space: nowrap;
+  cursor: pointer;
+  border-bottom: 2px solid transparent;
+  transition: color .18s ease, border-color .18s ease;
+  text-decoration: none;
+  flex-shrink: 0;
+}
+
+.page-tab ion-icon {
+  font-size: 18px;
+}
+
+.page-tab:hover {
+  color: var(--ink);
+}
+
+.page-tab.active {
+  color: var(--blue);
+  border-bottom-color: var(--blue);
+}
+
+/* A tab that's really a link to a separate page (e.g. "Marketplace
+   Orders" from the Dashboard tab bar) looks identical to an in-page
+   tab — the difference is behavioral (native navigation vs JS toggle),
+   not visual. */
+.page-tab[data-tab-link] {
+  cursor: pointer;
+}
+
+@media (max-width: 640px) {
+  .page-tab {
+    padding: 10px 14px;
+    font-size: 13px;
+  }
+}

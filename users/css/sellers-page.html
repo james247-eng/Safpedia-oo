@@ -6,7 +6,6 @@
     <title>Seller Dashboard | Safpedia</title>
     <link rel="stylesheet" href="./css/ui-foundation.css">
     <link rel="stylesheet" href="./css/student-dashboard.css">
-    <link rel="stylesheet" href="./css/nav-core.css">
     <link rel="stylesheet" href="./css/seller-dashboard.css">
     <script type="module" src="https://unpkg.com/ionicons@7.1.0/dist/ionicons/ionicons.esm.js"></script>
     <script nomodule src="https://unpkg.com/ionicons@7.1.0/dist/ionicons/ionicons.js"></script>
@@ -25,13 +24,24 @@
     <div class="sidebar-overlay" id="sidebar-overlay"></div>
 
     <div class="dashboard-layout">
-        <!-- SIDEBAR NAVIGATION — 3 top-level sections + Browse -->
+        <!-- SIDEBAR NAVIGATION -->
         <aside class="sidebar-panel">
             <div class="brand-logo">SAFpedia</div>
+            <div class="nav-section-label">Seller Tools</div>
             <ul class="nav-group">
-                <li><a href="dashboard.html"><div class="nav-item-btn"><ion-icon name="grid-outline"></ion-icon><span class="nav-label">Dashboard</span></div></a></li>
-                <li><a href="affiliate.html"><div class="nav-item-btn"><ion-icon name="cash-outline"></ion-icon><span class="nav-label">Affiliate</span></div></a></li>
-                <li><a href="sellers-page.html"><div class="nav-item-btn active"><ion-icon name="storefront-outline"></ion-icon><span class="nav-label">Sell on SAFpedia</span></div></a></li>
+                <li><div class="nav-item-btn active" data-tab="products-pane"><ion-icon name="cube-outline"></ion-icon><span class="nav-label">My Products</span></div></li>
+                <li><div class="nav-item-btn" data-tab="add-product-pane"><ion-icon name="add-circle-outline"></ion-icon><span class="nav-label">Add Product</span></div></li>
+                <li><div class="nav-item-btn" data-tab="orders-pane"><ion-icon name="receipt-outline"></ion-icon><span class="nav-label">Orders</span></div></li>
+                <li><div class="nav-item-btn" data-tab="payouts-pane"><ion-icon name="cash-outline"></ion-icon><span class="nav-label">Balance &amp; Payouts</span></div></li>
+                <li><div class="nav-item-btn" data-tab="subscription-pane"><ion-icon name="card-outline"></ion-icon><span class="nav-label">Subscription</span></div></li>
+                <li><div class="nav-item-btn" data-tab="disputes-pane"><ion-icon name="chatbubbles-outline"></ion-icon><span class="nav-label">Disputes</span></div></li>
+            </ul>
+            <div class="nav-section-label">Account</div>
+            <ul class="nav-group">
+                <li><a href="dashboard.html#library-pane"><div class="nav-item-btn"><ion-icon name="grid-outline"></ion-icon><span class="nav-label">My Courses</span></div></a></li>
+                <li><a href="dashboard.html#history-pane"><div class="nav-item-btn"><ion-icon name="receipt-outline"></ion-icon><span class="nav-label">Purchase History</span></div></a></li>
+                <li><a href="marketplace-orders.html"><div class="nav-item-btn"><ion-icon name="bag-handle-outline"></ion-icon><span class="nav-label">Marketplace Orders</span></div></a></li>
+                <li><a href="affiliate.html"><div class="nav-item-btn"><ion-icon name="cash-outline"></ion-icon><span class="nav-label">Referral Earnings</span></div></a></li>
             </ul>
             <div class="nav-section-label">Browse</div>
             <ul class="nav-group">
@@ -60,30 +70,6 @@
                 </div>
             </header>
 
-            <!-- PAGE TAB BAR — these 6 are real in-page tabs, unlike
-                 Marketplace Orders on the other pages, so each carries
-                 data-tab and nav-core.js drives the switching. -->
-            <div class="page-tab-bar">
-                <button type="button" class="page-tab active" data-tab="products-pane">
-                    <ion-icon name="cube-outline"></ion-icon> My Products
-                </button>
-                <button type="button" class="page-tab" data-tab="add-product-pane">
-                    <ion-icon name="add-circle-outline"></ion-icon> Add Product
-                </button>
-                <button type="button" class="page-tab" data-tab="orders-pane">
-                    <ion-icon name="receipt-outline"></ion-icon> Orders
-                </button>
-                <button type="button" class="page-tab" data-tab="payouts-pane">
-                    <ion-icon name="cash-outline"></ion-icon> Balance &amp; Payouts
-                </button>
-                <button type="button" class="page-tab" data-tab="subscription-pane">
-                    <ion-icon name="card-outline"></ion-icon> Subscription
-                </button>
-                <button type="button" class="page-tab" data-tab="disputes-pane">
-                    <ion-icon name="chatbubbles-outline"></ion-icon> Disputes
-                </button>
-            </div>
-
             <!-- TAB 1: MY PRODUCTS -->
             <section id="products-pane" class="dashboard-section-card active-tab">
                 <h2>My Products</h2>
@@ -95,6 +81,14 @@
             </section>
 
 
+
+
+
+
+
+
+
+            
 
 
             <section id="subscription-pane" class="dashboard-section-card">
@@ -109,10 +103,23 @@
 
 
 
+
+
+
+
+
+
+
+
+
+
+
+
+
             <!-- TAB 2: ADD PRODUCT -->
             <section id="add-product-pane" class="dashboard-section-card">
                 <h2>Add a Product</h2>
-                <p>List a physical or digital product. No approval needed — it goes live immediately.</p>
+                <p>List a physical or digital product. No approval needed Ã¢â‚¬â€ it goes live immediately.</p>
 
                 <form id="add-product-form" class="seller-form">
                     <div class="form-intro"><strong>Product information</strong><span>Fields marked required must be completed before publishing.</span></div>
@@ -133,7 +140,7 @@
                     </div>
 
                     <div class="form-row">
-                        <label for="product-price">Price (₦)</label>
+                        <label for="product-price">Price (Ã¢â€šÂ¦)</label>
                         <input type="number" id="product-price" min="1" step="1" required>
                     </div>
 
@@ -188,15 +195,15 @@
                 <div class="balance-summary" id="balance-summary">
                     <div class="balance-card">
                         <span class="balance-label">Available Balance</span>
-                        <span class="balance-value" id="pending-payout-value">₦0</span>
+                        <span class="balance-value" id="pending-payout-value">Ã¢â€šÂ¦0</span>
                     </div>
                     <div class="balance-card">
                         <span class="balance-label">Processing</span>
-                        <span class="balance-value" id="awaiting-payout-value">₦0</span>
+                        <span class="balance-value" id="awaiting-payout-value">Ã¢â€šÂ¦0</span>
                     </div>
                     <div class="balance-card">
                         <span class="balance-label">Total Paid Out</span>
-                        <span class="balance-value" id="total-paid-value">₦0</span>
+                        <span class="balance-value" id="total-paid-value">Ã¢â€šÂ¦0</span>
                     </div>
                 </div>
 
@@ -231,21 +238,21 @@
             <div class="modal-body">
                 <div class="order-detail-section">
                     <p class="order-detail-section-title">Order summary</p>
-                    <div class="order-detail-row"><div class="order-detail-label">Reference</div><div class="order-detail-value" id="order-detail-reference">—</div></div>
-                    <div class="order-detail-row"><div class="order-detail-label">Product</div><div class="order-detail-value" id="order-detail-product-title">—</div></div>
-                    <div class="order-detail-row"><div class="order-detail-label">Quantity</div><div class="order-detail-value" id="order-detail-quantity">—</div></div>
-                    <div class="order-detail-row"><div class="order-detail-label">Amount</div><div class="order-detail-value" id="order-detail-amount">—</div></div>
-                    <div class="order-detail-row"><div class="order-detail-label">Type</div><div class="order-detail-value" id="order-detail-type">—</div></div>
-                    <div class="order-detail-row"><div class="order-detail-label">Status</div><div class="order-detail-value" id="order-detail-status">—</div></div>
-                    <div class="order-detail-row"><div class="order-detail-label">Date</div><div class="order-detail-value" id="order-detail-date">—</div></div>
+                    <div class="order-detail-row"><div class="order-detail-label">Reference</div><div class="order-detail-value" id="order-detail-reference">Ã¢â‚¬â€</div></div>
+                    <div class="order-detail-row"><div class="order-detail-label">Product</div><div class="order-detail-value" id="order-detail-product-title">Ã¢â‚¬â€</div></div>
+                    <div class="order-detail-row"><div class="order-detail-label">Quantity</div><div class="order-detail-value" id="order-detail-quantity">Ã¢â‚¬â€</div></div>
+                    <div class="order-detail-row"><div class="order-detail-label">Amount</div><div class="order-detail-value" id="order-detail-amount">Ã¢â‚¬â€</div></div>
+                    <div class="order-detail-row"><div class="order-detail-label">Type</div><div class="order-detail-value" id="order-detail-type">Ã¢â‚¬â€</div></div>
+                    <div class="order-detail-row"><div class="order-detail-label">Status</div><div class="order-detail-value" id="order-detail-status">Ã¢â‚¬â€</div></div>
+                    <div class="order-detail-row"><div class="order-detail-label">Date</div><div class="order-detail-value" id="order-detail-date">Ã¢â‚¬â€</div></div>
                 </div>
                 <div class="order-detail-section" id="shipping-details-panel">
                     <p class="order-detail-section-title">Shipping details</p>
-                    <div class="order-detail-row"><div class="order-detail-label">Full name</div><div class="order-detail-value" id="order-detail-fullname">—</div></div>
-                    <div class="order-detail-row"><div class="order-detail-label">Phone</div><div class="order-detail-value" id="order-detail-phone">—</div></div>
-                    <div class="order-detail-row"><div class="order-detail-label">Address</div><div class="order-detail-value" id="order-detail-address">—</div></div>
-                    <div class="order-detail-row"><div class="order-detail-label">City</div><div class="order-detail-value" id="order-detail-city">—</div></div>
-                    <div class="order-detail-row"><div class="order-detail-label">State</div><div class="order-detail-value" id="order-detail-state">—</div></div>
+                    <div class="order-detail-row"><div class="order-detail-label">Full name</div><div class="order-detail-value" id="order-detail-fullname">Ã¢â‚¬â€</div></div>
+                    <div class="order-detail-row"><div class="order-detail-label">Phone</div><div class="order-detail-value" id="order-detail-phone">Ã¢â‚¬â€</div></div>
+                    <div class="order-detail-row"><div class="order-detail-label">Address</div><div class="order-detail-value" id="order-detail-address">Ã¢â‚¬â€</div></div>
+                    <div class="order-detail-row"><div class="order-detail-label">City</div><div class="order-detail-value" id="order-detail-city">Ã¢â‚¬â€</div></div>
+                    <div class="order-detail-row"><div class="order-detail-label">State</div><div class="order-detail-value" id="order-detail-state">Ã¢â‚¬â€</div></div>
                 </div>
                 <div class="order-detail-section hidden" id="digital-details-panel">
                     <p class="order-detail-section-title">Digital order</p>
@@ -256,7 +263,29 @@
     </div>
 
     <script type="module" src="js/seller-dashboard.js"></script>
-    <script src="js/nav-core.js"></script>
+    <script src="js/dashboard-nav.js"></script>
+    <script>
+      // Avatar dropdown toggle (email + logout only on click)
+      (function () {
+        const avatarBtn = document.getElementById('seller-avatar-slot');
+        const dropdown = document.getElementById('user-dropdown');
+        if (!avatarBtn || !dropdown) return;
+
+        avatarBtn.addEventListener('click', (e) => {
+          e.stopPropagation();
+          const isOpen = !dropdown.hidden;
+          dropdown.hidden = isOpen;
+          avatarBtn.setAttribute('aria-expanded', String(!isOpen));
+        });
+
+        document.addEventListener('click', () => {
+          dropdown.hidden = true;
+          avatarBtn.setAttribute('aria-expanded', 'false');
+        });
+
+        dropdown.addEventListener('click', (e) => e.stopPropagation());
+      })();
+    </script>
   <script type="module" src="/js/chatbot/chatbot-loader.js" defer></script>
 </body>
 </html>

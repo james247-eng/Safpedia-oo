@@ -6,14 +6,13 @@
   <title>Affiliate Program | Safpedia</title>
   <link rel="stylesheet" href="./css/ui-foundation.css">
   <link rel="stylesheet" href="./css/student-dashboard.css">
-  <link rel="stylesheet" href="./css/nav-core.css">
   <link rel="stylesheet" href="./css/affiliate.css">
   <script type="module" src="https://unpkg.com/ionicons@7.1.0/dist/ionicons/ionicons.esm.js"></script>
   <script nomodule src="https://unpkg.com/ionicons@7.1.0/dist/ionicons/ionicons.js"></script>
 </head>
 <body>
 
-    <!-- MOBILE TOP BAR — visible below 900px only -->
+    <!-- MOBILE TOP BAR Ã¢â‚¬â€ visible below 900px only -->
     <div class="mobile-topbar">
         <button class="sidebar-toggle-btn" id="sidebar-toggle-btn">
             <ion-icon name="menu-outline" class="menu-icon"></ion-icon>
@@ -26,12 +25,17 @@
     <div class="sidebar-overlay" id="sidebar-overlay"></div>
 
     <div class="dashboard-layout">
-        <!-- SIDEBAR NAVIGATION PANEL — 3 top-level sections + Browse -->
+        <!-- SIDEBAR NAVIGATION PANEL -->
         <aside class="sidebar-panel">
             <div class="brand-logo">SAFpedia</div>
             <ul class="nav-group">
-                <li><a href="dashboard.html"><div class="nav-item-btn"><ion-icon name="grid-outline"></ion-icon><span class="nav-label">Dashboard</span></div></a></li>
-                <li><a href="affiliate.html"><div class="nav-item-btn active"><ion-icon name="cash-outline"></ion-icon><span class="nav-label">Affiliate</span></div></a></li>
+                <li><a href="dashboard.html#library-pane"><div class="nav-item-btn"><ion-icon name="grid-outline"></ion-icon><span class="nav-label">My Courses</span></div></a></li>
+                <li><a href="dashboard.html#history-pane"><div class="nav-item-btn"><ion-icon name="receipt-outline"></ion-icon><span class="nav-label">Purchase History</span></div></a></li>
+                <li><a href="marketplace-orders.html"><div class="nav-item-btn"><ion-icon name="bag-handle-outline"></ion-icon><span class="nav-label">Marketplace Orders</span></div></a></li>
+            </ul>
+            <div class="nav-section-label">Selling & Earning</div>
+            <ul class="nav-group">
+                <li><a href="affiliate.html"><div class="nav-item-btn active"><ion-icon name="cash-outline"></ion-icon><span class="nav-label">Referral Earnings</span></div></a></li>
                 <li><a href="sellers-page.html"><div class="nav-item-btn"><ion-icon name="storefront-outline"></ion-icon><span class="nav-label">Sell on SAFpedia</span></div></a></li>
             </ul>
             <div class="nav-section-label">Browse</div>
@@ -107,7 +111,7 @@
                             <span class="referral-label">Your referral code</span>
                             <strong id="referral-code"></strong>
                         </div>
-                        <p class="referral-hint">Share this link — you earn commission on every purchase made through it</p>
+                        <p class="referral-hint">Share this link Ã¢â‚¬â€ you earn commission on every purchase made through it</p>
                         <div class="referral-link-row">
                             <code id="referral-link"></code>
                             <button type="button" class="copy-link-btn" id="copy-referral-btn" aria-label="Copy referral link" title="Copy link">
@@ -119,19 +123,19 @@
                     <div class="stats-grid" aria-label="Affiliate performance summary">
                         <div class="stat-card">
                             <div class="stat-icon stat-icon--earned"><ion-icon name="cash-outline"></ion-icon></div>
-                            <div class="stat-info"><h3 id="stat-total-earned">₦0</h3><p>Total Earned</p></div>
+                            <div class="stat-info"><h3 id="stat-total-earned">Ã¢â€šÂ¦0</h3><p>Total Earned</p></div>
                         </div>
                         <div class="stat-card">
                             <div class="stat-icon stat-icon--payout"><ion-icon name="wallet-outline"></ion-icon></div>
-                            <div class="stat-info"><h3 id="stat-pending-payout">₦0</h3><p>Available for Payout</p></div>
+                            <div class="stat-info"><h3 id="stat-pending-payout">Ã¢â€šÂ¦0</h3><p>Available for Payout</p></div>
                         </div>
                         <div class="stat-card">
                             <div class="stat-icon stat-icon--processing"><ion-icon name="time-outline"></ion-icon></div>
-                            <div class="stat-info"><h3 id="stat-awaiting-payout">₦0</h3><p>Processing</p></div>
+                            <div class="stat-info"><h3 id="stat-awaiting-payout">Ã¢â€šÂ¦0</h3><p>Processing</p></div>
                         </div>
                         <div class="stat-card">
                             <div class="stat-icon stat-icon--paid"><ion-icon name="checkmark-done-outline"></ion-icon></div>
-                            <div class="stat-info"><h3 id="stat-total-paid">₦0</h3><p>Total Paid Out</p></div>
+                            <div class="stat-info"><h3 id="stat-total-paid">Ã¢â€šÂ¦0</h3><p>Total Paid Out</p></div>
                         </div>
                     </div>
 
@@ -162,11 +166,30 @@
     </div>
 
     <script type="module" src="js/affiliate-dashboard.js"></script>
-    <script src="js/nav-core.js"></script>
+    <script src="js/dashboard-nav.js"></script>
     <script>
-      // Copy referral link — page-specific behavior, stays here rather
-      // than in nav-core.js since no other page has a copy-to-clipboard
-      // control like this.
+      // Avatar dropdown toggle (email + logout only on click)
+      (function () {
+        const avatarBtn = document.getElementById('admin-avatar-slot');
+        const dropdown = document.getElementById('user-dropdown');
+        if (!avatarBtn || !dropdown) return;
+
+        avatarBtn.addEventListener('click', (e) => {
+          e.stopPropagation();
+          const isOpen = !dropdown.hidden;
+          dropdown.hidden = isOpen;
+          avatarBtn.setAttribute('aria-expanded', String(!isOpen));
+        });
+
+        document.addEventListener('click', () => {
+          dropdown.hidden = true;
+          avatarBtn.setAttribute('aria-expanded', 'false');
+        });
+
+        dropdown.addEventListener('click', (e) => e.stopPropagation());
+      })();
+
+      // Copy referral link
       document.getElementById('copy-referral-btn')?.addEventListener('click', async () => {
         const linkEl = document.getElementById('referral-link');
         if (!linkEl || !linkEl.textContent) return;

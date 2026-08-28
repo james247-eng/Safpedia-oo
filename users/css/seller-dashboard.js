@@ -42,6 +42,22 @@ function naira(amount) { return amount == null ? 'N/A' : `₦${Number(amount).to
 function subscriptionStorageKey() { return currentUser ? `safpedia-add-product-draft:${currentUser.uid}` : null; }
 
 // ====================================================================
+// TAB SWITCHING (self-contained — no dependency on dashboard-nav.js)
+// ====================================================================
+document.querySelectorAll('.nav-item-btn[data-tab]').forEach((btn) => {
+    btn.addEventListener('click', () => {
+        const targetId = btn.dataset.tab;
+
+        document.querySelectorAll('.nav-item-btn[data-tab]').forEach((b) => b.classList.remove('active'));
+        btn.classList.add('active');
+
+        document.querySelectorAll('.dashboard-section-card').forEach((section) => {
+            section.classList.toggle('active-tab', section.id === targetId);
+        });
+    });
+});
+
+// ====================================================================
 // AUTH GUARD
 // ====================================================================
 onAuthStateChanged(auth, (user) => {
@@ -471,7 +487,7 @@ function renderProducts(products) {
           </div>
         `;
         document.getElementById('empty-add-product-btn')?.addEventListener('click', () => {
-            document.querySelector('.page-tab[data-tab="add-product-pane"]')?.click();
+            document.querySelector('.nav-item-btn[data-tab="add-product-pane"]')?.click();
         });
         return;
     }
@@ -790,7 +806,7 @@ function showProductLimitPrompt(message) {
 }
 
 document.getElementById('product-limit-upgrade-btn').addEventListener('click', () => {
-    document.querySelector('.page-tab[data-tab="subscription-pane"]')?.click();
+    document.querySelector('.nav-item-btn[data-tab="subscription-pane"]')?.click();
 });
 document.getElementById('dismiss-product-limit-prompt').addEventListener('click', () => {
     document.getElementById('product-limit-upgrade-prompt').classList.add('hidden');
@@ -1062,3 +1078,26 @@ document.getElementById('request-payout-btn').addEventListener('click', async ()
         btn.disabled = false;
     }
 });
+
+// ====================================================================
+// DEEP-LINK TAB ROUTING
+// ====================================================================
+function openTabFromHash() {
+    const targetId = window.location.hash.slice(1);
+    if (!targetId) return;
+
+    const targetSection = document.getElementById(targetId);
+    if (!targetSection || !targetSection.classList.contains('dashboard-section-card')) return;
+
+    const targetBtn = document.querySelector(`.nav-item-btn[data-tab="${targetId}"]`);
+    if (!targetBtn) return;
+
+    document.querySelectorAll('.nav-item-btn[data-tab]').forEach((b) => b.classList.remove('active'));
+    targetBtn.classList.add('active');
+    document.querySelectorAll('.dashboard-section-card').forEach((section) => {
+        section.classList.toggle('active-tab', section.id === targetId);
+    });
+}
+
+window.addEventListener('DOMContentLoaded', openTabFromHash);
+window.addEventListener('hashchange', openTabFromHash);

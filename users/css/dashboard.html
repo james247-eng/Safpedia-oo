@@ -6,13 +6,12 @@
     <title>My Dashboard | Safpedia</title>
     <link rel="stylesheet" href="./css/ui-foundation.css">
     <link rel="stylesheet" href="./css/student-dashboard.css">
-    <link rel="stylesheet" href="./css/nav-core.css">
     <script type="module" src="https://unpkg.com/ionicons@7.1.0/dist/ionicons/ionicons.esm.js"></script>
     <script nomodule src="https://unpkg.com/ionicons@7.1.0/dist/ionicons/ionicons.js"></script>
 </head>
 <body>
 
-    <!-- MOBILE TOP BAR — visible below 900px only -->
+    <!-- MOBILE TOP BAR Ã¢â‚¬â€ visible below 900px only -->
     <div class="mobile-topbar">
         <button class="sidebar-toggle-btn" id="sidebar-toggle-btn">
             <ion-icon name="menu-outline" class="menu-icon"></ion-icon>
@@ -25,12 +24,17 @@
     <div class="sidebar-overlay" id="sidebar-overlay"></div>
 
     <div class="dashboard-layout">
-        <!-- SIDEBAR NAVIGATION PANEL — 3 top-level sections + Browse -->
+        <!-- SIDEBAR NAVIGATION PANEL -->
         <aside class="sidebar-panel">
             <div class="brand-logo">SAFpedia</div>
             <ul class="nav-group">
-                <li><a href="dashboard.html"><div class="nav-item-btn active"><ion-icon name="grid-outline"></ion-icon><span class="nav-label">Dashboard</span></div></a></li>
-                <li><a href="affiliate.html"><div class="nav-item-btn"><ion-icon name="cash-outline"></ion-icon><span class="nav-label">Affiliate</span></div></a></li>
+                <li><div class="nav-item-btn active" data-tab="library-pane" onclick="switchDashboardTab('library-pane', this)"><ion-icon name="grid-outline"></ion-icon><span class="nav-label">My Courses</span></div></li>
+                <li><div class="nav-item-btn" data-tab="history-pane" onclick="switchDashboardTab('history-pane', this)"><ion-icon name="receipt-outline"></ion-icon><span class="nav-label">Purchase History</span></div></li>
+                <li><a href="marketplace-orders.html"><div class="nav-item-btn"><ion-icon name="bag-handle-outline"></ion-icon><span class="nav-label">Marketplace Orders</span></div></a></li>
+            </ul>
+            <div class="nav-section-label">Selling & Earning</div>
+            <ul class="nav-group">
+                <li><a href="affiliate.html"><div class="nav-item-btn"><ion-icon name="cash-outline"></ion-icon><span class="nav-label">Referral Earnings</span></div></a></li>
                 <li><a href="sellers-page.html"><div class="nav-item-btn"><ion-icon name="storefront-outline"></ion-icon><span class="nav-label">Sell on SAFpedia</span></div></a></li>
             </ul>
             <div class="nav-section-label">Browse</div>
@@ -61,25 +65,10 @@
                 </div>
             </header>
 
-            <!-- PAGE TAB BAR — replaces the old sidebar sub-links.
-                 "Marketplace Orders" has no data-tab: it's a real link to
-                 a separate page, not an in-page tab (see nav-core.js). -->
-            <div class="page-tab-bar">
-                <button type="button" class="page-tab active" data-tab="library-pane">
-                    <ion-icon name="grid-outline"></ion-icon> My Courses
-                </button>
-                <button type="button" class="page-tab" data-tab="history-pane">
-                    <ion-icon name="receipt-outline"></ion-icon> Purchase History
-                </button>
-                <a href="marketplace-orders.html" class="page-tab">
-                    <ion-icon name="bag-handle-outline"></ion-icon> Marketplace Orders
-                </a>
-            </div>
-
             <!-- TAB 1: MY COURSES -->
             <section id="library-pane" class="dashboard-section-card active-tab">
 
-                <!-- Signature "continue watching" strip — purely presentational,
+                <!-- Signature "continue watching" strip Ã¢â‚¬â€ purely presentational,
                      safe to leave static or wire up to real progress data later -->
                 <div class="continue-hero">
                     <div class="continue-hero-eyebrow">Continue Watching</div>
@@ -117,7 +106,29 @@
         </main>
     </div>
     <script type="module" src="js/dashboard.js"></script>
-    <script src="js/nav-core.js"></script>
+    <script src="js/dashboard-nav.js"></script>
+    <script>
+      // Avatar dropdown toggle (email + logout only on click)
+      (function () {
+        const avatarBtn = document.getElementById('admin-avatar-slot');
+        const dropdown = document.getElementById('user-dropdown');
+        if (!avatarBtn || !dropdown) return;
+
+        avatarBtn.addEventListener('click', (e) => {
+          e.stopPropagation();
+          const isOpen = !dropdown.hidden;
+          dropdown.hidden = isOpen;
+          avatarBtn.setAttribute('aria-expanded', String(!isOpen));
+        });
+
+        document.addEventListener('click', () => {
+          dropdown.hidden = true;
+          avatarBtn.setAttribute('aria-expanded', 'false');
+        });
+
+        dropdown.addEventListener('click', (e) => e.stopPropagation());
+      })();
+    </script>
   <script type="module" src="/js/chatbot/chatbot-loader.js" defer></script>
 </body>
 </html>

@@ -616,7 +616,7 @@ ion-icon { vertical-align: middle; font-size: 1.15em; }
 .nav-group + .nav-section-label { margin-top: 18px; }
 
 @media (max-width: 640px) {
-  .products-grid { grid-template-columns: repeat(2, 1fr); }
+  .products-grid { grid-template-columns: repeat(1); }
   .continue-hero h3 { font-size: 18px; }
 }
 

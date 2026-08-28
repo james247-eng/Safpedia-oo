@@ -6,7 +6,6 @@
     <title>My Marketplace Orders | SAFpedia</title>
     <link rel="stylesheet" href="css/ui-foundation.css">
     <link rel="stylesheet" href="css/student-dashboard.css">
-    <link rel="stylesheet" href="css/nav-core.css">
     <link rel="stylesheet" href="css/marketplace-orders.css">
     <script type="module" src="https://unpkg.com/ionicons@7.1.0/dist/ionicons/ionicons.esm.js"></script>
     <script nomodule src="https://unpkg.com/ionicons@7.1.0/dist/ionicons/ionicons.js"></script>
@@ -24,12 +23,17 @@
     <div class="sidebar-overlay" id="sidebar-overlay"></div>
 
     <div class="dashboard-layout">
-        <!-- SIDEBAR NAVIGATION PANEL — 3 top-level sections + Browse -->
         <aside class="sidebar-panel">
             <div class="brand-logo">SAFpedia</div>
+            <div class="nav-section-label">Account</div>
             <ul class="nav-group">
-                <li><a href="dashboard.html"><div class="nav-item-btn active"><ion-icon name="grid-outline"></ion-icon><span class="nav-label">Dashboard</span></div></a></li>
-                <li><a href="affiliate.html"><div class="nav-item-btn"><ion-icon name="cash-outline"></ion-icon><span class="nav-label">Affiliate</span></div></a></li>
+                <li><a href="dashboard.html#library-pane"><div class="nav-item-btn"><ion-icon name="grid-outline"></ion-icon><span class="nav-label">My Courses</span></div></a></li>
+                <li><a href="dashboard.html#history-pane"><div class="nav-item-btn"><ion-icon name="receipt-outline"></ion-icon><span class="nav-label">Purchase History</span></div></a></li>
+                <li><a href="marketplace-orders.html"><div class="nav-item-btn active"><ion-icon name="bag-handle-outline"></ion-icon><span class="nav-label">Marketplace Orders</span></div></a></li>
+                <li><a href="affiliate.html"><div class="nav-item-btn"><ion-icon name="cash-outline"></ion-icon><span class="nav-label">Referral Earnings</span></div></a></li>
+            </ul>
+            <div class="nav-section-label">Selling & Earning</div>
+            <ul class="nav-group">
                 <li><a href="sellers-page.html"><div class="nav-item-btn"><ion-icon name="storefront-outline"></ion-icon><span class="nav-label">Sell on SAFpedia</span></div></a></li>
             </ul>
             <div class="nav-section-label">Browse</div>
@@ -59,24 +63,9 @@
                 </div>
             </header>
 
-            <!-- PAGE TAB BAR — same set as dashboard.html. This page IS
-                 "Marketplace Orders", so that one is marked active and the
-                 other two are plain links back to dashboard.html's tabs. -->
-            <div class="page-tab-bar">
-                <a href="dashboard.html#library-pane" class="page-tab">
-                    <ion-icon name="grid-outline"></ion-icon> My Courses
-                </a>
-                <a href="dashboard.html#history-pane" class="page-tab">
-                    <ion-icon name="receipt-outline"></ion-icon> Purchase History
-                </a>
-                <a href="marketplace-orders.html" class="page-tab active">
-                    <ion-icon name="bag-handle-outline"></ion-icon> Marketplace Orders
-                </a>
-            </div>
-
             <section class="dashboard-section-card active-tab">
                 <h2>My Marketplace Orders</h2>
-                <p>Everything you've purchased from SAFpedia vendors — separate from your course purchases.</p>
+                <p>Everything you've purchased from SAFpedia vendors Ã¢â‚¬â€ separate from your course purchases.</p>
 
                 <div id="orders-list" class="data-table-frame">
                     <div class="loading-placeholder">Loading your orders...</div>
@@ -86,7 +75,29 @@
         </main>
     </div>
     <script type="module" src="js/marketplace-orders.js"></script>
-    <script src="js/nav-core.js"></script>
+    <script src="js/dashboard-nav.js"></script>
+    <script>
+      // Avatar dropdown toggle (email + logout only on click)
+      (function () {
+        const avatarBtn = document.getElementById('buyer-avatar-slot');
+        const dropdown = document.getElementById('user-dropdown');
+        if (!avatarBtn || !dropdown) return;
+
+        avatarBtn.addEventListener('click', (e) => {
+          e.stopPropagation();
+          const isOpen = !dropdown.hidden;
+          dropdown.hidden = isOpen;
+          avatarBtn.setAttribute('aria-expanded', String(!isOpen));
+        });
+
+        document.addEventListener('click', () => {
+          dropdown.hidden = true;
+          avatarBtn.setAttribute('aria-expanded', 'false');
+        });
+
+        dropdown.addEventListener('click', (e) => e.stopPropagation());
+      })();
+    </script>
   <script type="module" src="/js/chatbot/chatbot-loader.js" defer></script>
 </body>
 </html>
