@@ -164,7 +164,9 @@ button { font-family: inherit; cursor: pointer; border: none; background: none; 
 .section-description { font-size: 16px; color: var(--color-text-muted); max-width: 560px; }
 .section-header { text-align: center; margin: 0 auto 56px; }
 .section-header .section-description { margin: 0 auto; }
-
+.error-icon{
+  color: red !important; font-size: 18px; flex-shrink: 0; margin-top: 1px;
+}
 /* Quick overview steps */
 .how-it-works { padding: 96px 0; }
 .steps-row { display: grid; grid-template-columns: repeat(4, 1fr); gap: 24px; margin-top: 20px; }
