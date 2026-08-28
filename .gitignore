@@ -1,4 +1,5 @@
 node_modules/
 .vercel
 .env
-service-account.json
+scripts/
+FIRESTORE_INDEXES.MD

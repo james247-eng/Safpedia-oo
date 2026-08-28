@@ -4,7 +4,7 @@ export const CHATBOT_CONFIG = {
   apiBase: '/api/chatbot',
   storageKey: 'safpedia_chat_session',
   maxHistoryTurns: 10,
-  botName: 'Safpedia Assistant',
+  botName: 'SAFpedia Assistant',
   greeting: "Hi! I'm here to help with orders, vendors, courses, and more. What can I help with?",
   quickReplies: [
     'Track my order',
