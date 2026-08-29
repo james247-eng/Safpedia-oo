@@ -7,11 +7,33 @@ import {
   onAuthStateChanged,
   GoogleAuthProvider,
   signInWithPopup,
-  sendEmailVerification,
   signOut
 } from "https://www.gstatic.com/firebasejs/12.17.1/firebase-auth.js";
 import { showToast, showLoading } from './toast-notification.js';
 import './notification-center.js';
+
+// ⚠️ Point this at wherever you add the 'send-verification-email'
+// case in your consolidated auth API route (e.g. /api/auth/[action].js)
+const VERIFICATION_ENDPOINT = '/api/auth/send-verification-email';
+
+/**
+ * Asks the backend to generate the Firebase verification link AND send
+ * it via EmailJS in one call — private key never leaves the server.
+ * This is what fixes the spam/phishing look: branded sender + template
+ * instead of Firebase's default noreply@firebaseapp.com email.
+ */
+async function sendBrandedVerificationEmail(email, name) {
+  const res = await fetch(VERIFICATION_ENDPOINT, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ email, name }),
+  });
+  const data = await res.json();
+  if (!res.ok || !data.success) {
+    throw new Error(data.error || 'Failed to send verification email.');
+  }
+  return data;
+}
 
 // Initialize Analytics using the shared app instance behind the config if needed
 const analytics = getAnalytics(auth.app);
@@ -86,13 +108,12 @@ if (signupForm && signupBtn) {
         return;
       }
 
-      // ⭐ SEND EMAIL VERIFICATION
-      // Firebase-hosted link — no backend, no email provider needed.
-      // The "Continue" link on the verification page sends them to sign-in.
+      // ⭐ SEND BRANDED EMAIL VERIFICATION
+      // Generates the link server-side (Admin SDK) then sends it via
+      // EmailJS with your own template/sender — avoids Firebase's
+      // default noreply@firebaseapp.com email that lands in spam.
       try {
-        await sendEmailVerification(user, {
-          url: `${window.location.origin}/sign-in.html?verified=1`,
-        });
+        await sendBrandedVerificationEmail(email, firstName);
       } catch (verifyErr) {
         console.error('Failed to send verification email:', verifyErr);
       }
@@ -190,9 +211,7 @@ if (loginForm && loginBtn) {
               resendBtn.disabled = true;
               resendBtn.textContent = 'Sending...';
               try {
-                await sendEmailVerification(user, {
-                  url: `${window.location.origin}/sign-in.html?verified=1`,
-                });
+                await sendBrandedVerificationEmail(user.email, user.email.split('@')[0]);
                 showToast('Verification email resent!', 'success');
                 resendBtn.textContent = 'Sent!';
               } catch (resendErr) {

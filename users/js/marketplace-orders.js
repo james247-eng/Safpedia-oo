@@ -1,4 +1,4 @@
-// students/js/marketplace-orders.js
+// users/js/marketplace-orders.js
 
 import { auth, db } from '../../firebase-config.js';
 import '../../js/notification-center.js';

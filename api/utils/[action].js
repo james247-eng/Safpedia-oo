@@ -102,4 +102,54 @@ async function getRecipient(admin, db, uid, profileCollections = []) {
   };
 }
 
-module.exports = { sendEmail, sendNotification, getRecipient };
+// ====================================================================
+// EMAIL VERIFICATION
+// Generates the Firebase verification link (Admin SDK — only this can
+// mint the link without Firebase also firing its own noreply@ email)
+// AND sends it via the sendEmail() helper above, in one call. Private
+// key never leaves the server, one network hop from the client.
+//
+// Wire this into whichever route handles your 'action' dispatch, e.g.:
+//   if (action === 'send-verification-email') {
+//     return handleSendVerificationEmail(req, res);
+//   }
+// ====================================================================
+async function handleSendVerificationEmail(req, res) {
+  const { email, name } = req.body;
+
+  if (!email) {
+    return res.status(400).json({ error: 'Email is required.' });
+  }
+
+  try {
+    const admin = getFirebaseAdmin();
+
+    const link = await admin.auth().generateEmailVerificationLink(email, {
+      // Where Firebase sends them after they click "Verify" and hit
+      // the hosted confirmation page — point this at sign-in so they
+      // log in fresh with a now-verified account.
+      url: `${DEFAULT_ACTION_URL}/sign-in.html?verified=1`,
+    });
+
+    const emailResult = await sendEmail({
+      toEmail: email,
+      toName: name || 'Valued User',
+      subject: 'Verify your Safpedia account',
+      headline: 'Welcome to Safpedia! 📚',
+      bodyContent: "You're almost in. Verify your email address to activate your account and unlock your dashboard, courses, and library.",
+      actionUrl: link,
+      actionText: 'Verify My Email'
+    });
+
+    if (!emailResult.success) {
+      return res.status(502).json({ error: 'Link generated but email failed to send.' });
+    }
+
+    return res.status(200).json({ success: true });
+  } catch (error) {
+    console.error('send-verification-email failed:', error.message);
+    return res.status(500).json({ error: 'Could not send verification email.' });
+  }
+}
+
+module.exports = { sendEmail, sendNotification, getRecipient, handleSendVerificationEmail };
