@@ -1,15 +1,16 @@
+// students/js/marketplace-orders.js
+
 import { auth, db } from '../../firebase-config.js';
-import { onAuthStateChanged, signOut } from 'https://www.gstatic.com/firebasejs/10.8.0/firebase-auth.js';
-import { collection, query, where, getDocs, doc, getDoc } from 'https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js';
+import '../../js/notification-center.js';
+import { collectionGroup, query, where, orderBy, getDocs } from 'https://www.gstatic.com/firebasejs/12.17.1/firebase-firestore.js';
+import { onAuthStateChanged, signOut } from 'https://www.gstatic.com/firebasejs/12.17.1/firebase-auth.js';
 
 let currentUser = null;
-let activeOrders = [];
-let activeDisputesMap = new Map();
-let selectedReferenceForDispute = null;
+let disputesByReference = new Map();
+let activeDisputeReference = null;
 
-function escapeHtml(str) {
-    if (typeof str !== 'string') return '';
-    return str
+function escapeHtml(value) {
+    return String(value ?? '')
         .replace(/&/g, '&amp;')
         .replace(/</g, '&lt;')
         .replace(/>/g, '&gt;')
@@ -17,374 +18,232 @@ function escapeHtml(str) {
         .replace(/'/g, '&#039;');
 }
 
-document.addEventListener('DOMContentLoaded', () => {
-    setupAuthObserver();
-    setupModalListeners();
+const disputeStatusLabels = {
+    open: 'Under review',
+    investigating: 'Vendor responded — awaiting decision',
+    resolved_buyer: 'Resolved in your favor',
+    resolved_vendor: "Resolved in vendor's favor",
+    closed: 'Closed'
+};
+
+// ====================================================================
+// AUTH GUARD
+// ====================================================================
+onAuthStateChanged(auth, (user) => {
+    if (!user) {
+        window.location.href = '/sign-in.html';
+        return;
+    }
+    currentUser = user;
+
+    const avatarEl = document.getElementById('buyer-avatar-slot');
+    const emailEl = document.getElementById('buyer-display-email');
+    if (avatarEl) avatarEl.textContent = (user.email || 'U').charAt(0).toUpperCase();
+    if (emailEl) emailEl.textContent = user.email || 'Student Account';
+
+    loadOrders();
 });
 
-function setupAuthObserver() {
-    onAuthStateChanged(auth, async (user) => {
-        if (!user) {
-            window.location.href = '/login.html';
-            return;
-        }
-        currentUser = user;
-        updateUserHeader(user);
-        await loadDashboardData();
-    });
-}
+document.getElementById('buyer-logout-trigger')?.addEventListener('click', async (e) => {
+    e.preventDefault();
+    await signOut(auth);
+    window.location.href = '/sign-in.html';
+});
 
-function updateUserHeader(user) {
-    const avatarSlot = document.getElementById('buyer-avatar-slot');
-    const emailSlot = document.getElementById('buyer-display-email');
-    const logoutBtn = document.getElementById('buyer-logout-trigger');
-
-    if (avatarSlot) {
-        avatarSlot.textContent = (user.displayName || user.email || 'U').charAt(0).toUpperCase();
-    }
-    if (emailSlot) {
-        emailSlot.textContent = user.email || 'Student Account';
-    }
-    if (logoutBtn) {
-        logoutBtn.addEventListener('click', (e) => {
-            e.preventDefault();
-            signOut(auth).then(() => {
-                window.location.href = '/login.html';
-            });
-        });
-    }
-}
-
-async function loadDashboardData() {
+// ====================================================================
+// LOAD ORDERS
+// ====================================================================
+// NOTE: this reads directly from Firestore via a collectionGroup query on
+// 'sales' filtered by buyerUid — it requires a Security Rule allowing a
+// signed-in user to read sales docs where buyerUid == request.auth.uid,
+// and a one-time composite index (collection group 'sales', field
+// 'buyerUid' Ascending, field 'createdAt' Descending). The first request
+// will fail with an error containing a direct link to auto-create it.
+async function loadOrders() {
     const container = document.getElementById('orders-list');
-    if (container) {
-        container.innerHTML = '<div class="loading-placeholder">Loading your orders...</div>';
-    }
-
     try {
-        await Promise.all([
-            fetchBuyerOrders(),
-            fetchBuyerDisputes()
-        ]);
-        renderOrdersTable();
-    } catch (error) {
-        console.error('Error loading marketplace data:', error);
-        if (container) {
-            container.innerHTML = `<div class="error-placeholder">Failed to load orders: ${escapeHtml(error.message)}</div>`;
-        }
-    }
-}
-
-async function fetchBuyerOrders() {
-    activeOrders = [];
-    try {
-        const token = await currentUser.getIdToken();
-        const response = await fetch('/api/marketplace/my-orders', {
-            method: 'GET',
-            headers: {
-                'Authorization': `Bearer ${token}`,
-                'Content-Type': 'application/json'
-            }
-        });
-
-        if (response.ok) {
-            const data = await response.json();
-            activeOrders = data.orders || [];
-        } else {
-            // Firestore Direct Fallback if API route is not available
-            const q = query(
-                collection(db, 'sales'),
-                where('buyerUid', '==', currentUser.uid)
-            );
-            const snapshot = await getDocs(q);
-            snapshot.forEach(docSnap => {
-                activeOrders.push({ id: docSnap.id, ...docSnap.data() });
-            });
-        }
-    } catch (e) {
-        console.warn('Falling back to Firestore client query for sales:', e.message);
         const q = query(
-            collection(db, 'sales'),
-            where('buyerUid', '==', currentUser.uid)
+            collectionGroup(db, 'sales'),
+            where('buyerUid', '==', currentUser.uid),
+            orderBy('createdAt', 'desc')
         );
         const snapshot = await getDocs(q);
-        snapshot.forEach(docSnap => {
-            activeOrders.push({ id: docSnap.id, ...docSnap.data() });
-        });
-    }
-}
 
-async function fetchBuyerDisputes() {
-    activeDisputesMap.clear();
-    try {
-        const token = await currentUser.getIdToken();
-        const response = await fetch('/api/disputes/list-disputes', {
-            method: 'GET',
-            headers: {
-                'Authorization': `Bearer ${token}`,
-                'Content-Type': 'application/json'
-            }
+        const orders = [];
+        snapshot.forEach((docSnap) => {
+            orders.push({ id: docSnap.id, ...docSnap.data() });
         });
 
-        if (response.ok) {
-            const data = await response.json();
-            if (Array.isArray(data.disputes)) {
-                data.disputes.forEach(dispute => {
-                    if (dispute.reference) {
-                        activeDisputesMap.set(dispute.reference, dispute);
-                    }
-                });
-            }
+        // A dispute-list read must not prevent the buyer's orders (and the
+        // report action) from rendering. Rules/index availability can fail
+        // independently of the sales query.
+        try {
+            await loadDisputes();
+        } catch (disputeError) {
+            console.warn('Could not load existing disputes:', disputeError);
+            disputesByReference = new Map();
         }
+        renderOrders(orders);
+
     } catch (err) {
-        console.error('Failed to load disputes list:', err);
+        console.error('loadOrders error:', err);
+        container.innerHTML = `<div class="error-state">Could not load your orders: ${err.message}</div>`;
     }
 }
 
-function renderOrdersTable() {
+function renderOrders(orders) {
     const container = document.getElementById('orders-list');
-    if (!container) return;
 
-    if (activeOrders.length === 0) {
-        container.innerHTML = '<div class="empty-placeholder">No marketplace orders found.</div>';
+    if (!orders || orders.length === 0) {
+        container.innerHTML = `
+          <div class="empty-state-block">
+            <div class="empty-icon"><ion-icon name="bag-handle-outline"></ion-icon></div>
+            <h3>No marketplace orders yet</h3>
+            <p>Anything you buy from a SAFpedia vendor's storefront will show up here.</p>
+            <a href="../marketplace.html" class="btn btn-primary"><ion-icon name="storefront-outline"></ion-icon> Browse the Marketplace</a>
+          </div>
+        `;
         return;
     }
 
-    let html = `
-        <table class="data-table">
-            <thead>
-                <tr>
-                    <th>PRODUCT</th>
-                    <th>QTY</th>
-                    <th>AMOUNT PAID</th>
-                    <th>TYPE</th>
-                    <th>DATE</th>
-                    <th>STATUS / ACTION</th>
-                </tr>
-            </thead>
-            <tbody>
-    `;
+    const rows = orders.map((o) => {
+        const date = o.createdAt && o.createdAt.seconds
+            ? new Date(o.createdAt.seconds * 1000).toLocaleDateString()
+            : '';
 
-    activeOrders.forEach(order => {
-        const ref = order.reference || order.id;
-        const title = escapeHtml(order.productTitle || order.title || 'Product Item');
-        const qty = order.quantity || 1;
-        const amount = order.amountPaid || order.price || order.vendorAmount || 0;
-        const type = escapeHtml(order.type || order.productType || 'physical');
-        
-        let formattedDate = 'N/A';
-        if (order.createdAt) {
-            if (order.createdAt._seconds) {
-                formattedDate = new Date(order.createdAt._seconds * 1000).toLocaleDateString();
-            } else if (typeof order.createdAt === 'string') {
-                formattedDate = new Date(order.createdAt).toLocaleDateString();
-            }
-        }
-
-        const orderStatus = escapeHtml(order.status || 'pending_shipment');
-        const dispute = activeDisputesMap.get(ref);
-
-        let actionColumnHtml = `
-            <div class="status-cell-wrapper" style="display:flex; flex-direction:column; gap:6px; align-items:flex-start;">
-                <span class="status-badge status-${orderStatus}">${orderStatus}</span>
-        `;
-
-        if (dispute) {
-            actionColumnHtml += `
-                <button 
-                    type="button" 
-                    class="btn-view-dispute" 
-                    data-reference="${escapeHtml(ref)}"
-                    style="padding: 4px 10px; font-size: 11px; font-weight:600; cursor: pointer; background-color: #2563eb; color: #ffffff; border: none; border-radius: 4px;">
-                    View Dispute (${escapeHtml(dispute.status)})
-                </button>
-            `;
+        let actionCell;
+        if (o.productType === 'digital') {
+            actionCell = o.fulfillmentStatus === 'available'
+                ? `<button class="btn btn-sm btn-secondary download-btn" data-product-id="${o.productId}" data-reference="${o.reference}">Download</button>`
+                : `Status: ${o.fulfillmentStatus || 'unknown'}`;
         } else {
-            actionColumnHtml += `
-                <button 
-                    type="button" 
-                    class="btn-report-issue" 
-                    data-reference="${escapeHtml(ref)}"
-                    style="padding: 4px 8px; font-size: 11px; cursor: pointer; background-color: #ef4444; color: #ffffff; border: none; border-radius: 4px;">
-                    Report Issue
-                </button>
-            `;
+            const tracking = o.trackingNumber ? ` (${o.carrier || 'carrier'}: ${o.trackingNumber})` : '';
+            actionCell = `${o.fulfillmentStatus || 'pending_shipment'}${tracking}`;
         }
 
-        actionColumnHtml += `</div>`;
-
-        html += `
+        const dispute = disputesByReference.get(o.reference);
+        const disputeAction = dispute ? `<span class="status-badge dispute-status-trigger" data-reference="${escapeHtml(o.reference)}" role="button" tabindex="0" title="View dispute details">Dispute: ${escapeHtml(dispute.status)}</span>` : `<button class="btn btn-sm btn-secondary dispute-btn" data-reference="${escapeHtml(o.reference)}">Report a problem</button>`;
+        return `
             <tr>
-                <td><strong>${title}</strong></td>
-                <td>${qty}</td>
-                <td>&#8358;${Number(amount).toLocaleString()}</td>
-                <td>${type}</td>
-                <td>${formattedDate}</td>
-                <td>${actionColumnHtml}</td>
+                <td>${o.productTitle}</td>
+                <td>${o.quantity}</td>
+                <td>₦${(o.amount || 0).toLocaleString()}</td>
+                <td>${o.productType}</td>
+                <td>${date}</td>
+                <td>${actionCell}<div>${disputeAction}</div></td>
             </tr>
         `;
-    });
+    }).join('');
 
-    html += `
-            </tbody>
+    container.innerHTML = `
+        <table class="data-table-frame">
+            <thead>
+                <tr>
+                    <th>Product</th>
+                    <th>Qty</th>
+                    <th>Amount Paid</th>
+                    <th>Type</th>
+                    <th>Date</th>
+                    <th>Status / Action</th>
+                </tr>
+            </thead>
+            <tbody>${rows}</tbody>
         </table>
     `;
 
-    container.innerHTML = html;
-    bindTableActionButtons();
-}
-
-function bindTableActionButtons() {
-    document.querySelectorAll('.btn-view-dispute').forEach(btn => {
-        btn.addEventListener('click', (e) => {
-            const ref = e.currentTarget.getAttribute('data-reference');
-            openDisputeDetailsModal(ref);
-        });
+    container.querySelectorAll('.download-btn').forEach((btn) => {
+        btn.addEventListener('click', () => getDownloadLink(btn.dataset.productId, btn.dataset.reference, btn));
     });
-
-    document.querySelectorAll('.btn-report-issue').forEach(btn => {
-        btn.addEventListener('click', (e) => {
-            const ref = e.currentTarget.getAttribute('data-reference');
-            openReportModal(ref);
+    container.querySelectorAll('.dispute-btn').forEach((btn) => btn.addEventListener('click', () => openDisputeModal(btn.dataset.reference)));
+    container.querySelectorAll('.dispute-status-trigger').forEach((badge) => {
+        const openDetails = () => openDisputeDetailsModal(badge.dataset.reference);
+        badge.addEventListener('click', openDetails);
+        badge.addEventListener('keydown', (event) => {
+            if (event.key === 'Enter' || event.key === ' ') {
+                event.preventDefault();
+                openDetails();
+            }
         });
     });
 }
 
-function openReportModal(reference) {
-    selectedReferenceForDispute = reference;
-    const modal = document.getElementById('dispute-modal');
-    const msg = document.getElementById('dispute-form-message');
-    const form = document.getElementById('dispute-form');
-
-    if (msg) msg.textContent = '';
-    if (form) form.reset();
-
-    if (modal) modal.classList.remove('hidden');
-}
-
+async function authedFetch(url, options = {}) { const token = await currentUser.getIdToken(); options.headers = Object.assign({}, options.headers, { Authorization: `Bearer ${token}` }); return fetch(url, options); }
+async function loadDisputes() { const res = await authedFetch('/api/disputes/list-disputes'); const json = await res.json(); if (!res.ok) throw new Error(json.error || 'Could not load disputes'); disputesByReference = new Map(json.disputes.map((d) => [d.reference, d])); }
 function openDisputeDetailsModal(reference) {
-    const dispute = activeDisputesMap.get(reference);
-    const modal = document.getElementById('dispute-details-modal');
-    if (!dispute || !modal) return;
+    const dispute = disputesByReference.get(reference);
+    if (!dispute) return;
 
-    const contentArea = modal.querySelector('.dispute-details-content');
-    
-    const vendorReply = dispute.vendorStatement || dispute.vendorResponse || dispute.vendorReply || 'No response yet';
-    const cleanBuyerStatement = dispute.buyerStatement || 'No statement provided';
-    const statusLabel = dispute.status || 'open';
-    const publicResolution = dispute.resolution || null;
-
-    let adminNotesHtml = '';
-    if (Array.isArray(dispute.adminNotes) && dispute.adminNotes.length > 0) {
-        adminNotesHtml = dispute.adminNotes.map(n => {
-            const timeStr = n.createdAt ? new Date(n.createdAt._seconds ? n.createdAt._seconds * 1000 : n.createdAt).toLocaleString() : '';
-            return `<div style="background:#f3f4f6; padding:8px; border-radius:4px; margin-top:4px;">
-                <small style="color:#6b7280;">${escapeHtml(timeStr)}</small>
-                <p style="margin:4px 0 0 0; font-size:13px;">${escapeHtml(n.note || n.message || n)}</p>
-            </div>`;
-        }).join('');
-    } else {
-        adminNotesHtml = '<em style="color:#9ca3af; font-size:13px;">No public admin updates yet.</em>';
+    let modal = document.getElementById('dispute-details-modal');
+    if (!modal) {
+        modal = document.createElement('div');
+        modal.id = 'dispute-details-modal';
+        modal.className = 'modal-overlay hidden';
+        modal.innerHTML = '<div class="modal-box dispute-details-box"><button type="button" class="dispute-details-close" aria-label="Close dispute details">&times;</button><div class="dispute-details-content"></div></div>';
+        document.body.appendChild(modal);
+        const close = () => modal.classList.add('hidden');
+        modal.querySelector('.dispute-details-close').addEventListener('click', close);
+        modal.addEventListener('click', (event) => { if (event.target === modal) close(); });
     }
 
-    contentArea.innerHTML = `
-        <h3 style="margin-top:0; font-size:18px; color:#111827;">Dispute Details</h3>
-        <dl style="display:grid; grid-template-columns: 130px 1fr; gap:10px; font-size:14px; margin:0;">
-            <dt style="font-weight:600; color:#374151;">Reference:</dt>
-            <dd style="margin:0;">${escapeHtml(reference)}</dd>
+    const status = dispute.status || 'open';
+    const statusLabel = disputeStatusLabels[status] || 'Status unavailable';
+    const isResolved = ['resolved_buyer', 'resolved_vendor', 'closed'].includes(status);
+    const resolution = dispute.resolution || '';
+    const refundFailed = dispute.refundStatus === 'failed' || String(resolution).startsWith('refund_failed');
+    const publicResolution = String(resolution).startsWith('refund_failed') ? '' : resolution;
+    let refundLine = '';
+    if (isResolved) {
+        if (dispute.refundStatus === 'triggered') refundLine = 'A refund has been issued to your original payment method.';
+        else if (dispute.refundStatus === 'not_applicable') refundLine = 'No refund applies to this resolution.';
+        else if (refundFailed) refundLine = 'A refund was approved but could not be processed automatically. Our team will contact you to complete it manually.';
+    }
 
-            <dt style="font-weight:600; color:#374151;">Reason:</dt>
-            <dd style="margin:0;">${escapeHtml(dispute.reason || 'Not provided')}</dd>
-
-            <dt style="font-weight:600; color:#374151;">Your Statement:</dt>
-            <dd style="margin:0; background:#f9fafb; padding:8px; border-radius:4px;">${escapeHtml(cleanBuyerStatement)}</dd>
-
-            <dt style="font-weight:600; color:#374151;">Vendor Response:</dt>
-            <dd style="margin:0; background:#f9fafb; padding:8px; border-radius:4px;">${escapeHtml(vendorReply)}</dd>
-
-            <dt style="font-weight:600; color:#374151;">Admin Updates:</dt>
-            <dd style="margin:0;">${adminNotesHtml}</dd>
-
-            <dt style="font-weight:600; color:#374151;">Status:</dt>
-            <dd style="margin:0;"><span class="status-badge status-${escapeHtml(statusLabel)}">${escapeHtml(statusLabel)}</span></dd>
-
-            ${publicResolution ? `
-                <dt style="font-weight:600; color:#374151;">Resolution:</dt>
-                <dd style="margin:0; background:#ecfdf5; color:#065f46; padding:8px; border-radius:4px;">${escapeHtml(publicResolution)}</dd>
-            ` : ''}
+    modal.querySelector('.dispute-details-content').innerHTML = `
+        <h3>Dispute details</h3>
+        <dl>
+            <dt>Reference</dt><dd>${escapeHtml(dispute.reference)}</dd>
+            <dt>Reason</dt><dd>${escapeHtml(dispute.reason || 'Not provided')}</dd>
+            <dt>Your statement</dt><dd>${escapeHtml(dispute.buyerStatement || 'Not provided')}</dd>
+            <dt>Vendor response</dt><dd>${escapeHtml(dispute.vendorStatement || 'No response yet')}</dd>
+            <dt>Status</dt><dd>${escapeHtml(statusLabel)}</dd>
+            ${isResolved && publicResolution ? `<dt>Resolution</dt><dd>${escapeHtml(publicResolution)}</dd>` : ''}
+            ${refundLine ? `<dt>Refund</dt><dd>${escapeHtml(refundLine)}</dd>` : ''}
         </dl>
     `;
-
     modal.classList.remove('hidden');
 }
+function openDisputeModal(reference) { activeDisputeReference = reference; document.getElementById('dispute-form').reset(); document.getElementById('dispute-form-message').textContent = ''; document.getElementById('dispute-modal').classList.remove('hidden'); }
+document.getElementById('dispute-modal-close').addEventListener('click', () => document.getElementById('dispute-modal').classList.add('hidden'));
+document.getElementById('dispute-form').addEventListener('submit', async (event) => { event.preventDefault(); const message = document.getElementById('dispute-form-message'); const button = event.currentTarget.querySelector('button[type="submit"]'); button.disabled = true; try { const res = await authedFetch('/api/disputes/create-dispute', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ reference: activeDisputeReference, reason: document.getElementById('dispute-reason').value, buyerStatement: document.getElementById('dispute-statement').value }) }); const json = await res.json(); if (!res.ok) throw new Error(json.error || 'Could not create dispute'); document.getElementById('dispute-modal').classList.add('hidden'); await loadOrders(); } catch (err) { message.textContent = err.message; } finally { button.disabled = false; } });
 
-function setupModalListeners() {
-    const reportModal = document.getElementById('dispute-modal');
-    const reportCloseBtn = document.getElementById('dispute-modal-close');
-    const reportForm = document.getElementById('dispute-form');
+// ====================================================================
+// DOWNLOAD LINK (server call — needs the Cloudinary secret, stays serverless)
+// ====================================================================
+async function getDownloadLink(productId, reference, btn) {
+    const originalText = btn.textContent;
+    btn.disabled = true;
+    btn.textContent = 'Preparing...';
 
-    if (reportCloseBtn && reportModal) {
-        reportCloseBtn.addEventListener('click', () => {
-            reportModal.classList.add('hidden');
+    try {
+        const idToken = await currentUser.getIdToken();
+        const res = await fetch('/api/marketplace/get-download-link', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'Authorization': `Bearer ${idToken}`
+            },
+            body: JSON.stringify({ productId, reference })
         });
-    }
+        const json = await res.json();
+        if (!res.ok) throw new Error(json.error || 'Could not get download link');
 
-    const detailsModal = document.getElementById('dispute-details-modal');
-    const detailsCloseBtn = document.getElementById('dispute-details-modal-close');
+        window.open(json.downloadUrl, '_blank');
 
-    if (detailsCloseBtn && detailsModal) {
-        detailsCloseBtn.addEventListener('click', () => {
-            detailsModal.classList.add('hidden');
-        });
-    }
-
-    if (reportForm) {
-        reportForm.addEventListener('submit', async (e) => {
-            e.preventDefault();
-            const reason = document.getElementById('dispute-reason').value;
-            const buyerStatement = document.getElementById('dispute-statement').value;
-            const msg = document.getElementById('dispute-form-message');
-
-            if (!selectedReferenceForDispute) {
-                if (msg) msg.textContent = 'Invalid order reference.';
-                return;
-            }
-
-            if (msg) msg.textContent = 'Submitting dispute...';
-
-            try {
-                const token = await currentUser.getIdToken();
-                const response = await fetch('/api/disputes/create-dispute', {
-                    method: 'POST',
-                    headers: {
-                        'Authorization': `Bearer ${token}`,
-                        'Content-Type': 'application/json'
-                    },
-                    body: JSON.stringify({
-                        reference: selectedReferenceForDispute,
-                        reason,
-                        buyerStatement
-                    })
-                });
-
-                const resData = await response.json();
-
-                if (response.ok && resData.success) {
-                    if (msg) msg.textContent = 'Dispute submitted successfully!';
-                    setTimeout(() => {
-                        if (reportModal) reportModal.classList.add('hidden');
-                        loadDashboardData();
-                    }, 1200);
-                } else {
-                    if (msg) msg.textContent = resData.error || 'Failed to submit dispute.';
-                }
-            } catch (err) {
-                console.error('Error submitting dispute:', err);
-                if (msg) msg.textContent = 'An error occurred. Please try again.';
-            }
-        });
+    } catch (err) {
+        console.error('getDownloadLink error:', err);
+        alert('Error: ' + err.message);
+    } finally {
+        btn.disabled = false;
+        btn.textContent = originalText;
     }
 }
-
-window.openDisputeDetailsModal = openDisputeDetailsModal;
-window.openReportModal = openReportModal;
