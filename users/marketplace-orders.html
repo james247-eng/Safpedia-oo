@@ -59,9 +59,7 @@
                 </div>
             </header>
 
-            <!-- PAGE TAB BAR — same set as dashboard.html. This page IS
-                 "Marketplace Orders", so that one is marked active and the
-                 other two are plain links back to dashboard.html's tabs. -->
+            <!-- PAGE TAB BAR -->
             <div class="page-tab-bar">
                 <a href="dashboard.html#library-pane" class="page-tab">
                     <ion-icon name="grid-outline"></ion-icon> My Courses
@@ -75,15 +73,14 @@
             </div>
 
             <section class="dashboard-section-card active-tab">
-                <!-- <h3>My Marketplace Orders</h3> -->
                 <p>Everything you've purchased from SAFpedia vendors — separate from your course purchases.</p>
 
                 <div id="orders-list" class="data-table-frame">
                     <div class="loading-placeholder">Loading your orders...</div>
                 </div>
             </section>
-            <div id="dispute-modal" class="modal-overlay hidden"><div class="modal-box"><button type="button" id="dispute-modal-close">&times;</button><h3>Report a problem</h3><form id="dispute-form"><label>Reason<select id="dispute-reason" required><option value="">Select a reason</option><option value="item_not_received">Item not received</option><option value="item_not_as_described">Item not as described</option><option value="digital_access_problem">Digital access problem</option><option value="other">Other</option></select></label><label>What happened?<textarea id="dispute-statement" rows="5" required></textarea></label><div id="dispute-form-message"></div><button type="submit" class="btn btn-primary">Submit dispute</button></form></div></div>
-            <!-- EXISTING DISPUTE SUBMISSION MODAL -->
+
+            <!-- DISPUTE SUBMISSION MODAL -->
             <div id="dispute-modal" class="modal-overlay hidden">
                 <div class="modal-box">
                     <button type="button" id="dispute-modal-close">&times;</button>
@@ -107,22 +104,20 @@
                 </div>
             </div>
 
-            <!-- MISSING: DISPUTE DETAILS VIEW MODAL -->
+            <!-- DISPUTE DETAILS VIEW MODAL -->
             <div id="dispute-details-modal" class="modal-overlay hidden">
-                <div class="modal-box">
+                <div class="modal-box modal-lg">
                     <button type="button" id="dispute-details-modal-close">&times;</button>
                     <div class="dispute-details-content">
-                        <!-- Rendered dynamically by marketplace-orders.js -->
+                        <!-- Populated dynamically via JS -->
                     </div>
                 </div>
             </div>
 
         </main>
     </div>
-        </main>
-    </div>
     <script type="module" src="js/marketplace-orders.js"></script>
     <script src="js/nav-core.js"></script>
-  <script type="module" src="/js/chatbot/chatbot-loader.js" defer></script>
+    <script type="module" src="/js/chatbot/chatbot-loader.js" defer></script>
 </body>
 </html>
