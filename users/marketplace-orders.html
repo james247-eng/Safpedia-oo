@@ -83,6 +83,42 @@
                 </div>
             </section>
             <div id="dispute-modal" class="modal-overlay hidden"><div class="modal-box"><button type="button" id="dispute-modal-close">&times;</button><h3>Report a problem</h3><form id="dispute-form"><label>Reason<select id="dispute-reason" required><option value="">Select a reason</option><option value="item_not_received">Item not received</option><option value="item_not_as_described">Item not as described</option><option value="digital_access_problem">Digital access problem</option><option value="other">Other</option></select></label><label>What happened?<textarea id="dispute-statement" rows="5" required></textarea></label><div id="dispute-form-message"></div><button type="submit" class="btn btn-primary">Submit dispute</button></form></div></div>
+            <!-- EXISTING DISPUTE SUBMISSION MODAL -->
+            <div id="dispute-modal" class="modal-overlay hidden">
+                <div class="modal-box">
+                    <button type="button" id="dispute-modal-close">&times;</button>
+                    <h3>Report a problem</h3>
+                    <form id="dispute-form">
+                        <label>Reason
+                            <select id="dispute-reason" required>
+                                <option value="">Select a reason</option>
+                                <option value="item_not_received">Item not received</option>
+                                <option value="item_not_as_described">Item not as described</option>
+                                <option value="digital_access_problem">Digital access problem</option>
+                                <option value="other">Other</option>
+                            </select>
+                        </label>
+                        <label>What happened?
+                            <textarea id="dispute-statement" rows="5" required></textarea>
+                        </label>
+                        <div id="dispute-form-message"></div>
+                        <button type="submit" class="btn btn-primary">Submit dispute</button>
+                    </form>
+                </div>
+            </div>
+
+            <!-- MISSING: DISPUTE DETAILS VIEW MODAL -->
+            <div id="dispute-details-modal" class="modal-overlay hidden">
+                <div class="modal-box">
+                    <button type="button" id="dispute-details-modal-close">&times;</button>
+                    <div class="dispute-details-content">
+                        <!-- Rendered dynamically by marketplace-orders.js -->
+                    </div>
+                </div>
+            </div>
+
+        </main>
+    </div>
         </main>
     </div>
     <script type="module" src="js/marketplace-orders.js"></script>
