@@ -618,6 +618,14 @@ function openDisputeDetail(disputeId) {
     document.getElementById('dispute-detail-modal').classList.remove('hidden');
 }
 
+function disputeHoldLabel(d) {
+    if (!d.holdApplied) return 'No hold applied (storefront complaint)';
+    const amount = '\u20a6' + Number(d.holdAmount || 0).toLocaleString();
+    if (d.status === 'resolved_buyer') return amount + ' forfeited (deducted from vendor balance)';
+    if (d.holdReleased) return amount + ' released back to vendor';
+    return amount + ' held pending resolution';
+}
+
 function renderDisputeModalContent(d) {
     document.getElementById('dispute-modal-title').textContent = d.reference;
     document.getElementById('dispute-modal-subtitle').textContent = 'Reason: ' + (d.reason || '\u2014');
@@ -630,7 +638,8 @@ function renderDisputeModalContent(d) {
     document.getElementById('dispute-modal-statements').innerHTML =
         '<p><strong>Buyer statement:</strong> ' + escapeHtml(d.buyerStatement) + '</p>' +
         '<p><strong>Vendor statement:</strong> ' + escapeHtml(d.vendorStatement || 'No response yet') + '</p>' +
-        '<p><strong>Refund:</strong> ' + escapeHtml(d.refundStatus || 'Not applicable') + '</p>';
+        '<p><strong>Refund:</strong> ' + escapeHtml(d.refundStatus || 'Not applicable') + '</p>' +
+        '<p><strong>Vendor payout hold:</strong> ' + escapeHtml(disputeHoldLabel(d)) + '</p>';
 
     document.getElementById('dispute-modal-banner').innerHTML = '';
 

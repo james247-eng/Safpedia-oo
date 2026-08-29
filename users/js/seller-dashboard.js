@@ -99,16 +99,11 @@ async function loadVendorDisputes() {
     }
     try {
         const token = await currentUser.getIdToken();
-        console.log('[DISPUTE-DEBUG] currentUser.uid:', currentUser.uid);
         const res = await fetch('/api/disputes/list-disputes', { headers: { Authorization: `Bearer ${token}` } });
         const json = await res.json();
-        console.log('[DISPUTE-DEBUG] API response status:', res.status);
-        console.log('[DISPUTE-DEBUG] disputes returned by API:', json.disputes);
-        
+
         if (!res.ok) throw new Error(json.error || 'Could not load disputes');
-        console.log('[DISPUTE-DEBUG] count before filter:', json.disputes?.length);
         const disputes = json.disputes.filter((d) => d.vendorUid === currentUser.uid);
-        console.log('[DISPUTE-DEBUG] count after filter:', disputes.length);
         
         if (!disputes.length) {
             container.innerHTML = '<div class="empty-state">No disputes filed against your sales.</div>';
@@ -128,6 +123,18 @@ async function loadVendorDisputes() {
 
             const buyerContact = buyerEmail ? `${buyerName} (${buyerEmail})` : buyerName;
 
+            let holdLine = '';
+            if (d.holdApplied) {
+                const holdAmount = `₦${Number(d.holdAmount || 0).toLocaleString()}`;
+                if (['open', 'investigating'].includes(d.status)) {
+                    holdLine = `<p class="dispute-hold-note"><strong>${holdAmount}</strong> from your payout balance is on hold while this dispute is open.</p>`;
+                } else if (d.status === 'resolved_buyer') {
+                    holdLine = `<p class="dispute-hold-note"><strong>${holdAmount}</strong> was deducted from your payout balance as part of this dispute's resolution.</p>`;
+                } else if (d.holdReleased) {
+                    holdLine = `<p class="dispute-hold-note"><strong>${holdAmount}</strong> was released back to your payout balance.</p>`;
+                }
+            }
+
             return `
                 <div class="dispute-item-card">
                     <p><strong>${productTitle}</strong> — <span class="dispute-status-badge">${status}</span></p>
@@ -136,6 +143,7 @@ async function loadVendorDisputes() {
                     <p><strong>Reason:</strong> ${reason}</p>
                     <p><strong>Buyer Statement:</strong> ${buyerStatement}</p>
                     ${vendorStatement ? `<p><strong>Your Response:</strong> ${vendorStatement}</p>` : ''}
+                    ${holdLine}
                     ${['open', 'investigating'].includes(d.status) ? `
                         <form class="vendor-dispute-response" data-id="${escapeHtml(d.id)}">
                             <textarea required placeholder="Your response to the buyer and admin"></textarea>
