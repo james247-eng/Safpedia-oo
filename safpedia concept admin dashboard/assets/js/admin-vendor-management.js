@@ -55,7 +55,7 @@ onAuthStateChanged(auth, async (user) => {
         document.getElementById('dashboard-content').classList.remove('hidden');
 
         loadOverviewStats();
-        loadVendorsAndProducts();
+        await loadVendorsAndProducts();
         loadPayoutHistory();
 
     } catch (err) {
@@ -884,14 +884,16 @@ function renderPayoutHistory(payouts) {
     const rows = payouts.map((p) => {
         const date = p.createdAt && p.createdAt.seconds ? new Date(p.createdAt.seconds * 1000).toLocaleDateString() : '';
         const vendor = vendorSummaries.find((v) => v.vendorUid === p.vendorUid);
-        const vendorLabel = vendor ? (vendor.vendorFirstName + ' (' + vendor.email + ')') : p.vendorUid;
+        const vendorLabel = vendor
+            ? escapeHtml(vendor.email || vendor.vendorFirstName || 'Unnamed vendor') + (vendor.vendorFirstName ? ' <span class="table-subtext">' + escapeHtml(vendor.vendorFirstName) + '</span>' : '')
+            : '<span class="table-subtext">Unknown vendor (' + escapeHtml(p.vendorUid) + ')</span>';
 
         return '<tr>' +
             '<td>' + vendorLabel + '</td>' +
             '<td>' + fmt(p.amount) + '</td>' +
             '<td>' + statusBadgeFor(p.status) + '</td>' +
             '<td>' + date + '</td>' +
-            '<td>' + (p.failureReason || '\u2014') + '</td>' +
+            '<td>' + escapeHtml(p.failureReason || '\u2014') + '</td>' +
         '</tr>';
     }).join('');
 
