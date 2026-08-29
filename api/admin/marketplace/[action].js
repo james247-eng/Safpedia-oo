@@ -448,6 +448,14 @@ async function handleResolveDispute(req, res, admin, db, adminUser) {
   const ref = db.collection('disputes').doc(disputeId); const snap = await ref.get();
   if (!snap.exists) return res.status(404).json({ error: 'Dispute not found' });
   const dispute = snap.data();
+
+  // Guard against double-processing: a dispute that's already resolved/closed
+  // must not be resolved again, since that would re-release or re-forfeit the
+  // held vendor amount a second time.
+  if (['resolved_buyer', 'resolved_vendor', 'closed'].includes(dispute.status)) {
+    return res.status(409).json({ error: 'This dispute has already been resolved' });
+  }
+
   let refundStatus = 'not_applicable';
   if (resolution === 'resolved_buyer') {
     const secret = process.env.PAYSTACK_SECRET_KEY_MARKETPLACE;
@@ -463,9 +471,29 @@ async function handleResolveDispute(req, res, admin, db, adminUser) {
       return res.status(502).json({ error: 'Refund failed; dispute was not marked resolved. Manual action required.', refundStatus: 'failed' });
     }
   }
+
   const now = admin.firestore.Timestamp.now();
-  await ref.set({ status: resolution, resolution: resolutionNote || resolution, updatedAt: now, refundStatus }, { merge: true });
-  await writeAdminAuditLog(db, admin, adminUser, { action: 'resolve_dispute', vendorUid: dispute.vendorUid, details: { disputeId, resolution, refundStatus } });
+
+  // The vendor's earnings for this sale were deducted from pendingPayout the
+  // moment the dispute was filed (see createDispute in api/disputes/[action].js).
+  // Release that hold back to the vendor if the dispute resolves in their favor
+  // or is closed without fault. If it resolves against the buyer's favor
+  // (resolved_buyer), the hold is forfeited permanently — it stays deducted,
+  // since that amount already left the platform via the Paystack refund above.
+  const holdAmount = typeof dispute.holdAmount === 'number' ? dispute.holdAmount : 0;
+  const shouldReleaseHold = dispute.holdApplied === true && dispute.holdReleased !== true && holdAmount > 0 && resolution !== 'resolved_buyer';
+
+  if (shouldReleaseHold) {
+    const vendorRef = db.collection('vendors').doc(dispute.vendorUid);
+    await db.runTransaction(async (tx) => {
+      tx.set(ref, { status: resolution, resolution: resolutionNote || resolution, updatedAt: now, refundStatus, holdReleased: true }, { merge: true });
+      tx.set(vendorRef, { pendingPayout: admin.firestore.FieldValue.increment(holdAmount), updatedAt: now }, { merge: true });
+    });
+  } else {
+    await ref.set({ status: resolution, resolution: resolutionNote || resolution, updatedAt: now, refundStatus }, { merge: true });
+  }
+
+  await writeAdminAuditLog(db, admin, adminUser, { action: 'resolve_dispute', vendorUid: dispute.vendorUid, details: { disputeId, resolution, refundStatus, holdAmount, holdReleased: shouldReleaseHold } });
   notifyDisputeOutcome(admin, db, dispute, resolution, refundStatus).catch(() => {});
   return res.status(200).json({ success: true, status: resolution, refundStatus });
 }

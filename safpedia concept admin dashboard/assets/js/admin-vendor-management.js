@@ -21,48 +21,12 @@ function escapeHtml(value) {
     }[ch]));
 }
 
-const sidebarPanel = document.getElementById('sidebar-panel');
-const sidebarOverlay = document.getElementById('sidebar-overlay');
-const sidebarToggleBtn = document.getElementById('sidebar-toggle-btn');
-const desktopToggleBtn = document.getElementById('desktop-sidebar-toggle');
-
-function openSidebar() {
-    sidebarPanel.classList.add('sidebar-open');
-    if (sidebarOverlay) sidebarOverlay.classList.add('visible');
-    if (sidebarToggleBtn) sidebarToggleBtn.classList.add('active');
-}
-function closeSidebar() {
-    sidebarPanel.classList.remove('sidebar-open');
-    if (sidebarOverlay) sidebarOverlay.classList.remove('visible');
-    if (sidebarToggleBtn) sidebarToggleBtn.classList.remove('active');
-}
-
-function toggleSidebar() {
-    sidebarPanel.classList.contains('sidebar-open') ? closeSidebar() : openSidebar();
-}
-
-if (sidebarToggleBtn) {
-    sidebarToggleBtn.addEventListener('click', toggleSidebar);
-}
-if (desktopToggleBtn) {
-    desktopToggleBtn.addEventListener('click', toggleSidebar);
-}
-if (sidebarOverlay) {
-    sidebarOverlay.addEventListener('click', closeSidebar);
-}
-
-document.querySelectorAll('.nav-item-btn[data-tab]').forEach((btn) => {
-    btn.addEventListener('click', () => {
-        const targetId = btn.dataset.tab;
-        document.querySelectorAll('.nav-item-btn[data-tab]').forEach((b) => b.classList.remove('active'));
-        btn.classList.add('active');
-        document.querySelectorAll('.dashboard-section-card').forEach((section) => {
-            section.classList.toggle('active-tab', section.id === targetId);
-        });
-        closeSidebar();
-    });
-});
-
+// ====================================================================
+// Sidebar toggle, tab-switching, and account-dropdown wiring all live in
+// nav-core.js now (shared with every other dashboard page). This file
+// only owns admin-vendor data: auth/role guard below, then vendor,
+// product, payout, and dispute logic.
+// ====================================================================
 onAuthStateChanged(auth, async (user) => {
     if (!user) {
         window.location.href = '/sign-in.html';
@@ -133,7 +97,7 @@ function renderOverviewStats(stats) {
         '<div class="stat-card">' +
             '<span class="stat-label">' + (tierLabels[tierKey] || tierKey) + ' Vendors</span>' +
             '<span class="stat-value">' + (tierCounts[tierKey] || 0) + '</span>' +
-            '<span class="stat-sub">Active Â· Revenue: ' + fmt(tierRevenue[tierKey] || 0) + '</span>' +
+            '<span class="stat-sub">Active · Revenue: ' + fmt(tierRevenue[tierKey] || 0) + '</span>' +
         '</div>';
 
     grid.innerHTML =
@@ -150,11 +114,11 @@ function renderOverviewStats(stats) {
         '<div class="stat-card">' +
             '<span class="stat-label">Revenue by Paid Tier</span>' +
             '<span class="stat-value">' + fmt(tierRevenue.safbloom || 0) + '</span>' +
-            '<span class="stat-sub">' + (tierLabels.safbloom || 'Paid tier') + ' Â· ' + fmt(tierRevenue.safscale || 0) + ' ' + (tierLabels.safscale || 'Paid tier') + '</span>' +
+            '<span class="stat-sub">' + (tierLabels.safbloom || 'Paid tier') + ' · ' + fmt(tierRevenue.safscale || 0) + ' ' + (tierLabels.safscale || 'Paid tier') + '</span>' +
         '</div>' +
         '<div class="stat-card">' +
             '<span class="stat-label">Most Popular Tier</span>' +
-            '<span class="stat-value">' + (stats.mostPopularTier?.displayName || 'â€”') + '</span>' +
+            '<span class="stat-value">' + (stats.mostPopularTier?.displayName || '—') + '</span>' +
             '<span class="stat-sub">' + (stats.mostPopularTier?.activeVendorCount || 0) + ' active vendor' + ((stats.mostPopularTier?.activeVendorCount || 0) === 1 ? '' : 's') + '</span>' +
         '</div>' +
         tierCard('safseed') + tierCard('safbloom') + tierCard('safscale') +
@@ -763,7 +727,7 @@ async function loadModalSubscriptionPayments(vendorUid) {
         const payments = []; snap.forEach((d) => payments.push(Object.assign({ id: d.id }, d.data())));
         if (!payments.length) { container.innerHTML = '<div class="empty-state">No subscription payments yet.</div>'; return; }
         const maskReference = (value) => { const s = String(value || ''); return s.length > 8 ? s.slice(0, 4) + '****' + s.slice(-4) : '********'; };
-        const rows = payments.map((p) => '<tr><td>' + (p.tier || 'â€”') + '</td><td>' + fmt(p.amount) + '</td><td>' + (p.billingCycle || 'â€”') + '</td><td>' + (p.status || 'â€”') + '</td><td>' + dateLabel(p.createdAt) + '</td><td>' + (p.reference || p.id) + '</td></tr>').join('');
+        const rows = payments.map((p) => '<tr><td>' + (p.tier || '—') + '</td><td>' + fmt(p.amount) + '</td><td>' + (p.billingCycle || '—') + '</td><td>' + (p.status || '—') + '</td><td>' + dateLabel(p.createdAt) + '</td><td>' + (p.reference || p.id) + '</td></tr>').join('');
         container.innerHTML = '<table class="admin-table"><thead><tr><th>Tier</th><th>Amount</th><th>Cycle</th><th>Status</th><th>Date</th><th>Reference</th></tr></thead><tbody>' + rows + '</tbody></table>';
     } catch (err) { container.innerHTML = '<div class="error-state">' + err.message + '</div>'; }
 }
@@ -773,26 +737,6 @@ async function adminPost(action, body) {
     const res = await fetch('/api/admin/marketplace/' + action, { method: 'POST', headers: { 'Content-Type': 'application/json', Authorization: 'Bearer ' + idToken }, body: JSON.stringify(body) });
     const json = await res.json(); if (!res.ok) throw new Error(json.error || 'Admin action failed'); return json;
 }
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 
 document.getElementById('modal-storefront-toggle-btn').addEventListener('click', async (event) => {
     const button = event.currentTarget; 
@@ -812,38 +756,6 @@ document.getElementById('modal-storefront-toggle-btn').addEventListener('click',
         button.disabled = false; 
     }
 });
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 
 async function setOverride(overrideActive, button) {
     button.disabled = true;
@@ -873,7 +785,7 @@ document.getElementById('subscription-reference-lookup-btn').addEventListener('c
         const payment = json.payment;
         const vendor = vendorSummaries.find((v) => v.vendorUid === json.vendorUid);
         const vendorLabel = vendor ? vendor.vendorFirstName + ' (' + vendor.email + ')' : json.vendorUid;
-        result.innerHTML = '<div class="payment-lookup-result"><strong>' + vendorLabel + '</strong><span>' + (payment.tier || 'â€”') + ' | ' + fmt(payment.amount) + ' | ' + (payment.billingCycle || 'â€”') + ' | ' + (payment.status || 'â€”') + ' | ' + dateLabel(payment.createdAt) + '</span><code>' + (payment.reference || payment.id) + '</code><button type="button" class="btn-action" id="lookup-open-vendor-btn">Open Vendor</button></div>';
+        result.innerHTML = '<div class="payment-lookup-result"><strong>' + vendorLabel + '</strong><span>' + (payment.tier || '—') + ' | ' + fmt(payment.amount) + ' | ' + (payment.billingCycle || '—') + ' | ' + (payment.status || '—') + ' | ' + dateLabel(payment.createdAt) + '</span><code>' + (payment.reference || payment.id) + '</code><button type="button" class="btn-action" id="lookup-open-vendor-btn">Open Vendor</button></div>';
         document.getElementById('lookup-open-vendor-btn').addEventListener('click', () => openVendorDetail(json.vendorUid));
     } catch (err) { result.innerHTML = '<div class="error-state">' + err.message + '</div>'; }
 });
@@ -884,8 +796,8 @@ document.getElementById('vendor-account-filter')?.addEventListener('change', run
 document.getElementById('vendor-subscription-filter')?.addEventListener('change', runVendorFilters);
 document.getElementById('audit-filter-btn')?.addEventListener('click', () => loadAuditLog(document.getElementById('audit-vendor-filter').value.trim()));
 document.getElementById('audit-clear-btn')?.addEventListener('click', () => { document.getElementById('audit-vendor-filter').value = ''; loadAuditLog(); });
-document.querySelector('.nav-item-btn[data-tab="activity-pane"]')?.addEventListener('click', () => loadAuditLog());
-document.querySelector('.nav-item-btn[data-tab="disputes-pane"]')?.addEventListener('click', loadAdminDisputes);
+document.querySelector('.page-tab[data-tab="activity-pane"]')?.addEventListener('click', () => loadAuditLog());
+document.querySelector('.page-tab[data-tab="disputes-pane"]')?.addEventListener('click', loadAdminDisputes);
 
 async function loadPayoutHistory() {
     const container = document.getElementById('payouts-list');

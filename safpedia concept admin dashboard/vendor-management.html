@@ -5,6 +5,8 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Vendor Management | SAFpedia Admin</title>
     <link rel="stylesheet" href="../users/css/ui-foundation.css">
+    <link rel="stylesheet" href="../users/css/student-dashboard.css">
+    <link rel="stylesheet" href="../users/css/nav-core.css">
     <link rel="stylesheet" href="assets/css/admin-vendor-management.css">
     <script type="module" src="https://unpkg.com/ionicons@7.1.0/dist/ionicons/ionicons.esm.js"></script>
     <script nomodule src="https://unpkg.com/ionicons@7.1.0/dist/ionicons/ionicons.js"></script>
@@ -17,50 +19,41 @@
             <ion-icon name="menu-outline" class="menu-icon"></ion-icon>
             <ion-icon name="close-outline" class="close-icon"></ion-icon>
         </button>
-        <div class="brand-logo">SAFpedia Admin</div>
+        <div class="brand-logo">SAFpedia</div>
     </div>
 
     <div class="sidebar-overlay" id="sidebar-overlay"></div>
 
     <div class="dashboard-layout">
-        <aside class="sidebar-panel" id="sidebar-panel">
-            <div class="brand-logo">SAFpedia Concept<span class="brand-subtitle">Admin Dashboard</span></div>
+        <!-- SIDEBAR — same 2 top-level admin sections as dashboard.html -->
+        <aside class="sidebar-panel">
+            <div class="brand-logo">SAFpedia<span class="brand-subtitle">Admin</span></div>
             <ul class="nav-group">
-                <li><a href="dashboard.html"><div class="nav-item-btn"><ion-icon name="grid-outline"></ion-icon><span class="nav-label">Main Dashboard</span></div></a></li>
-                <li><div class="nav-item-btn active" data-tab="overview-pane"><ion-icon name="stats-chart-outline"></ion-icon><span class="nav-label">Overview</span></div></li>
-                <li><div class="nav-item-btn" data-tab="vendors-pane"><ion-icon name="people-outline"></ion-icon><span class="nav-label">Vendors</span></div></li>
-                <li><div class="nav-item-btn" data-tab="products-pane"><ion-icon name="cube-outline"></ion-icon><span class="nav-label">Products</span></div></li>
-                <li><div class="nav-item-btn" data-tab="payouts-pane"><ion-icon name="cash-outline"></ion-icon><span class="nav-label">Payouts</span></div></li>
-                <li><div class="nav-item-btn" data-tab="activity-pane"><ion-icon name="time-outline"></ion-icon><span class="nav-label">Activity</span></div></li>
-                <li><div class="nav-item-btn" data-tab="disputes-pane"><ion-icon name="chatbubbles-outline"></ion-icon><span class="nav-label">Disputes</span></div></li>
-                <li><a href="dashboard.html"><div class="nav-item-btn"><ion-icon name="arrow-back-outline"></ion-icon><span class="nav-label">Back to Site</span></div></a></li>
+                <li><a href="dashboard.html"><div class="nav-item-btn"><ion-icon name="grid-outline"></ion-icon><span class="nav-label">Dashboard</span></div></a></li>
+                <li><a href="vendor-management.html"><div class="nav-item-btn active"><ion-icon name="storefront-outline"></ion-icon><span class="nav-label">Vendors</span></div></a></li>
             </ul>
-            <div class="sidebar-footer">
-                <div class="admin-avatar" id="admin-avatar-slot">A</div>
-                <div>
-                    <div id="admin-display-email">Admin Account</div>
-                    <a href="#" id="admin-logout-trigger">Sign Out</a>
-                </div>
-            </div>
         </aside>
 
         <main class="main-workspace-view">
 
-            <!-- Page header: title + notification mount + avatar (desktop) -->
-<!-- Page header: title + notification mount + avatar -->
-<header class="header page-header">
-    <div class="header-left-wrapper">
-        <button type="button" class="sidebar-toggle-btn desktop-toggle" id="desktop-sidebar-toggle" aria-label="Toggle sidebar">
-            <ion-icon name="menu-outline"></ion-icon>
-        </button>
-        <h1 class="page-title">Vendor Management</h1>
-    </div>
-    <div class="user-info" id="navbar">
-        <div class="nav-right">
-            <!-- notification-center mounts here via #navbar .nav-right -->
-        </div>
-    </div>
-</header>
+            <!-- DASHBOARD TOP BAR (title + notification + avatar) -->
+            <header class="dashboard-header top-nav">
+                <h1 class="page-title">Vendor Management</h1>
+                <div class="topbar-spacer"></div>
+                <div class="topbar-right" id="navbar">
+                    <div class="nav-right">
+                        <!-- notification-center mounts here via #navbar .nav-right -->
+                        <div class="user-menu">
+                            <button type="button" class="user-avatar-btn" id="admin-avatar-slot" aria-label="Account menu" aria-expanded="false">A</button>
+                            <div class="user-dropdown" id="user-dropdown" hidden>
+                                <div class="user-dropdown-email" id="admin-display-email">Admin Account</div>
+                                <a href="#" id="admin-logout-trigger" class="user-dropdown-logout">Sign Out</a>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </header>
+
             <!-- ACCESS DENIED -->
             <div id="access-denied" class="access-denied hidden">
                 <ion-icon name="lock-closed-outline"></ion-icon>
@@ -69,6 +62,28 @@
             </div>
 
             <div id="dashboard-content" class="hidden">
+
+                <!-- PAGE TAB BAR — replaces the old sidebar sub-items -->
+                <div class="page-tab-bar">
+                    <button type="button" class="page-tab active" data-tab="overview-pane">
+                        <ion-icon name="stats-chart-outline"></ion-icon> Overview
+                    </button>
+                    <button type="button" class="page-tab" data-tab="vendors-pane">
+                        <ion-icon name="people-outline"></ion-icon> Vendors
+                    </button>
+                    <button type="button" class="page-tab" data-tab="products-pane">
+                        <ion-icon name="cube-outline"></ion-icon> Products
+                    </button>
+                    <button type="button" class="page-tab" data-tab="payouts-pane">
+                        <ion-icon name="cash-outline"></ion-icon> Payouts
+                    </button>
+                    <button type="button" class="page-tab" data-tab="activity-pane">
+                        <ion-icon name="time-outline"></ion-icon> Activity
+                    </button>
+                    <button type="button" class="page-tab" data-tab="disputes-pane">
+                        <ion-icon name="chatbubbles-outline"></ion-icon> Disputes
+                    </button>
+                </div>
 
                 <!-- TAB 0: OVERVIEW -->
                 <section id="overview-pane" class="dashboard-section-card active-tab">
@@ -171,6 +186,7 @@
     </div>
 
     <script type="module" src="assets/js/admin-vendor-management.js"></script>
+    <script src="../users/js/nav-core.js"></script>
   <script type="module" src="/js/chatbot/chatbot-loader.js" defer></script>
 </body>
 </html>

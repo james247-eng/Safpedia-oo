@@ -36,8 +36,9 @@ module.exports = async (req, res) => {
 
 async function createDispute(req, res, admin, db, user) {
   const { reference, vendorUid, reason, buyerStatement } = req.body || {};
-  
-  // Storefront complaints are not tied to a particular order.
+
+  // Storefront complaints are not tied to a particular order, so there is
+  // no specific sale to pull a vendorAmount from — no payout hold applies here.
   if (!reference && vendorUid) {
     if (typeof vendorUid !== 'string' || !reason || !buyerStatement) {
       return res.status(400).json({ error: 'vendorUid, reason, and buyerStatement are required' });
@@ -47,29 +48,32 @@ async function createDispute(req, res, admin, db, user) {
     }
     const vendorSnap = await db.collection('user').doc(vendorUid).get();
     if (!vendorSnap.exists) return res.status(404).json({ error: 'Vendor not found' });
-    
+
     const now = admin.firestore.Timestamp.now();
     const ref = db.collection('disputes').doc();
-    
+
     const cleanReason = escapeHtml(reason.trim());
     const cleanStatement = escapeHtml(buyerStatement.trim());
 
-    await ref.set({ 
-      reference: null, 
-      buyerUid: user.uid, 
-      vendorUid, 
-      productId: null, 
-      status: 'open', 
-      reason: cleanReason, 
-      buyerStatement: cleanStatement, 
-      vendorStatement: null, 
-      adminNotes: [], 
-      resolution: null, 
-      createdAt: now, 
-      updatedAt: now, 
-      source: 'vendor_store' 
+    await ref.set({
+      reference: null,
+      buyerUid: user.uid,
+      vendorUid,
+      productId: null,
+      status: 'open',
+      reason: cleanReason,
+      buyerStatement: cleanStatement,
+      vendorStatement: null,
+      adminNotes: [],
+      resolution: null,
+      createdAt: now,
+      updatedAt: now,
+      source: 'vendor_store',
+      holdAmount: 0,
+      holdApplied: false,
+      holdReleased: false
     });
-    
+
     notifyVendorDispute(admin, db, vendorUid, 'storefront complaint', cleanReason).catch(() => {});
     return res.status(201).json({ success: true, complaintId: ref.id, status: 'open' });
   }
@@ -89,27 +93,52 @@ async function createDispute(req, res, admin, db, user) {
 
   const now = admin.firestore.Timestamp.now();
   const disputeRef = db.collection('disputes').doc();
-  
+
   const cleanReason = escapeHtml(reason.trim());
   const cleanStatement = escapeHtml(buyerStatement.trim());
 
-  await disputeRef.set({ 
-    reference: reference.trim(), 
-    buyerUid: user.uid, 
-    vendorUid: sale.vendorUid, // FIX: Ensure vendorUid is attached for seller dashboard filtering
-    productId: sale.productId || null, 
-    status: 'open', 
-    reason: cleanReason, 
-    buyerStatement: cleanStatement, 
-    vendorStatement: null, 
-    adminNotes: [], 
-    resolution: null, 
-    createdAt: now, 
-    updatedAt: now 
+  // Hold the vendor's earnings for this sale the moment the complaint is
+  // filed — deducted from pendingPayout immediately, released only if the
+  // dispute resolves in the vendor's favor (or is closed without fault),
+  // forfeited permanently if it resolves in the buyer's favor.
+  //
+  // pendingPayout is a single running balance, not itemized per sale, so
+  // this can legitimately push it negative if the vendor already withdrew
+  // the money for this specific sale — that's intentional. We can't claw
+  // back funds already transferred out via Paystack, so instead this simply
+  // blocks the vendor's future payout requests until the balance is repaid
+  // by other sales.
+  const holdAmount = typeof sale.vendorAmount === 'number' ? sale.vendorAmount : 0;
+  const vendorRef = db.collection('vendors').doc(sale.vendorUid);
+
+  await db.runTransaction(async (tx) => {
+    tx.set(disputeRef, {
+      reference: reference.trim(),
+      buyerUid: user.uid,
+      vendorUid: sale.vendorUid, // FIX: Ensure vendorUid is attached for seller dashboard filtering
+      productId: sale.productId || null,
+      status: 'open',
+      reason: cleanReason,
+      buyerStatement: cleanStatement,
+      vendorStatement: null,
+      adminNotes: [],
+      resolution: null,
+      createdAt: now,
+      updatedAt: now,
+      holdAmount,
+      holdApplied: holdAmount > 0,
+      holdReleased: false
+    });
+    if (holdAmount > 0) {
+      tx.set(vendorRef, {
+        pendingPayout: admin.firestore.FieldValue.increment(-holdAmount),
+        updatedAt: now
+      }, { merge: true });
+    }
   });
 
   notifyVendorDispute(admin, db, sale.vendorUid, reference.trim(), cleanReason).catch(() => {});
-  return res.status(201).json({ success: true, disputeId: disputeRef.id, status: 'open' });
+  return res.status(201).json({ success: true, disputeId: disputeRef.id, status: 'open', holdAmount });
 }
 
 async function respondToDispute(req, res, admin, db, user) {
@@ -117,15 +146,15 @@ async function respondToDispute(req, res, admin, db, user) {
   if (!disputeId || typeof vendorStatement !== 'string' || !vendorStatement.trim()) {
     return res.status(400).json({ error: 'disputeId and vendorStatement are required' });
   }
-  
+
   const ref = db.collection('disputes').doc(disputeId);
   const snap = await ref.get();
   if (!snap.exists) return res.status(404).json({ error: 'Dispute not found' });
-  
+
   const dispute = snap.data();
   if (dispute.vendorUid !== user.uid) return res.status(403).json({ error: 'You cannot respond to this dispute' });
   if (!['open', 'investigating'].includes(dispute.status)) return res.status(409).json({ error: 'This dispute is already resolved or closed' });
-  
+
   const now = admin.firestore.Timestamp.now();
   const cleanVendorStatement = escapeHtml(vendorStatement.trim());
 
@@ -146,14 +175,12 @@ async function notifyBuyerVendorResponse(admin, db, buyerUid, reference) {
 }
 
 async function listDisputes(req, res, db, user) {
-  console.log('[DISPUTE-DEBUG] authenticated user.uid:', user.uid);
   const status = typeof req.query.status === 'string' ? req.query.status.trim() : '';
-  
+
   const [buyerSnap, vendorSnap] = await Promise.all([
     db.collection('disputes').where('buyerUid', '==', user.uid).get(),
     db.collection('disputes').where('vendorUid', '==', user.uid).get()
   ]);
-  console.log('[DISPUTE-DEBUG] buyerSnap.size:', buyerSnap.size, 'vendorSnap.size:', vendorSnap.size);
 
   const map = new Map();
   const allDocs = [...buyerSnap.docs, ...vendorSnap.docs];

@@ -75,37 +75,31 @@ document.getElementById('logout-btn').addEventListener('click', async () => {
 
 // ====================================================================
 // NAVIGATION
+// Active-class toggling and showing/hiding the .dashboard-section-card
+// panes is now nav-core.js's job (it binds its own listener to every
+// [data-tab] element). This listener only owns what's specific to this
+// page: swapping the header title, and lazy-loading a section's data
+// the first time it's opened.
 // ====================================================================
-document.querySelectorAll('.nav-link').forEach(link => {
-  link.addEventListener('click', (e) => {
-    const section = e.currentTarget.dataset.section;
+document.querySelectorAll('.page-tab[data-tab]').forEach(tab => {
+  tab.addEventListener('click', () => {
+    const targetId = tab.dataset.tab;
 
-    // Real page-links (Blog, Vendors) have no data-section — let the
-    // browser navigate normally instead of trying to switch a tab that
-    // doesn't exist on this page.
-    if (!section) return;
-
-    document.querySelectorAll('.nav-link').forEach(l => l.classList.remove('active'));
-    e.currentTarget.classList.add('active');
-    
-    document.querySelectorAll('.content-section').forEach(s => s.classList.remove('active'));
-    document.getElementById(`${section}-section`).classList.add('active');
-    
     const titles = {
-      overview: 'Dashboard Overview',
-      courses: 'Course Management',
-      users: 'User Management',
-      sales: 'Sales & Transactions',
-      analytics: 'Analytics',
-      affiliates: 'Affiliate Program'
+      'overview-section': 'Dashboard Overview',
+      'courses-section': 'Course Management',
+      'users-section': 'User Management',
+      'sales-section': 'Sales & Transactions',
+      'analytics-section': 'Analytics',
+      'affiliates-section': 'Affiliate Program'
     };
-    document.getElementById('page-title').textContent = titles[section];
-    
-    if (section === 'courses') loadCourses();
-    if (section === 'users') loadUsers();
-    if (section === 'sales') loadSales();
-    if (section === 'analytics') loadAnalytics();
-    if (section === 'affiliates') loadAffiliates();
+    if (titles[targetId]) document.getElementById('page-title').textContent = titles[targetId];
+
+    if (targetId === 'courses-section') loadCourses();
+    if (targetId === 'users-section') loadUsers();
+    if (targetId === 'sales-section') loadSales();
+    if (targetId === 'analytics-section') loadAnalytics();
+    if (targetId === 'affiliates-section') loadAffiliates();
   });
 });
 

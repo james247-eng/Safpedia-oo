@@ -4,7 +4,6 @@
     --bg-primary: #f4f6fa;
     --bg-secondary: #ffffff;
     --bg-inset: #eef2f7;
-    --sidebar-bg: #ffffff;
     --text-main: #1e293b;
     --text-muted: #64748b;
     --border: #e2e8f0;
@@ -39,260 +38,30 @@ a {
 }
 
 /* ====================================================================
-   MOBILE TOP BAR
+   BRAND LOGO ADDITION
+   Shell (.dashboard-layout / .sidebar-panel / .mobile-topbar / .nav-group /
+   .nav-item-btn / .dashboard-header.top-nav / .user-menu / .user-dropdown /
+   .dashboard-section-card / .page-tab-bar) now all come from
+   student-dashboard.css and nav-core.css, same as every other page —
+   including dashboard.html admin. Only this small "Admin" tag next to
+   the shared .brand-logo is page-specific, matching that page exactly.
 ==================================================================== */
-.mobile-topbar {
-    display: none;
-    align-items: center;
-    gap: 14px;
-    padding: 14px 18px;
-    background: var(--bg-secondary);
-    border-bottom: 1px solid var(--border);
-    position: sticky;
-    top: 0;
-    z-index: 30;
-}
-
-.sidebar-toggle-btn {
-    background: none;
-    border: none;
-    cursor: pointer;
-    padding: 4px;
-    display: flex;
-    align-items: center;
-    font-size: 1.5rem;
-    color: var(--text-main);
-}
-
-.sidebar-toggle-btn .close-icon {
-    display: none;
-}
-.sidebar-toggle-btn.active .menu-icon {
-    display: none;
-}
-.sidebar-toggle-btn.active .close-icon {
-    display: inline;
-}
-
-.mobile-topbar .brand-logo {
+.brand-subtitle {
+    font-size: 10.5px;
     font-weight: 700;
-    font-size: 1.05rem;
     color: var(--color-primary);
-}
-
-/* Desktop header toggle */
-.desktop-toggle {
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    width: 40px;
-    height: 40px;
-    border: 1px solid var(--border);
-    border-radius: 8px;
-    background: var(--bg-secondary);
-    font-size: 1.15rem;
-    flex-shrink: 0;
-}
-.desktop-toggle:hover {
-    background: var(--bg-inset);
-    border-color: var(--border-strong);
-}
-
-/* ====================================================================
-   SIDEBAR OVERLAY
-==================================================================== */
-.sidebar-overlay {
-    display: none;
-    position: fixed;
-    inset: 0;
-    background: rgba(15, 23, 42, 0.3);
-    z-index: 35;
-}
-.sidebar-overlay.visible {
-    display: block;
-}
-
-/* ====================================================================
-   LAYOUT
-==================================================================== */
-.dashboard-layout {
-    display: flex;
-    min-height: 100vh;
-}
-
-/* Sidebar — light background panel */
-.sidebar-panel {
-    width: 264px;
-    flex-shrink: 0;
-    background: var(--sidebar-bg);
-    border-right: 1px solid var(--border);
-    display: flex;
-    flex-direction: column;
-    padding: 28px 16px;
-    position: fixed;
-    top: 0;
-    left: 0;
-    height: 100vh;
-    z-index: 40;
-    transform: translateX(-100%);
-    transition: transform 0.28s cubic-bezier(0.4, 0, 0.2, 1);
-    box-shadow: none;
-}
-
-.sidebar-panel.sidebar-open {
-    transform: translateX(0);
-    box-shadow: 8px 0 24px rgba(0, 0, 0, 0.08);
-}
-
-.sidebar-panel .brand-logo {
-    font-weight: 700;
-    font-size: 1.3rem;
-    letter-spacing: -0.3px;
-    color: var(--color-primary);
-    margin-bottom: 0;
-    padding: 4px 12px 20px;
-    border-bottom: 1px solid var(--border);
-}
-
-.sidebar-panel .brand-subtitle {
-    display: block;
-    font-size: 0.78rem;
-    font-weight: 500;
-    color: var(--text-muted);
-    margin-top: 4px;
-}
-
-.nav-group {
-    list-style: none;
-    margin: 20px 0 0;
-    padding: 0;
-    flex: 1;
-    display: flex;
-    flex-direction: column;
-    gap: 2px;
-}
-
-.nav-item-btn {
-    display: flex;
-    align-items: center;
-    gap: 12px;
-    padding: 10px 14px;
-    border-radius: 8px;
-    cursor: pointer;
-    color: var(--text-muted);
-    font-size: 0.845rem;
-    font-weight: 500;
-    margin-bottom: 0;
-    transition: background 0.15s ease-in-out, color 0.15s ease-in-out;
-    position: relative;
-}
-
-.nav-item-btn ion-icon {
-    font-size: 1.05rem;
-}
-
-.nav-item-btn:hover {
-    background: var(--bg-inset);
-    color: var(--color-primary);
-}
-
-.nav-item-btn.active {
     background: #eff6ff;
-    color: var(--color-primary);
-    font-weight: 600;
-    box-shadow: none;
-}
-
-.nav-item-btn.active::before {
-    content: "";
-    position: absolute;
-    left: -14px;
-    top: 6px;
-    bottom: 6px;
-    width: 3px;
-    background: var(--color-primary);
-    border-radius: 0 3px 3px 0;
-}
-
-.nav-item-btn.active ion-icon {
-    color: var(--color-primary);
-}
-
-.sidebar-footer {
-    display: flex;
-    align-items: center;
-    gap: 12px;
-    padding-top: 18px;
-    margin-top: 18px;
-    border-top: 1px solid var(--border);
-}
-
-.admin-avatar {
-    width: 36px;
-    height: 36px;
-    border-radius: 50%;
-    background: #dbeafe;
-    color: var(--color-primary);
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    font-weight: 700;
-    font-size: 14px;
-    flex-shrink: 0;
-}
-
-.sidebar-footer > div:last-child {
-    min-width: 0;
-    flex: 1;
-}
-
-.sidebar-footer #admin-display-email {
-    font-size: 0.8rem;
-    font-weight: 600;
-    color: var(--text-main);
-    overflow: hidden;
-    text-overflow: ellipsis;
-    white-space: nowrap;
-}
-
-.sidebar-footer a {
-    font-size: 0.74rem;
-    color: var(--text-muted);
-}
-.sidebar-footer a:hover {
-    color: var(--color-primary);
-}
-
-/* Main workspace */
-.main-workspace-view {
-    flex: 1;
-    padding: 24px 32px 40px;
-    max-width: 100%;
-    width: 100%;
-    overflow-x: hidden;
-    margin-left: 0;
+    padding: 2px 8px;
+    border-radius: 999px;
+    letter-spacing: 0.02em;
+    text-transform: uppercase;
 }
 
 /* ====================================================================
-   PAGE HEADER
+   PAGE TITLE
+   Genuinely page-specific text ("Vendor Management"), just sitting in
+   the shared header now instead of this page's own .header layout.
 ==================================================================== */
-.page-header.header {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    gap: 16px;
-    margin-bottom: 26px;
-    padding-bottom: 16px;
-    border-bottom: 1px solid var(--border);
-}
-
-.header-left-wrapper {
-    display: flex;
-    align-items: center;
-    gap: 14px;
-    min-width: 0;
-}
-
 .page-title {
     font-size: 21px;
     font-weight: 600;
@@ -301,32 +70,11 @@ a {
     letter-spacing: -0.3px;
 }
 
-.user-info {
-    display: flex;
-    align-items: center;
-    gap: 10px;
-    flex-shrink: 0;
-}
-
-.user-info .notification-center {
-    display: block;
-}
-
-.user-info .admin-avatar {
-    background: #dbeafe;
-    color: var(--color-primary);
-}
-
 /* ====================================================================
-   DASHBOARD SECTIONS
+   DASHBOARD SECTION TYPOGRAPHY
+   .dashboard-section-card itself (display toggling) is shared now —
+   these are additive typography rules layered on top of it.
 ==================================================================== */
-.dashboard-section-card {
-    display: none;
-}
-.dashboard-section-card.active-tab {
-    display: block;
-}
-
 .dashboard-section-card h2 {
     margin: 0 0 6px;
     font-size: 16px;
@@ -751,22 +499,6 @@ a {
    RESPONSIVE
 ==================================================================== */
 @media (max-width: 900px) {
-    .mobile-topbar {
-        display: flex;
-    }
-
-    .desktop-toggle {
-        display: none;
-    }
-
-    .main-workspace-view {
-        padding: 16px;
-    }
-
-    .page-header.header {
-        margin-bottom: 18px;
-    }
-
     .page-title {
         font-size: 17px;
     }

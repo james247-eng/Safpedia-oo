@@ -5,9 +5,6 @@
     --bg-primary: #f4f6fa;
     --bg-secondary: #ffffff;
     --bg-inset: #eef2f7;
-    --sidebar-bg: #ffffff;
-    --sidebar-bg-raised: #f8fafc;
-    --sidebar-active: #2563eb;
     --text-main: #1e293b;
     --text-muted: #64748b;
     --text-white: #ffffff;
@@ -49,238 +46,35 @@ body {
 }
 
 /* ====================================================================
-   2. DASHBOARD SHELL LAYOUT (SIDEBAR & CONTENT WRAPPERS)
+   2. BRAND LOGO ADDITION
+   Shell (.dashboard-layout / .sidebar-panel / .mobile-topbar / .nav-group /
+   .nav-item-btn / .dashboard-header.top-nav / .user-menu / .user-dropdown /
+   .dashboard-section-card) now all come from student-dashboard.css and
+   nav-core.css, same as every other page. Only this small "Admin" tag
+   next to the shared .brand-logo is page-specific.
    ==================================================================== */
-
-.admin-container {
-    display: flex;
-    min-height: 100vh;
-}
-
-.admin-container img {
-    width: 50px;
-}
-
-/* Sidebar — light theme background */
-.sidebar {
-    width: 264px;
-    background-color: var(--sidebar-bg);
-    color: var(--text-main);
-    padding: 28px 16px;
-    display: flex;
-    flex-direction: column;
-    position: fixed;
-    height: 100vh;
-    left: 0;
-    top: 0;
-    z-index: 100;
-    transform: translateX(-100%);
-    transition: transform 0.28s cubic-bezier(0.4, 0, 0.2, 1);
-    border-right: 1px solid var(--border-color);
-    box-shadow: none;
-}
-
-.sidebar.active {
-    transform: translateX(0);
-    box-shadow: 8px 0 24px rgba(0, 0, 0, 0.08);
-}
-
-/* Overlay when sidebar is open */
-.sidebar-overlay {
-    display: none;
-    position: fixed;
-    inset: 0;
-    background: rgba(15, 23, 42, 0.3);
-    z-index: 90;
-}
-
-.sidebar-overlay.open {
-    display: block;
-}
-
-.sidebar-header {
-    padding: 4px 12px 24px 12px;
-    border-bottom: 1px solid var(--border-color);
-    margin-bottom: 20px;
-}
-
-.sidebar-header h2 {
-    font-size: 21px;
+.brand-subtitle {
+    font-size: 10.5px;
     font-weight: 700;
     color: var(--color-primary);
-    letter-spacing: -0.4px;
-}
-
-.sidebar-header p {
-    font-size: 12.5px;
-    color: var(--text-muted);
-    margin-top: 4px;
-    font-weight: 500;
-}
-
-.nav-menu {
-    list-style: none;
-    display: flex;
-    flex-direction: column;
-    gap: 2px;
-}
-
-.nav-link {
-    display: flex;
-    align-items: center;
-    gap: 12px;
-    padding: 10px 14px;
-    color: var(--text-muted);
-    text-decoration: none;
-    border-radius: var(--radius-md);
-    cursor: pointer;
-    font-size: 13.5px;
-    font-weight: 500;
-    transition: background 0.15s ease, color 0.15s ease;
-    position: relative;
-}
-
-.nav-link:hover {
-    background-color: var(--bg-inset);
-    color: var(--color-primary);
-}
-
-.nav-link.active {
-    background-color: #eff6ff;
-    color: var(--color-primary);
-    font-weight: 600;
-}
-
-.nav-link.active::before {
-    content: "";
-    position: absolute;
-    left: -16px;
-    top: 8px;
-    bottom: 8px;
-    width: 3px;
-    background: var(--color-primary);
-    border-radius: 0 3px 3px 0;
-}
-
-.nav-icon {
-    display: flex;
-    align-items: center;
-    font-size: 17px;
-    flex-shrink: 0;
-}
-
-.nav-link.active .nav-icon {
-    color: var(--color-primary);
-}
-
-/* Main content — full width */
-.main-content {
-    flex: 1;
-    margin-left: 0;
-    padding: 28px 36px 48px;
-    max-width: 100%;
-    width: 100%;
+    background: #eff6ff;
+    padding: 2px 8px;
+    border-radius: 999px;
+    letter-spacing: 0.02em;
+    text-transform: uppercase;
 }
 
 /* ====================================================================
-   3. CONTENT HEADER & GLOBAL COMPONENTS
+   3. PAGE HEADER TITLE
+   The dynamic "Dashboard Overview" / "Course Management" / etc. heading —
+   genuinely admin-specific content, just sitting inside the shared header
+   now rather than admin's own .header/.header-left-wrapper layout.
    ==================================================================== */
-.header {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    margin-bottom: 28px;
-    padding-bottom: 18px;
-    border-bottom: 1px solid var(--border-color);
-    gap: 16px;
-}
-
-.header-left-wrapper {
-    display: flex;
-    align-items: center;
-    gap: 14px;
-    min-width: 0;
-}
-
 #page-title {
     font-size: 21px;
     font-weight: 600;
     color: var(--text-main);
     letter-spacing: -0.3px;
-}
-
-/* Toggle always visible */
-.mobile-menu-btn {
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    background: var(--bg-secondary);
-    border: 1px solid var(--border-color);
-    padding: 8px 12px;
-    border-radius: var(--radius-md);
-    font-size: 17px;
-    cursor: pointer;
-    color: var(--text-main);
-    flex-shrink: 0;
-    transition: background 0.15s ease, border-color 0.15s ease;
-}
-
-.mobile-menu-btn:hover {
-    background: var(--bg-inset);
-    border-color: var(--border-strong);
-}
-
-/* Right side: notification + avatar + logout */
-.user-info {
-    display: flex;
-    align-items: center;
-    gap: 10px;
-    flex-shrink: 0;
-}
-
-.user-info .notification-center {
-    display: block;
-}
-
-.user-avatar {
-    width: 36px;
-    height: 36px;
-    background-color: #dbeafe;
-    color: var(--color-primary);
-    border-radius: 50%;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    font-weight: 700;
-    font-size: 14px;
-    flex-shrink: 0;
-}
-
-.logout-btn {
-    background: none;
-    border: 1px solid var(--border-color);
-    padding: 8px 16px;
-    font-size: 13px;
-    font-weight: 600;
-    color: var(--text-muted);
-    border-radius: var(--radius-md);
-    cursor: pointer;
-    transition: all 0.15s ease;
-}
-
-.logout-btn:hover {
-    color: var(--color-danger);
-    border-color: var(--color-danger);
-    background-color: var(--color-danger-bg);
-}
-
-/* Content Sections Visibility Management */
-.content-section {
-    display: none;
-}
-
-.content-section.active {
-    display: block;
 }
 
 /* ====================================================================
@@ -775,9 +569,6 @@ tr:last-child td {
    8. MEDIA QUERIES
    ==================================================================== */
 @media (max-width: 768px) {
-    .main-content {
-        padding: 22px 16px 40px;
-    }
     .form-row {
         grid-template-columns: 1fr;
         gap: 22px;
