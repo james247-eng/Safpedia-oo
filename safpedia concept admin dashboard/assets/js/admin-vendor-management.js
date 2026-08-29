@@ -505,6 +505,46 @@ function runVendorFilters() {
     if (count) count.textContent = `${filtered.length} vendor${filtered.length === 1 ? '' : 's'}`;
 }
 
+const auditActionLabels = {
+    suspend_product: 'Suspended product',
+    reactivate_product: 'Reactivated product',
+    suspend_vendor: 'Suspended vendor',
+    reactivate_vendor: 'Reactivated vendor',
+    set_subscription_override: 'Granted subscription override',
+    clear_subscription_override: 'Removed subscription override',
+    add_dispute_note: 'Added internal dispute note',
+    resolve_dispute: 'Resolved dispute',
+    resolve_dispute_refund_failed: 'Dispute refund failed'
+};
+
+function describeAuditAction(e) {
+    if (e.action === 'toggle_storefront') return e.details?.newStorefrontActive ? 'Enabled storefront' : 'Disabled storefront';
+    if (e.action === 'resolve_dispute') {
+        if (e.details?.resolution === 'resolved_buyer') return "Resolved dispute in buyer\u2019s favor";
+        if (e.details?.resolution === 'resolved_vendor') return "Resolved dispute in vendor\u2019s favor";
+        if (e.details?.resolution === 'closed') return 'Closed dispute';
+    }
+    return auditActionLabels[e.action] || (e.action || 'Unknown action').replace(/_/g, ' ');
+}
+
+function auditActionBadgeClass(e) {
+    if (['suspend_product', 'suspend_vendor', 'resolve_dispute_refund_failed'].includes(e.action)) return 'inactive';
+    if (['reactivate_product', 'reactivate_vendor', 'set_subscription_override'].includes(e.action)) return 'resolved';
+    if (e.action === 'resolve_dispute') return e.details?.resolution === 'resolved_buyer' || e.details?.resolution === 'resolved_vendor' ? 'resolved' : 'dispute-closed';
+    return 'open';
+}
+
+function describeAuditTarget(e) {
+    const parts = [];
+    if (e.vendorName) {
+        const emailPart = e.vendorEmail && e.vendorEmail !== '\u2014' ? ' <span class="table-subtext">(' + escapeHtml(e.vendorEmail) + ')</span>' : '';
+        parts.push(escapeHtml(e.vendorName) + emailPart);
+    }
+    if (e.productTitle) parts.push(escapeHtml(e.productTitle));
+    if (e.disputeReference) parts.push('Order <code>' + escapeHtml(e.disputeReference) + '</code>');
+    return parts.length ? parts.join(' &middot; ') : '<span class="table-subtext">\u2014</span>';
+}
+
 async function loadAuditLog(vendorUid = '') {
     const container = document.getElementById('audit-log-list');
     container.innerHTML = '<div class="loading-placeholder">Loading activity...</div>';
@@ -517,7 +557,12 @@ async function loadAuditLog(vendorUid = '') {
         if (!json.entries.length) { container.innerHTML = '<div class="empty-state">No admin activity found.</div>'; return; }
         const rows = json.entries.map((e) => {
             const d = e.createdAt && e.createdAt._seconds ? new Date(e.createdAt._seconds * 1000).toLocaleString() : (e.createdAt?.seconds ? new Date(e.createdAt.seconds * 1000).toLocaleString() : '');
-            return '<tr><td>' + (e.adminEmail || e.adminUid) + '</td><td>' + e.action + '</td><td>' + (e.vendorUid || '') + (e.productId ? ' / ' + e.productId : '') + '</td><td>' + d + '</td></tr>';
+            return '<tr>' +
+                '<td>' + escapeHtml(e.adminEmail || e.adminUid) + '</td>' +
+                '<td><span class="status-badge ' + auditActionBadgeClass(e) + '">' + escapeHtml(describeAuditAction(e)) + '</span></td>' +
+                '<td>' + describeAuditTarget(e) + '</td>' +
+                '<td>' + escapeHtml(d) + '</td>' +
+            '</tr>';
         }).join('');
         container.innerHTML = '<table class="admin-table"><thead><tr><th>Admin</th><th>Action</th><th>Target</th><th>Timestamp</th></tr></thead><tbody>' + rows + '</tbody></table>';
     } catch (err) { container.innerHTML = '<div class="error-state">' + err.message + '</div>'; }

@@ -347,7 +347,60 @@ async function handleGetAuditLog(req, res, db) {
   let q = db.collection('adminAuditLog');
   if (vendorUid) q = q.where('vendorUid', '==', vendorUid);
   const snap = await q.orderBy('createdAt', 'desc').limit(200).get();
-  return res.status(200).json({ success: true, entries: snap.docs.map((d) => ({ id: d.id, ...d.data() })) });
+  const entries = snap.docs.map((d) => ({ id: d.id, ...d.data() }));
+  const enriched = await enrichAuditLogEntries(db, entries);
+  return res.status(200).json({ success: true, entries: enriched });
+}
+
+/**
+ * Attaches human-readable labels to each raw audit log entry so the Activity
+ * pane never has to show a bare Firestore UID — vendor name/email, product
+ * title, and (for dispute-related actions) the order reference in place of
+ * a bare disputeId. Looks up each unique id once via Promise.all rather than
+ * once per entry, same pattern as enrichDisputesWithLabels above.
+ */
+async function enrichAuditLogEntries(db, entries) {
+  const vendorUids = [...new Set(entries.map((e) => e.vendorUid).filter(Boolean))];
+  const productIds = [...new Set(entries.map((e) => e.productId).filter(Boolean))];
+  const disputeIds = [...new Set(entries.map((e) => e.details?.disputeId).filter(Boolean))];
+
+  const [vendorUserDocs, vendorDocs, productDocs, disputeDocs] = await Promise.all([
+    Promise.all(vendorUids.map((uid) => db.collection('user').doc(uid).get())),
+    Promise.all(vendorUids.map((uid) => db.collection('vendors').doc(uid).get())),
+    Promise.all(productIds.map((id) => db.collection('vendorProducts').doc(id).get())),
+    Promise.all(disputeIds.map((id) => db.collection('disputes').doc(id).get()))
+  ]);
+
+  const vendorMap = new Map();
+  vendorUids.forEach((uid, i) => {
+    const userData = vendorUserDocs[i].exists ? vendorUserDocs[i].data() : null;
+    const vendorData = vendorDocs[i].exists ? vendorDocs[i].data() : null;
+    const email = userData?.email || null;
+    const name = vendorData?.vendorFirstName || userData?.firstName || userData?.displayName || (email ? email.split('@')[0] : null);
+    vendorMap.set(uid, { name: name || 'Unknown vendor', email: email || '\u2014' });
+  });
+
+  const productMap = new Map();
+  productIds.forEach((id, i) => {
+    const snap = productDocs[i];
+    productMap.set(id, snap.exists ? (snap.data().title || 'Untitled product') : 'Deleted product');
+  });
+
+  const disputeMap = new Map();
+  disputeIds.forEach((id, i) => {
+    const snap = disputeDocs[i];
+    disputeMap.set(id, snap.exists ? (snap.data().reference || 'Storefront complaint') : 'Deleted dispute');
+  });
+
+  return entries.map((e) => {
+    const vendor = e.vendorUid ? (vendorMap.get(e.vendorUid) || { name: 'Unknown vendor', email: '\u2014' }) : null;
+    return Object.assign({}, e, {
+      vendorName: vendor ? vendor.name : null,
+      vendorEmail: vendor ? vendor.email : null,
+      productTitle: e.productId ? (productMap.get(e.productId) || e.productId) : null,
+      disputeReference: e.details?.disputeId ? (disputeMap.get(e.details.disputeId) || null) : null
+    });
+  });
 }
 
 async function writeAdminAuditLog(db, admin, adminUser, entry) {
