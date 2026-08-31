@@ -12,7 +12,7 @@ import {
 } from 'https://www.gstatic.com/firebasejs/12.17.1/firebase-firestore.js';
 
 function getNotificationsCollection(userUid) {
-  return collection(db, 'users', userUid, 'notifications');
+  return collection(db, 'user', userUid, 'notifications');
 }
 
 export async function sendInAppNotification(

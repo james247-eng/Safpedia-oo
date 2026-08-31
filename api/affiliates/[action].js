@@ -1,3 +1,5 @@
+// api/affiliates/[action].js
+
 const crypto = require('crypto');
 const { getFirebaseAdmin } = require('../../lib/firebase-admin');
 const { requireAdmin, getAuthedUser } = require('../../lib/auth');

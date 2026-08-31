@@ -1,6 +1,5 @@
 // ====================================================================
-// AFFILIATE DASHBOARD - Student-facing affiliate program page
-// Tech Wizards Academy
+// AFFILIATE DASHBOARD - 
 // Reads affiliate status/stats directly from Firestore (fast, no cold-start wait).
 // Writes (apply, add bank account, request payout) go through the serverless
 // functions, since those need the Paystack secret key server-side.
