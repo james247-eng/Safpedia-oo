@@ -1,3 +1,5 @@
+// js/auth.js
+
 import { auth, db } from '/firebase-config.js'; // Centralized shared instance
 import { getAnalytics } from "https://www.gstatic.com/firebasejs/12.17.1/firebase-analytics.js";
 import { doc, setDoc, getDoc } from "https://www.gstatic.com/firebasejs/12.17.1/firebase-firestore.js";
@@ -14,7 +16,7 @@ import './notification-center.js';
 
 // ⚠️ Point this at wherever you add the 'send-verification-email'
 // case in your consolidated auth API route (e.g. /api/auth/[action].js)
-const VERIFICATION_ENDPOINT = '/api/auth/send-verification-email';
+const VERIFICATION_ENDPOINT = '/api/utils/send-verification-email';
 
 /**
  * Asks the backend to generate the Firebase verification link AND send

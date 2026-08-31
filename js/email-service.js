@@ -2,6 +2,7 @@
 import emailjs from 'https://cdn.jsdelivr.net/npm/@emailjs/browser@4/dist/email.min.js';
 
 // Configuration constants - Replace with your actual EmailJS IDs
+
 const EMAILJS_SERVICE_ID = 'service_121xb34';
 const EMAILJS_TEMPLATE_ID = 'template_und2q98';
 const EMAILJS_PUBLIC_KEY = '1CglFCDiNLYkK41a-';

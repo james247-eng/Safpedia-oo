@@ -1,7 +1,34 @@
+// api/utils/[action].js
+
 const { getFirebaseAdmin } = require('../../lib/firebase-admin');
 
 const EMAILJS_ENDPOINT = 'https://api.emailjs.com/api/v1.0/email/send';
 const DEFAULT_ACTION_URL = process.env.APP_URL || 'https://safpedia-oo.vercel.app';
+
+/**
+ * Consolidated utils router — one Vercel serverless function serving
+ * shared routes via the [action] dynamic segment.
+ *
+ *   POST /api/utils/send-verification-email  -> handleSendVerificationEmail
+ *
+ * sendEmail, sendNotification, and getRecipient remain as named exports
+ * below — they are imported directly by marketplace/[action].js,
+ * vendors/[action].js, and marketplace/webhook.js as internal helpers,
+ * not called over HTTP. Only send-verification-email is a real route.
+ */
+module.exports = async (req, res) => {
+  const { action } = req.query;
+
+  if (req.method !== 'POST') {
+    return res.status(405).json({ error: 'Method not allowed' });
+  }
+
+  if (action === 'send-verification-email') {
+    return await handleSendVerificationEmail(req, res);
+  }
+
+  return res.status(404).json({ error: `Unknown route: ${req.method} ${action}` });
+};
 
 async function sendEmail({ toEmail, toName, subject, headline, bodyContent, actionUrl, actionText }) {
   if (!toEmail) {
@@ -109,13 +136,10 @@ async function getRecipient(admin, db, uid, profileCollections = []) {
 // AND sends it via the sendEmail() helper above, in one call. Private
 // key never leaves the server, one network hop from the client.
 //
-// Wire this into whichever route handles your 'action' dispatch, e.g.:
-//   if (action === 'send-verification-email') {
-//     return handleSendVerificationEmail(req, res);
-//   }
+// Wired at: POST /api/utils/send-verification-email (see router above)
 // ====================================================================
 async function handleSendVerificationEmail(req, res) {
-  const { email, name } = req.body;
+  const { email, name } = req.body || {};
 
   if (!email) {
     return res.status(400).json({ error: 'Email is required.' });
@@ -152,4 +176,7 @@ async function handleSendVerificationEmail(req, res) {
   }
 }
 
-module.exports = { sendEmail, sendNotification, getRecipient, handleSendVerificationEmail };
+module.exports.sendEmail = sendEmail;
+module.exports.sendNotification = sendNotification;
+module.exports.getRecipient = getRecipient;
+module.exports.handleSendVerificationEmail = handleSendVerificationEmail;
