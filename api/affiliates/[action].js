@@ -1,8 +1,11 @@
-// api/affiliates/[action].js
+// api/affiliates
 
 const crypto = require('crypto');
 const { getFirebaseAdmin } = require('../../lib/firebase-admin');
 const { requireAdmin, getAuthedUser } = require('../../lib/auth');
+const { sendEmail, sendNotification, getRecipient } = require('../utils/[action]');
+
+const APP_URL = process.env.APP_URL || 'https://safpedia-oo.vercel.app';
 
 function generateReferralCode(seed) {
   const base = (seed || 'AFF').replace(/[^a-zA-Z]/g, '').toUpperCase().slice(0, 6) || 'AFF';
@@ -119,6 +122,8 @@ async function handleApprove(req, res, admin, db) {
         updatedAt: admin.firestore.Timestamp.now()
       }, { merge: true });
 
+      await notifyAffiliateApplicationDecision({ admin, db, affiliateUid, status: 'rejected' });
+
       return res.status(200).json({ success: true, status: 'rejected' });
     }
 
@@ -147,6 +152,8 @@ async function handleApprove(req, res, admin, db) {
       { isAffiliate: true, updatedAt: admin.firestore.Timestamp.now() },
       { merge: true }
     );
+
+    await notifyAffiliateApplicationDecision({ admin, db, affiliateUid, status: 'approved', code, commissionRate });
 
     return res.status(200).json({ success: true, status: 'approved', code, commissionRate });
   } catch (err) {
@@ -223,6 +230,8 @@ async function handleCreateAccount(req, res, admin, db) {
       { isAffiliate: true, updatedAt: admin.firestore.Timestamp.now() },
       { merge: true }
     );
+
+    await notifyAffiliateApplicationDecision({ admin, db, affiliateUid: uid, status: 'approved', code, commissionRate });
 
     return res.status(200).json({ success: true, affiliate: affiliateData });
   } catch (err) {
@@ -448,6 +457,41 @@ async function handleRequestPayout(req, res, admin, db) {
   } catch (err) {
     console.error('request-payout error:', err);
     return res.status(err.statusCode || 500).json({ error: err.message });
+  }
+}
+
+async function notifyAffiliateApplicationDecision({ admin, db, affiliateUid, status, code, commissionRate }) {
+  try {
+    const recipient = await getRecipient(admin, db, affiliateUid, ['user', 'affiliates']);
+    const dashboardLink = `${APP_URL}/users/affiliate-page.html`;
+
+    const approved = status === 'approved';
+    const commissionPct = approved && typeof commissionRate === 'number' ? Math.round(commissionRate * 100) : null;
+
+    await Promise.all([
+      sendEmail({
+        toEmail: recipient.email,
+        toName: recipient.name,
+        subject: approved ? 'Your affiliate application was approved!' : 'Update on your affiliate application',
+        headline: approved ? 'Welcome to the Affiliate Program! 🎉' : 'Affiliate Application Update',
+        bodyContent: approved
+          ? `Congratulations! Your affiliate application has been approved. Your referral code is ${code}, and you'll earn ${commissionPct}% commission on sales made through your link.`
+          : 'Your affiliate application was not approved at this time. You are welcome to reach out to support for more information.',
+        actionUrl: dashboardLink,
+        actionText: approved ? 'View Affiliate Dashboard' : 'Contact Support'
+      }),
+      sendNotification({
+        recipientUid: affiliateUid,
+        title: approved ? 'Affiliate application approved' : 'Affiliate application rejected',
+        message: approved
+          ? `You're approved! Referral code: ${code} (${commissionPct}% commission).`
+          : 'Your affiliate application was not approved.',
+        link: dashboardLink,
+        type: approved ? 'affiliate_approved' : 'affiliate_rejected'
+      })
+    ]);
+  } catch (error) {
+    console.error('Affiliate application decision notifications failed (non-blocking):', error.message);
   }
 }
 
