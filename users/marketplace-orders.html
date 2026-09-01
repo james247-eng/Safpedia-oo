@@ -14,7 +14,7 @@
 <body>
 
     <div class="mobile-topbar">
-        <button class="sidebar-toggle-btn" id="sidebar-toggle-btn">
+        <button class="sidebar-toggle-btn" id="sidebar-toggle-btn" type="button" aria-label="Toggle menu">
             <ion-icon name="menu-outline" class="menu-icon"></ion-icon>
             <ion-icon name="close-outline" class="close-icon"></ion-icon>
         </button>
@@ -24,28 +24,40 @@
     <div class="sidebar-overlay" id="sidebar-overlay"></div>
 
     <div class="dashboard-layout">
-        <!-- SIDEBAR NAVIGATION PANEL — 3 top-level sections + Browse -->
         <aside class="sidebar-panel">
             <div class="brand-logo">SAFpedia</div>
             <ul class="nav-group">
-                <li><a href="dashboard.html"><div class="nav-item-btn active"><ion-icon name="grid-outline"></ion-icon><span class="nav-label">Dashboard</span></div></a></li>
-                <li><a href="affiliate.html"><div class="nav-item-btn"><ion-icon name="cash-outline"></ion-icon><span class="nav-label">Affiliate</span></div></a></li>
-                <li><a href="sellers-page.html"><div class="nav-item-btn"><ion-icon name="storefront-outline"></ion-icon><span class="nav-label">Sell on SAFpedia</span></div></a></li>
+                <li>
+                    <a href="dashboard.html">
+                        <div class="nav-item-btn"><ion-icon name="grid-outline"></ion-icon><span class="nav-label">Dashboard</span></div>
+                    </a>
+                </li>
+                <li>
+                    <a href="affiliate.html">
+                        <div class="nav-item-btn"><ion-icon name="cash-outline"></ion-icon><span class="nav-label">Affiliate</span></div>
+                    </a>
+                </li>
+                <li>
+                    <a href="sellers-page.html">
+                        <div class="nav-item-btn"><ion-icon name="storefront-outline"></ion-icon><span class="nav-label">Sell on SAFpedia</span></div>
+                    </a>
+                </li>
             </ul>
             <div class="nav-section-label">Browse</div>
             <ul class="nav-group">
-                <li><a href="../all-courses.html"><div class="nav-item-btn"><ion-icon name="book-outline"></ion-icon><span class="nav-label">Digital Library</span></div></a></li>
+                <li>
+                    <a href="../all-courses.html">
+                        <div class="nav-item-btn"><ion-icon name="book-outline"></ion-icon><span class="nav-label">Digital Library</span></div>
+                    </a>
+                </li>
             </ul>
         </aside>
 
         <main class="main-workspace-view">
-
-            <!-- DASHBOARD TOP BAR (notification + avatar) -->
             <header class="dashboard-header top-nav">
                 <div class="topbar-spacer"></div>
                 <div class="topbar-right" id="navbar">
                     <div class="nav-right">
-                        <!-- notification-center.js mounts the bell here -->
                         <div class="user-menu">
                             <button type="button" class="user-avatar-btn" id="buyer-avatar-slot" aria-label="Account menu" aria-expanded="false">
                                 U
@@ -59,9 +71,6 @@
                 </div>
             </header>
 
-            <!-- PAGE TAB BAR — same set as dashboard.html. This page IS
-                 "Marketplace Orders", so that one is marked active and the
-                 other two are plain links back to dashboard.html's tabs. -->
             <div class="page-tab-bar">
                 <a href="dashboard.html#library-pane" class="page-tab">
                     <ion-icon name="grid-outline"></ion-icon> My Courses
@@ -75,19 +84,63 @@
             </div>
 
             <section class="dashboard-section-card active-tab">
-                <!-- <h3>My Marketplace Orders</h3> -->
                 <p>Everything you've purchased from SAFpedia vendors — separate from your course purchases.</p>
-
                 <div id="orders-list" class="data-table-frame">
                     <div class="loading-placeholder">Loading your orders...</div>
                 </div>
             </section>
-            <div id="dispute-modal" class="modal-overlay hidden"><div class="modal-box"><button type="button" id="dispute-modal-close">&times;</button><h3>Report a problem</h3><form id="dispute-form"><label>Reason<select id="dispute-reason" required><option value="">Select a reason</option><option value="item_not_received">Item not received</option><option value="item_not_as_described">Item not as described</option><option value="digital_access_problem">Digital access problem</option><option value="other">Other</option></select></label><label>What happened?<textarea id="dispute-statement" rows="5" required></textarea></label><div id="dispute-form-message"></div><button type="submit" class="btn btn-primary">Submit dispute</button></form></div></div>
-            
         </main>
     </div>
+
+    <!-- Create dispute modal -->
+    <div id="dispute-modal" class="modal-overlay hidden" role="dialog" aria-modal="true" aria-labelledby="dispute-modal-title">
+        <div class="modal-box">
+            <div class="modal-header">
+                <h3 id="dispute-modal-title">Report a problem</h3>
+                <button type="button" id="dispute-modal-close" class="modal-close-btn" aria-label="Close">&times;</button>
+            </div>
+            <form id="dispute-form" class="modal-body">
+                <div class="modal-field">
+                    <label for="dispute-reason">Reason</label>
+                    <select id="dispute-reason" required>
+                        <option value="">Select a reason</option>
+                        <option value="item_not_received">Item not received</option>
+                        <option value="item_not_as_described">Item not as described</option>
+                        <option value="digital_access_problem">Digital access problem</option>
+                        <option value="other">Other</option>
+                    </select>
+                </div>
+                <div class="modal-field">
+                    <label for="dispute-statement">What happened?</label>
+                    <textarea id="dispute-statement" rows="5" required placeholder="Describe the issue clearly so we can help resolve it."></textarea>
+                </div>
+                <div id="dispute-form-message" class="modal-form-message" role="alert"></div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" id="dispute-modal-cancel">Cancel</button>
+                    <button type="submit" class="btn btn-primary">Submit dispute</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Dispute details modal -->
+    <div id="dispute-details-modal" class="modal-overlay hidden" role="dialog" aria-modal="true" aria-labelledby="dispute-details-title">
+        <div class="modal-box modal-box-details">
+            <div class="modal-header">
+                <h3 id="dispute-details-title">Dispute details</h3>
+                <button type="button" id="dispute-details-close" class="modal-close-btn" aria-label="Close">&times;</button>
+            </div>
+            <div class="modal-body">
+                <div id="dispute-details-content"></div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" id="dispute-details-done">Close</button>
+            </div>
+        </div>
+    </div>
+
     <script type="module" src="js/marketplace-orders.js"></script>
     <script src="js/nav-core.js"></script>
-  <script type="module" src="/js/chatbot/chatbot-loader.js" defer></script>
+    <script type="module" src="/js/chatbot/chatbot-loader.js" defer></script>
 </body>
 </html>

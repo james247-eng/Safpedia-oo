@@ -1,118 +1,281 @@
 /* students/css/marketplace-orders.css */
 
-/*
-  Deliberately minimal — this page reuses .data-table-frame, .empty-state,
-  .error-state, .loading-placeholder, .nav-item-btn, .student-profile-avatar
-  etc. from student-dashboard.css. Only adding what's new below.
-*/
-
-.download-btn {
-    white-space: nowrap;
+/* ---------- Order table action stack ---------- */
+.order-action-stack {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 8px;
 }
 
+.order-status-text {
+  font-size: 13px;
+  color: var(--ink-soft, #5b6472);
+  line-height: 1.4;
+}
+
+.download-btn,
+.view-dispute-btn,
+.dispute-btn {
+  white-space: nowrap;
+}
+
+/* ---------- Modal shell ---------- */
 .hidden {
-    display: none !important;
+  display: none !important;
 }
 
 .modal-overlay {
-    position: fixed;
-    inset: 0;
-    z-index: 1000;
-    display: grid;
-    place-items: center;
-    padding: 20px;
-    background: rgba(11, 17, 32, 0.62);
+  position: fixed;
+  inset: 0;
+  z-index: 1000;
+  display: grid;
+  place-items: center;
+  padding: 20px;
+  background: rgba(11, 17, 32, 0.62);
 }
 
 .modal-box {
-    width: min(520px, 100%);
-    padding: 24px;
-    border-radius: 14px;
-    background: #fff;
-    box-shadow: 0 20px 50px rgba(11, 17, 32, 0.2);
+  width: min(520px, 100%);
+  max-height: min(90vh, 760px);
+  display: flex;
+  flex-direction: column;
+  border-radius: 14px;
+  background: #fff;
+  box-shadow: 0 20px 50px rgba(11, 17, 32, 0.22);
+  overflow: hidden;
 }
 
-.modal-box > button:first-child {
-    float: right;
-    border: 0;
-    background: transparent;
-    font-size: 24px;
-    cursor: pointer;
+.modal-box-details {
+  width: min(560px, 100%);
 }
 
-.dispute-status-trigger {
-    cursor: pointer;
+.modal-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  padding: 18px 22px;
+  border-bottom: 1px solid var(--border, #e7eaf2);
+  flex-shrink: 0;
 }
 
-.dispute-status-trigger:focus-visible {
-    outline: 2px solid var(--blue);
-    outline-offset: 2px;
+.modal-header h3 {
+  margin: 0;
+  font-family: 'Space Grotesk', sans-serif;
+  font-size: 18px;
+  font-weight: 700;
+  color: var(--ink, #0b1120);
 }
 
-.dispute-details-box {
-    max-height: min(90vh, 720px);
-    overflow-y: auto;
+.modal-close-btn {
+  width: 36px;
+  height: 36px;
+  display: grid;
+  place-items: center;
+  border: 0;
+  border-radius: 50%;
+  background: transparent;
+  color: var(--ink-soft, #5b6472);
+  font-size: 22px;
+  line-height: 1;
+  cursor: pointer;
+  flex-shrink: 0;
 }
 
-.dispute-details-close {
-    color: var(--ink-soft);
+.modal-close-btn:hover,
+.modal-close-btn:focus-visible {
+  background: #eef2f6;
+  color: var(--ink, #0b1120);
+  outline: none;
 }
 
-.dispute-details-content h3 {
-    margin: 0 0 20px;
-    color: var(--ink);
+.modal-body {
+  padding: 22px;
+  overflow-y: auto;
+  flex: 1 1 auto;
 }
 
-.dispute-details-content dl {
-    display: grid;
-    grid-template-columns: minmax(120px, 0.35fr) 1fr;
-    gap: 12px 16px;
-    margin: 0;
+.modal-footer {
+  display: flex;
+  justify-content: flex-end;
+  flex-wrap: wrap;
+  gap: 10px;
+  padding: 16px 22px;
+  border-top: 1px solid var(--border, #e7eaf2);
+  flex-shrink: 0;
 }
 
-.dispute-details-content dt {
-    color: var(--ink-soft);
-    font-weight: 700;
+#dispute-form .modal-footer {
+  margin: 8px -22px -22px;
+  padding: 16px 22px;
 }
 
-.dispute-details-content dd {
-    margin: 0;
-    color: var(--ink);
-    line-height: 1.5;
-    white-space: pre-wrap;
-    overflow-wrap: anywhere;
+/* ---------- Form fields ---------- */
+.modal-field {
+  display: grid;
+  gap: 7px;
+  margin-bottom: 16px;
 }
 
-#dispute-form {
-    display: grid;
-    gap: 16px;
+.modal-field label {
+  font-size: 13px;
+  font-weight: 700;
+  color: var(--ink, #0b1120);
 }
 
-#dispute-form label {
-    display: grid;
-    gap: 7px;
-    font-weight: 600;
+.modal-field select,
+.modal-field textarea {
+  width: 100%;
+  padding: 11px 12px;
+  border: 1px solid #d6dce5;
+  border-radius: 8px;
+  font: inherit;
+  color: var(--ink, #0b1120);
+  background: #fff;
+  transition: border-color 0.18s ease, box-shadow 0.18s ease;
 }
 
-#dispute-form select,
-#dispute-form textarea {
-    width: 100%;
-    padding: 11px 12px;
-    border: 1px solid #d6dce5;
-    border-radius: 8px;
-    font: inherit;
+.modal-field select:focus,
+.modal-field textarea:focus {
+  border-color: var(--blue, #2954ff);
+  box-shadow: 0 0 0 3px rgba(41, 84, 255, 0.2);
+  outline: none;
 }
 
-#dispute-form-message {
-    min-height: 20px;
-    color: #b42318;
-    font-size: 13px;
+.modal-field textarea {
+  resize: vertical;
+  min-height: 120px;
+  line-height: 1.5;
 }
 
+.modal-form-message {
+  min-height: 18px;
+  margin-bottom: 8px;
+  font-size: 13px;
+  line-height: 1.4;
+  color: transparent;
+}
+
+.modal-form-message.is-error {
+  color: #b42318;
+}
+
+/* ---------- Dispute details content ---------- */
+.dispute-details-header {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px 16px;
+  margin-bottom: 20px;
+}
+
+.dispute-status-pill {
+  display: inline-flex;
+  align-items: center;
+  min-height: 28px;
+  padding: 0 12px;
+  border-radius: 999px;
+  font-size: 12px;
+  font-weight: 700;
+  line-height: 1.2;
+}
+
+.dispute-status-pill.status-open {
+  color: #9a6700;
+  background: #fff4d6;
+}
+
+.dispute-status-pill.status-investigating {
+  color: #1e3fcc;
+  background: #eef2ff;
+}
+
+.dispute-status-pill.status-resolved-buyer {
+  color: #087f5b;
+  background: #e8f7f0;
+}
+
+.dispute-status-pill.status-resolved-vendor,
+.dispute-status-pill.status-closed {
+  color: #5b6472;
+  background: #eef2f6;
+}
+
+.dispute-ref {
+  margin: 0;
+  font-size: 13px;
+  color: var(--ink-soft, #5b6472);
+}
+
+.dispute-ref code {
+  font-size: 12px;
+  padding: 2px 6px;
+  border-radius: 4px;
+  background: #f1f5f9;
+  color: var(--ink, #0b1120);
+}
+
+.dispute-details-grid {
+  display: grid;
+  gap: 16px;
+}
+
+.dispute-field {
+  display: grid;
+  gap: 6px;
+  padding-bottom: 16px;
+  border-bottom: 1px solid #eef0f3;
+}
+
+.dispute-field:last-child {
+  padding-bottom: 0;
+  border-bottom: none;
+}
+
+.dispute-field-label {
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  color: var(--ink-soft, #5b6472);
+}
+
+.dispute-field-value {
+  margin: 0;
+  font-size: 14px;
+  line-height: 1.55;
+  color: var(--ink, #0b1120);
+  white-space: pre-wrap;
+  overflow-wrap: anywhere;
+}
+
+/* ---------- Responsive ---------- */
 @media (max-width: 700px) {
-    .data-table-frame {
-        display: block;
-        overflow-x: auto;
-        white-space: nowrap;
-    }
+  .data-table-frame {
+    display: block;
+    overflow-x: auto;
+    white-space: nowrap;
+  }
+
+  .modal-overlay {
+    align-items: end;
+    padding: 0;
+  }
+
+  .modal-box,
+  .modal-box-details {
+    width: 100%;
+    max-height: 94vh;
+    border-radius: 16px 16px 0 0;
+  }
+
+  .modal-footer {
+    flex-wrap: wrap;
+  }
+
+  .modal-footer .btn {
+    flex: 1 1 120px;
+  }
 }

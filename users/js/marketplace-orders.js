@@ -53,12 +53,6 @@ document.getElementById('buyer-logout-trigger')?.addEventListener('click', async
 // ====================================================================
 // LOAD ORDERS
 // ====================================================================
-// NOTE: this reads directly from Firestore via a collectionGroup query on
-// 'sales' filtered by buyerUid — it requires a Security Rule allowing a
-// signed-in user to read sales docs where buyerUid == request.auth.uid,
-// and a one-time composite index (collection group 'sales', field
-// 'buyerUid' Ascending, field 'createdAt' Descending). The first request
-// will fail with an error containing a direct link to auto-create it.
 async function loadOrders() {
     const container = document.getElementById('orders-list');
     try {
@@ -74,9 +68,6 @@ async function loadOrders() {
             orders.push({ id: docSnap.id, ...docSnap.data() });
         });
 
-        // A dispute-list read must not prevent the buyer's orders (and the
-        // report action) from rendering. Rules/index availability can fail
-        // independently of the sales query.
         try {
             await loadDisputes();
         } catch (disputeError) {
@@ -84,10 +75,9 @@ async function loadOrders() {
             disputesByReference = new Map();
         }
         renderOrders(orders);
-
     } catch (err) {
         console.error('loadOrders error:', err);
-        container.innerHTML = `<div class="error-state">Could not load your orders: ${err.message}</div>`;
+        container.innerHTML = `<div class="error-state">Could not load your orders: ${escapeHtml(err.message)}</div>`;
     }
 }
 
@@ -114,23 +104,33 @@ function renderOrders(orders) {
         let actionCell;
         if (o.productType === 'digital') {
             actionCell = o.fulfillmentStatus === 'available'
-                ? `<button class="btn btn-sm btn-secondary download-btn" data-product-id="${o.productId}" data-reference="${o.reference}">Download</button>`
-                : `Status: ${o.fulfillmentStatus || 'unknown'}`;
+                ? `<button type="button" class="btn btn-sm btn-secondary download-btn" data-product-id="${escapeHtml(o.productId)}" data-reference="${escapeHtml(o.reference)}">Download</button>`
+                : `<span class="order-status-text">Status: ${escapeHtml(o.fulfillmentStatus || 'unknown')}</span>`;
         } else {
-            const tracking = o.trackingNumber ? ` (${o.carrier || 'carrier'}: ${o.trackingNumber})` : '';
-            actionCell = `${o.fulfillmentStatus || 'pending_shipment'}${tracking}`;
+            const tracking = o.trackingNumber
+                ? ` (${escapeHtml(o.carrier || 'carrier')}: ${escapeHtml(o.trackingNumber)})`
+                : '';
+            actionCell = `<span class="order-status-text">${escapeHtml(o.fulfillmentStatus || 'pending_shipment')}${tracking}</span>`;
         }
 
         const dispute = disputesByReference.get(o.reference);
-        const disputeAction = dispute ? `<span class="status-badge dispute-status-trigger" data-reference="${escapeHtml(o.reference)}" role="button" tabindex="0" title="View dispute details">Dispute: ${escapeHtml(dispute.status)}</span>` : `<button class="btn btn-sm btn-secondary dispute-btn" data-reference="${escapeHtml(o.reference)}">Report a problem</button>`;
+        const disputeAction = dispute
+            ? `<button type="button" class="btn btn-sm btn-secondary view-dispute-btn" data-reference="${escapeHtml(o.reference)}" title="View dispute details">View</button>`
+            : `<button type="button" class="btn btn-sm btn-secondary dispute-btn" data-reference="${escapeHtml(o.reference)}">Report a problem</button>`;
+
         return `
             <tr>
-                <td>${o.productTitle}</td>
-                <td>${o.quantity}</td>
+                <td>${escapeHtml(o.productTitle)}</td>
+                <td>${escapeHtml(o.quantity)}</td>
                 <td>₦${(o.amount || 0).toLocaleString()}</td>
-                <td>${o.productType}</td>
-                <td>${date}</td>
-                <td>${actionCell}<div>${disputeAction}</div></td>
+                <td>${escapeHtml(o.productType)}</td>
+                <td>${escapeHtml(date)}</td>
+                <td>
+                    <div class="order-action-stack">
+                        ${actionCell}
+                        ${disputeAction}
+                    </div>
+                </td>
             </tr>
         `;
     }).join('');
@@ -154,36 +154,71 @@ function renderOrders(orders) {
     container.querySelectorAll('.download-btn').forEach((btn) => {
         btn.addEventListener('click', () => getDownloadLink(btn.dataset.productId, btn.dataset.reference, btn));
     });
-    container.querySelectorAll('.dispute-btn').forEach((btn) => btn.addEventListener('click', () => openDisputeModal(btn.dataset.reference)));
-    container.querySelectorAll('.dispute-status-trigger').forEach((badge) => {
-        const openDetails = () => openDisputeDetailsModal(badge.dataset.reference);
-        badge.addEventListener('click', openDetails);
-        badge.addEventListener('keydown', (event) => {
-            if (event.key === 'Enter' || event.key === ' ') {
-                event.preventDefault();
-                openDetails();
-            }
-        });
+    container.querySelectorAll('.dispute-btn').forEach((btn) => {
+        btn.addEventListener('click', () => openDisputeModal(btn.dataset.reference));
+    });
+    container.querySelectorAll('.view-dispute-btn').forEach((btn) => {
+        btn.addEventListener('click', () => openDisputeDetailsModal(btn.dataset.reference));
     });
 }
 
-async function authedFetch(url, options = {}) { const token = await currentUser.getIdToken(); options.headers = Object.assign({}, options.headers, { Authorization: `Bearer ${token}` }); return fetch(url, options); }
-async function loadDisputes() { const res = await authedFetch('/api/disputes/list-disputes'); const json = await res.json(); if (!res.ok) throw new Error(json.error || 'Could not load disputes'); disputesByReference = new Map(json.disputes.map((d) => [d.reference, d])); }
+// ====================================================================
+// DISPUTES
+// ====================================================================
+async function authedFetch(url, options = {}) {
+    const token = await currentUser.getIdToken();
+    options.headers = Object.assign({}, options.headers, {
+        Authorization: `Bearer ${token}`
+    });
+    return fetch(url, options);
+}
+
+async function loadDisputes() {
+    const res = await authedFetch('/api/disputes/list-disputes');
+    const json = await res.json();
+    if (!res.ok) throw new Error(json.error || 'Could not load disputes');
+    disputesByReference = new Map(json.disputes.map((d) => [d.reference, d]));
+}
+
+function lockBodyScroll(lock) {
+    document.body.style.overflow = lock ? 'hidden' : '';
+}
+
+function closeDisputeModal() {
+    const modal = document.getElementById('dispute-modal');
+    if (modal) modal.classList.add('hidden');
+    lockBodyScroll(false);
+}
+
+function closeDisputeDetailsModal() {
+    const modal = document.getElementById('dispute-details-modal');
+    if (modal) modal.classList.add('hidden');
+    lockBodyScroll(false);
+}
+
+function openDisputeModal(reference) {
+    activeDisputeReference = reference;
+    const form = document.getElementById('dispute-form');
+    const message = document.getElementById('dispute-form-message');
+    const modal = document.getElementById('dispute-modal');
+    if (!form || !modal) return;
+
+    form.reset();
+    if (message) {
+        message.textContent = '';
+        message.className = 'modal-form-message';
+    }
+    modal.classList.remove('hidden');
+    lockBodyScroll(true);
+}
+
 function openDisputeDetailsModal(reference) {
     const dispute = disputesByReference.get(reference);
     if (!dispute) return;
 
-    let modal = document.getElementById('dispute-details-modal');
-    if (!modal) {
-        modal = document.createElement('div');
-        modal.id = 'dispute-details-modal';
-        modal.className = 'modal-overlay hidden';
-        modal.innerHTML = '<div class="modal-box dispute-details-box"><button type="button" class="dispute-details-close" aria-label="Close dispute details">&times;</button><div class="dispute-details-content"></div></div>';
-        document.body.appendChild(modal);
-        const close = () => modal.classList.add('hidden');
-        modal.querySelector('.dispute-details-close').addEventListener('click', close);
-        modal.addEventListener('click', (event) => { if (event.target === modal) close(); });
-    }
+    const modal = document.getElementById('dispute-details-modal');
+    const content = document.getElementById('dispute-details-content');
+    if (!modal || !content) return;
 
     const status = dispute.status || 'open';
     const statusLabel = disputeStatusLabels[status] || 'Status unavailable';
@@ -191,33 +226,119 @@ function openDisputeDetailsModal(reference) {
     const resolution = dispute.resolution || '';
     const refundFailed = dispute.refundStatus === 'failed' || String(resolution).startsWith('refund_failed');
     const publicResolution = String(resolution).startsWith('refund_failed') ? '' : resolution;
+
     let refundLine = '';
     if (isResolved) {
-        if (dispute.refundStatus === 'triggered') refundLine = 'A refund has been issued to your original payment method.';
-        else if (dispute.refundStatus === 'not_applicable') refundLine = 'No refund applies to this resolution.';
-        else if (refundFailed) refundLine = 'A refund was approved but could not be processed automatically. Our team will contact you to complete it manually.';
+        if (dispute.refundStatus === 'triggered') {
+            refundLine = 'A refund has been issued to your original payment method.';
+        } else if (dispute.refundStatus === 'not_applicable') {
+            refundLine = 'No refund applies to this resolution.';
+        } else if (refundFailed) {
+            refundLine = 'A refund was approved but could not be processed automatically. Our team will contact you to complete it manually.';
+        }
     }
 
-    modal.querySelector('.dispute-details-content').innerHTML = `
-        <h3>Dispute details</h3>
-        <dl>
-            <dt>Reference</dt><dd>${escapeHtml(dispute.reference)}</dd>
-            <dt>Reason</dt><dd>${escapeHtml(dispute.reason || 'Not provided')}</dd>
-            <dt>Your statement</dt><dd>${escapeHtml(dispute.buyerStatement || 'Not provided')}</dd>
-            <dt>Vendor response</dt><dd>${escapeHtml(dispute.vendorStatement || 'No response yet')}</dd>
-            <dt>Status</dt><dd>${escapeHtml(statusLabel)}</dd>
-            ${isResolved && publicResolution ? `<dt>Resolution</dt><dd>${escapeHtml(publicResolution)}</dd>` : ''}
-            ${refundLine ? `<dt>Refund</dt><dd>${escapeHtml(refundLine)}</dd>` : ''}
-        </dl>
+    const statusClass = {
+        open: 'status-open',
+        investigating: 'status-investigating',
+        resolved_buyer: 'status-resolved-buyer',
+        resolved_vendor: 'status-resolved-vendor',
+        closed: 'status-closed'
+    }[status] || 'status-open';
+
+    content.innerHTML = `
+        <div class="dispute-details-header">
+            <span class="dispute-status-pill ${statusClass}">${escapeHtml(statusLabel)}</span>
+            <p class="dispute-ref">Order ref: <code>${escapeHtml(dispute.reference || '—')}</code></p>
+        </div>
+
+        <div class="dispute-details-grid">
+            <div class="dispute-field">
+                <span class="dispute-field-label">Reason</span>
+                <p class="dispute-field-value">${escapeHtml(dispute.reason || 'Not provided')}</p>
+            </div>
+            <div class="dispute-field">
+                <span class="dispute-field-label">Your statement</span>
+                <p class="dispute-field-value">${escapeHtml(dispute.buyerStatement || 'Not provided')}</p>
+            </div>
+            <div class="dispute-field">
+                <span class="dispute-field-label">Vendor response</span>
+                <p class="dispute-field-value">${escapeHtml(dispute.vendorStatement || 'No response yet')}</p>
+            </div>
+            ${isResolved && publicResolution ? `
+            <div class="dispute-field">
+                <span class="dispute-field-label">Resolution</span>
+                <p class="dispute-field-value">${escapeHtml(publicResolution)}</p>
+            </div>` : ''}
+            ${refundLine ? `
+            <div class="dispute-field">
+                <span class="dispute-field-label">Refund</span>
+                <p class="dispute-field-value">${escapeHtml(refundLine)}</p>
+            </div>` : ''}
+        </div>
     `;
+
     modal.classList.remove('hidden');
+    lockBodyScroll(true);
 }
-function openDisputeModal(reference) { activeDisputeReference = reference; document.getElementById('dispute-form').reset(); document.getElementById('dispute-form-message').textContent = ''; document.getElementById('dispute-modal').classList.remove('hidden'); }
-document.getElementById('dispute-modal-close').addEventListener('click', () => document.getElementById('dispute-modal').classList.add('hidden'));
-document.getElementById('dispute-form').addEventListener('submit', async (event) => { event.preventDefault(); const message = document.getElementById('dispute-form-message'); const button = event.currentTarget.querySelector('button[type="submit"]'); button.disabled = true; try { const res = await authedFetch('/api/disputes/create-dispute', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ reference: activeDisputeReference, reason: document.getElementById('dispute-reason').value, buyerStatement: document.getElementById('dispute-statement').value }) }); const json = await res.json(); if (!res.ok) throw new Error(json.error || 'Could not create dispute'); document.getElementById('dispute-modal').classList.add('hidden'); await loadOrders(); } catch (err) { message.textContent = err.message; } finally { button.disabled = false; } });
+
+document.getElementById('dispute-modal-close')?.addEventListener('click', closeDisputeModal);
+document.getElementById('dispute-modal-cancel')?.addEventListener('click', closeDisputeModal);
+document.getElementById('dispute-modal')?.addEventListener('click', (event) => {
+    if (event.target === event.currentTarget) closeDisputeModal();
+});
+
+document.getElementById('dispute-details-close')?.addEventListener('click', closeDisputeDetailsModal);
+document.getElementById('dispute-details-done')?.addEventListener('click', closeDisputeDetailsModal);
+document.getElementById('dispute-details-modal')?.addEventListener('click', (event) => {
+    if (event.target === event.currentTarget) closeDisputeDetailsModal();
+});
+
+document.addEventListener('keydown', (event) => {
+    if (event.key !== 'Escape') return;
+    closeDisputeModal();
+    closeDisputeDetailsModal();
+});
+
+document.getElementById('dispute-form')?.addEventListener('submit', async (event) => {
+    event.preventDefault();
+    const message = document.getElementById('dispute-form-message');
+    const button = event.currentTarget.querySelector('button[type="submit"]');
+    if (!button) return;
+
+    button.disabled = true;
+    if (message) {
+        message.textContent = '';
+        message.className = 'modal-form-message';
+    }
+
+    try {
+        const res = await authedFetch('/api/disputes/create-dispute', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+                reference: activeDisputeReference,
+                reason: document.getElementById('dispute-reason').value,
+                buyerStatement: document.getElementById('dispute-statement').value
+            })
+        });
+        const json = await res.json();
+        if (!res.ok) throw new Error(json.error || 'Could not create dispute');
+
+        closeDisputeModal();
+        await loadOrders();
+    } catch (err) {
+        if (message) {
+            message.textContent = err.message;
+            message.className = 'modal-form-message is-error';
+        }
+    } finally {
+        button.disabled = false;
+    }
+});
 
 // ====================================================================
-// DOWNLOAD LINK (server call — needs the Cloudinary secret, stays serverless)
+// DOWNLOAD LINK
 // ====================================================================
 async function getDownloadLink(productId, reference, btn) {
     const originalText = btn.textContent;
@@ -238,7 +359,6 @@ async function getDownloadLink(productId, reference, btn) {
         if (!res.ok) throw new Error(json.error || 'Could not get download link');
 
         window.open(json.downloadUrl, '_blank');
-
     } catch (err) {
         console.error('getDownloadLink error:', err);
         alert('Error: ' + err.message);
