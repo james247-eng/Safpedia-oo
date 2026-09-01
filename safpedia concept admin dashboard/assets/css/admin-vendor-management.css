@@ -171,31 +171,220 @@ a {
     .modal-balance-row { flex-direction: column; }
 }
 
+
+
+
+
+
+
+
+
+
+
+
+
+
 /* ====================================================================
-   STATS GRID
+   OVERVIEW METRICS — grouped, collapsible, premium cards
 ==================================================================== */
 .stats-grid {
-    display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(230px, 1fr));
-    gap: 18px;
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
     margin-bottom: 36px;
 }
 
-.stat-card {
-    display: flex;
-    flex-direction: column;
+.metric-group {
     background: var(--bg-secondary);
-    padding: 20px 20px 16px;
-    border-radius: 12px;
     border: 1px solid var(--border);
-    box-shadow: 0 1px 2px rgba(0,0,0,0.04), 0 1px 3px rgba(0,0,0,0.03);
+    border-radius: 14px;
+    box-shadow: 0 1px 2px rgba(0, 0, 0, 0.04), 0 8px 24px rgba(15, 23, 42, 0.04);
+    overflow: hidden;
 }
 
-.stat-card.highlight {
-    background: var(--color-gold-bg);
+.metric-group-toggle {
+    width: 100%;
+    display: grid;
+    grid-template-columns: 1fr auto auto;
+    align-items: center;
+    gap: 12px 16px;
+    padding: 16px 18px;
+    border: 0;
+    background: linear-gradient(180deg, #ffffff 0%, #f8fafc 100%);
+    cursor: pointer;
+    text-align: left;
+    color: var(--text-main);
+}
+
+.metric-group-toggle:hover {
+    background: #f8fafc;
+}
+
+.metric-group-heading {
+    display: inline-flex;
+    align-items: center;
+    gap: 12px;
+    min-width: 0;
+}
+
+.metric-group-icon {
+    width: 36px;
+    height: 36px;
+    display: grid;
+    place-items: center;
+    border-radius: 10px;
+    background: #eff6ff;
+    color: var(--color-primary);
+    flex-shrink: 0;
+}
+
+.metric-group-icon ion-icon {
+    font-size: 18px;
+}
+
+.metric-group-title {
+    font-size: 15px;
+    font-weight: 700;
+    letter-spacing: -0.01em;
+}
+
+.metric-group-summary {
+    font-size: 12.5px;
+    font-weight: 600;
+    color: var(--text-muted);
+    white-space: nowrap;
+}
+
+.metric-group-chevron {
+    width: 28px;
+    height: 28px;
+    display: grid;
+    place-items: center;
+    border-radius: 999px;
+    background: var(--bg-inset);
+    color: var(--text-muted);
+    transition: transform 0.2s ease, background 0.15s ease;
+}
+
+.metric-group.is-open .metric-group-chevron {
+    transform: rotate(180deg);
+    background: #eff6ff;
+    color: var(--color-primary);
+}
+
+.metric-group-body {
+    display: none;
+    padding: 0 18px 18px;
+    border-top: 1px solid var(--border);
+    background: #fbfdff;
+}
+
+.metric-group.is-open .metric-group-body {
+    display: block;
+}
+
+.metric-cards-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(210px, 1fr));
+    gap: 12px;
+    padding-top: 16px;
+}
+
+.metric-card {
+    position: relative;
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    min-height: 132px;
+    padding: 16px;
+    border-radius: 12px;
+    border: 1px solid var(--border);
+    background: #fff;
+    box-shadow: 0 1px 2px rgba(15, 23, 42, 0.04);
+    overflow: hidden;
+}
+
+.metric-card::before {
+    content: "";
+    position: absolute;
+    left: 0;
+    top: 0;
+    bottom: 0;
+    width: 3px;
+    background: var(--border-strong);
+}
+
+.metric-card-top {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+
+.metric-icon {
+    width: 34px;
+    height: 34px;
+    display: grid;
+    place-items: center;
+    border-radius: 10px;
+    background: var(--bg-inset);
+    color: var(--text-muted);
+    flex-shrink: 0;
+}
+
+.metric-icon ion-icon {
+    font-size: 17px;
+}
+
+.metric-label {
+    font-size: 12px;
+    font-weight: 700;
+    letter-spacing: 0.02em;
+    text-transform: uppercase;
+    color: var(--text-muted);
+    line-height: 1.3;
+}
+
+.metric-value {
+    margin: 0;
+    font-size: 24px;
+    font-weight: 700;
+    letter-spacing: -0.03em;
+    color: var(--text-main);
+    font-variant-numeric: tabular-nums;
+    line-height: 1.15;
+}
+
+.metric-sub {
+    margin: 0;
+    margin-top: auto;
+    padding-top: 8px;
+    border-top: 1px dashed var(--border);
+    font-size: 12px;
+    font-weight: 500;
+    color: var(--text-muted);
+    line-height: 1.4;
+}
+
+.metric-tone-primary::before { background: var(--color-primary); }
+.metric-tone-primary .metric-icon { background: #eff6ff; color: var(--color-primary); }
+
+.metric-tone-gold::before { background: var(--color-gold); }
+.metric-tone-gold .metric-icon { background: var(--color-gold-bg); color: var(--color-gold); }
+.metric-tone-gold {
+    background: linear-gradient(180deg, #fffbeb 0%, #ffffff 55%);
     border-color: #fde68a;
 }
 
+.metric-tone-success::before { background: var(--color-success); }
+.metric-tone-success .metric-icon { background: var(--color-success-bg); color: var(--color-success); }
+
+.metric-tone-warning::before { background: var(--color-gold); }
+.metric-tone-warning .metric-icon { background: var(--color-gold-bg); color: var(--color-gold); }
+
+.metric-tone-danger::before { background: var(--color-danger); }
+.metric-tone-danger .metric-icon { background: var(--color-danger-bg); color: var(--color-danger); }
+
+/* Keep modal balance labels working */
 .stat-label {
     font-size: 12.5px;
     font-weight: 600;
@@ -219,6 +408,34 @@ a {
     color: var(--color-success);
     font-weight: 500;
 }
+
+@media (max-width: 700px) {
+    .metric-group-toggle {
+        grid-template-columns: 1fr auto;
+    }
+
+    .metric-group-summary {
+        grid-column: 1 / -1;
+        white-space: normal;
+        order: 3;
+    }
+
+    .metric-group-chevron {
+        grid-column: 2;
+        grid-row: 1;
+    }
+
+    .metric-value {
+        font-size: 21px;
+    }
+}
+
+
+
+
+
+
+
 
 /* ====================================================================
    FILTER ROW
@@ -526,5 +743,19 @@ a {
     }
     .stat-value {
         font-size: 21px;
+    }
+    .admin-table {
+        min-width: 560px;
+        font-size: 0.82rem;
+    }
+    .stats-grid {
+        gap: 12px;
+    }
+    .metric-card {
+        min-height: 120px;
+        padding: 14px;
+    }
+    .metric-value {
+        font-size: 20px;
     }
 }

@@ -88,58 +88,164 @@ async function loadOverviewStats() {
     }
 }
 
+function metricCard({ icon, label, value, sub, tone = 'default' }) {
+    return (
+        '<article class="metric-card metric-tone-' + tone + '">' +
+            '<div class="metric-card-top">' +
+                '<span class="metric-icon" aria-hidden="true"><ion-icon name="' + icon + '"></ion-icon></span>' +
+                '<span class="metric-label">' + label + '</span>' +
+            '</div>' +
+            '<p class="metric-value">' + value + '</p>' +
+            (sub ? '<p class="metric-sub">' + sub + '</p>' : '') +
+        '</article>'
+    );
+}
+
+function metricGroup({ id, title, icon, summary, open, cardsHtml }) {
+    return (
+        '<section class="metric-group' + (open ? ' is-open' : '') + '" data-metric-group="' + id + '">' +
+            '<button type="button" class="metric-group-toggle" aria-expanded="' + (open ? 'true' : 'false') + '" data-group-toggle="' + id + '">' +
+                '<span class="metric-group-heading">' +
+                    '<span class="metric-group-icon" aria-hidden="true"><ion-icon name="' + icon + '"></ion-icon></span>' +
+                    '<span class="metric-group-title">' + title + '</span>' +
+                '</span>' +
+                '<span class="metric-group-summary">' + summary + '</span>' +
+                '<span class="metric-group-chevron" aria-hidden="true"><ion-icon name="chevron-down-outline"></ion-icon></span>' +
+            '</button>' +
+            '<div class="metric-group-body">' +
+                '<div class="metric-cards-grid">' + cardsHtml + '</div>' +
+            '</div>' +
+        '</section>'
+    );
+}
+
 function renderOverviewStats(stats) {
     const grid = document.getElementById('stats-grid');
     const tierLabels = stats.tierLabels || {};
     const tierCounts = stats.activeVendorCountByTier || {};
     const tierRevenue = stats.subscriptionRevenueByTier || {};
-    const tierCard = (tierKey) =>
-        '<div class="stat-card">' +
-            '<span class="stat-label">' + (tierLabels[tierKey] || tierKey) + ' Vendors</span>' +
-            '<span class="stat-value">' + (tierCounts[tierKey] || 0) + '</span>' +
-            '<span class="stat-sub">Active · Revenue: ' + fmt(tierRevenue[tierKey] || 0) + '</span>' +
-        '</div>';
+    const saleLabel = (stats.saleCount || 0) + ' order' + ((stats.saleCount || 0) === 1 ? '' : 's');
+    const popular = stats.mostPopularTier || {};
+    const popularSub = (popular.activeVendorCount || 0) + ' active vendor' + ((popular.activeVendorCount || 0) === 1 ? '' : 's');
+
+    const commerceCards =
+        metricCard({
+            icon: 'cart-outline',
+            label: 'Total Sales Volume',
+            value: fmt(stats.totalVolume),
+            sub: saleLabel,
+            tone: 'primary'
+        }) +
+        metricCard({
+            icon: 'diamond-outline',
+            label: 'Subscription Revenue',
+            value: fmt(stats.totalSubscriptionRevenue),
+            sub: 'Successful vendor subscription payments',
+            tone: 'gold'
+        }) +
+        metricCard({
+            icon: 'layers-outline',
+            label: 'Revenue by Paid Tier',
+            value: fmt(tierRevenue.safbloom || 0),
+            sub: (tierLabels.safbloom || 'SafBloom') + ' · ' + fmt(tierRevenue.safscale || 0) + ' ' + (tierLabels.safscale || 'SafScale'),
+            tone: 'default'
+        }) +
+        metricCard({
+            icon: 'trophy-outline',
+            label: 'Most Popular Tier',
+            value: escapeHtml(popular.displayName || '\u2014'),
+            sub: popularSub,
+            tone: 'default'
+        });
+
+    const vendorCards =
+        metricCard({
+            icon: 'people-outline',
+            label: 'Total Vendor Accounts',
+            value: String(stats.vendorCount || 0),
+            sub: 'All registered sellers',
+            tone: 'primary'
+        }) +
+        metricCard({
+            icon: 'leaf-outline',
+            label: (tierLabels.safseed || 'Safseed') + ' Vendors',
+            value: String(tierCounts.safseed || 0),
+            sub: 'Active · Revenue: ' + fmt(tierRevenue.safseed || 0),
+            tone: 'default'
+        }) +
+        metricCard({
+            icon: 'flower-outline',
+            label: (tierLabels.safbloom || 'SafBloom') + ' Vendors',
+            value: String(tierCounts.safbloom || 0),
+            sub: 'Active · Revenue: ' + fmt(tierRevenue.safbloom || 0),
+            tone: 'default'
+        }) +
+        metricCard({
+            icon: 'rocket-outline',
+            label: (tierLabels.safscale || 'SafScale') + ' Vendors',
+            value: String(tierCounts.safscale || 0),
+            sub: 'Active · Revenue: ' + fmt(tierRevenue.safscale || 0),
+            tone: 'default'
+        });
+
+    const payoutCards =
+        metricCard({
+            icon: 'checkmark-circle-outline',
+            label: 'Total Paid Out',
+            value: fmt(stats.totalPaidOut),
+            sub: 'Confirmed transfers to vendors',
+            tone: 'success'
+        }) +
+        metricCard({
+            icon: 'time-outline',
+            label: 'Awaiting Confirmation',
+            value: fmt(stats.totalAwaitingPayout),
+            sub: 'Transfers Paystack hasn\'t confirmed yet',
+            tone: 'warning'
+        }) +
+        metricCard({
+            icon: 'wallet-outline',
+            label: 'Owed to Vendors',
+            value: fmt(stats.totalPendingPayout),
+            sub: 'Available for vendors to withdraw',
+            tone: 'danger'
+        });
 
     grid.innerHTML =
-        '<div class="stat-card">' +
-            '<span class="stat-label">Total Sales Volume</span>' +
-            '<span class="stat-value">' + fmt(stats.totalVolume) + '</span>' +
-            '<span class="stat-sub">' + stats.saleCount + ' order' + (stats.saleCount === 1 ? '' : 's') + '</span>' +
-        '</div>' +
-        '<div class="stat-card highlight">' +
-            '<span class="stat-label">Subscription Revenue</span>' +
-            '<span class="stat-value">' + fmt(stats.totalSubscriptionRevenue) + '</span>' +
-            '<span class="stat-sub">Successful vendor subscription payments</span>' +
-        '</div>' +
-        '<div class="stat-card">' +
-            '<span class="stat-label">Revenue by Paid Tier</span>' +
-            '<span class="stat-value">' + fmt(tierRevenue.safbloom || 0) + '</span>' +
-            '<span class="stat-sub">' + (tierLabels.safbloom || 'Paid tier') + ' · ' + fmt(tierRevenue.safscale || 0) + ' ' + (tierLabels.safscale || 'Paid tier') + '</span>' +
-        '</div>' +
-        '<div class="stat-card">' +
-            '<span class="stat-label">Most Popular Tier</span>' +
-            '<span class="stat-value">' + (stats.mostPopularTier?.displayName || '—') + '</span>' +
-            '<span class="stat-sub">' + (stats.mostPopularTier?.activeVendorCount || 0) + ' active vendor' + ((stats.mostPopularTier?.activeVendorCount || 0) === 1 ? '' : 's') + '</span>' +
-        '</div>' +
-        tierCard('safseed') + tierCard('safbloom') + tierCard('safscale') +
-        '<div class="stat-card">' +
-            '<span class="stat-label">Total Paid Out to Vendors</span>' +
-            '<span class="stat-value">' + fmt(stats.totalPaidOut) + '</span>' +
-        '</div>' +
-        '<div class="stat-card">' +
-            '<span class="stat-label">Awaiting Payout Confirmation</span>' +
-            '<span class="stat-value">' + fmt(stats.totalAwaitingPayout) + '</span>' +
-            '<span class="stat-sub">Transfers Paystack hasn\'t confirmed yet</span>' +
-        '</div>' +
-        '<div class="stat-card">' +
-            '<span class="stat-label">Owed to Vendors (Unpaid Balance)</span>' +
-            '<span class="stat-value">' + fmt(stats.totalPendingPayout) + '</span>' +
-            '<span class="stat-sub">Available for vendors to withdraw</span>' +
-        '</div>' +
-        '<div class="stat-card">' +
-            '<span class="stat-label">Total Vendor Accounts</span>' +
-            '<span class="stat-value">' + stats.vendorCount + '</span>' +
-        '</div>';
+        metricGroup({
+            id: 'commerce',
+            title: 'Commerce & Subscriptions',
+            icon: 'stats-chart-outline',
+            summary: fmt(stats.totalVolume) + ' volume · ' + fmt(stats.totalSubscriptionRevenue) + ' subs',
+            open: true,
+            cardsHtml: commerceCards
+        }) +
+        metricGroup({
+            id: 'vendors',
+            title: 'Vendors by Tier',
+            icon: 'storefront-outline',
+            summary: (stats.vendorCount || 0) + ' accounts',
+            open: true,
+            cardsHtml: vendorCards
+        }) +
+        metricGroup({
+            id: 'payouts',
+            title: 'Payouts & Balances',
+            icon: 'cash-outline',
+            summary: fmt(stats.totalPendingPayout) + ' owed',
+            open: false,
+            cardsHtml: payoutCards
+        });
+
+    grid.querySelectorAll('[data-group-toggle]').forEach((btn) => {
+        btn.addEventListener('click', () => {
+            const group = btn.closest('.metric-group');
+            if (!group) return;
+            const willOpen = !group.classList.contains('is-open');
+            group.classList.toggle('is-open', willOpen);
+            btn.setAttribute('aria-expanded', String(willOpen));
+        });
+    });
 }
 
 function fmt(n) {
