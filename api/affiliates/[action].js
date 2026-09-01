@@ -463,7 +463,7 @@ async function handleRequestPayout(req, res, admin, db) {
 async function notifyAffiliateApplicationDecision({ admin, db, affiliateUid, status, code, commissionRate }) {
   try {
     const recipient = await getRecipient(admin, db, affiliateUid, ['user', 'affiliates']);
-    const dashboardLink = `${APP_URL}/users/affiliate-page.html`;
+    const dashboardLink = `${APP_URL}/users/affiliate.html`;
 
     const approved = status === 'approved';
     const commissionPct = approved && typeof commissionRate === 'number' ? Math.round(commissionRate * 100) : null;
