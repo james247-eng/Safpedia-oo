@@ -116,7 +116,7 @@ async function handleMessage(req, res, admin, db) {
  * Body: { sessionId, contact, transcript?: [{role, content}] }
  */
 async function handleEscalateSubmit(req, res, admin, db) {
-  const { sessionId, contact, transcript } = req.body || {};
+  const { sessionId, contact, topic: submittedTopic, transcript } = req.body || {};
 
   if (!sessionId || typeof sessionId !== 'string') {
     return res.status(400).json({ error: 'Missing sessionId' });
@@ -138,8 +138,9 @@ async function handleEscalateSubmit(req, res, admin, db) {
 
   const contactMethod = isEmail ? 'email' : 'whatsapp';
   const safeTranscript = Array.isArray(transcript) ? transcript.slice(-10) : [];
-  const lastUserMessage = [...safeTranscript].reverse().find((m) => m.role === 'user');
-  const topic = lastUserMessage?.content?.slice(0, 200) || 'General inquiry';
+  const topic = typeof submittedTopic === 'string' && submittedTopic.trim()
+    ? submittedTopic.trim().slice(0, 200)
+    : 'General inquiry';
 
   const escalationRef = db.collection('chatbotEscalations').doc();
   const escalationData = {

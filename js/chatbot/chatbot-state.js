@@ -80,6 +80,10 @@ export class ChatState {
   }
 
   async submitContact(contact) {
+    const topic = [...this._state.messages]
+      .reverse()
+      .find((message) => message.role === 'user')?.content || 'General inquiry';
+
     this.addMessage('user', contact);
 
     const res = await fetch(`${CHATBOT_CONFIG.apiBase}/escalate-submit?action=escalate-submit`, {
@@ -88,6 +92,7 @@ export class ChatState {
       body: JSON.stringify({
         sessionId: this.sessionId,
         contact,
+        topic,
         transcript: this.historyForApi()
       })
     });
