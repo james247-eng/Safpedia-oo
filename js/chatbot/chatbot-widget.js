@@ -20,7 +20,6 @@ export function initChatbot(shadowRoot) {
 
   function open() {
     panel.hidden = false;
-    panel.removeAttribute('hidden');
     bubble.classList.add('cb-bubble--active');
     opened = true;
     if (!state.messages.length) {
@@ -29,26 +28,12 @@ export function initChatbot(shadowRoot) {
     input.focus();
   }
 
-  function close(e) {
-    if (e) {
-      e.stopPropagation();
-      e.preventDefault();
-    }
+  function close() {
     panel.hidden = true;
-    panel.setAttribute('hidden', '');
     bubble.classList.remove('cb-bubble--active');
-    opened = false;
   }
 
-  bubble.addEventListener('click', (e) => {
-    e.stopPropagation();
-    if (opened) {
-      close(e);
-    } else {
-      open();
-    }
-  });
-
+  bubble.addEventListener('click', () => (opened ? close() : open()));
   closeBtn.addEventListener('click', close);
 
   renderQuickReplies(quickRepliesEl, (text) => handleSend(text));
@@ -59,19 +44,28 @@ export function initChatbot(shadowRoot) {
 
     appendMessage(messagesEl, 'user', trimmed);
     input.value = '';
-
-    const shouldWarnClientSide = CHATBOT_CONFIG.clientEscalationKeywords.some((kw) =>
-      trimmed.toLowerCase().includes(kw)
-    );
-
     const typingEl = appendTyping(messagesEl);
 
     try {
+      if (state.awaitingContact) {
+        const data = await state.submitContact(trimmed);
+        typingEl.remove();
+
+        if (data.escalate) {
+          // invalid contact — bot re-asks, stay in awaitingContact mode
+          appendMessage(messagesEl, 'assistant', data.reply);
+        } else {
+          appendMessage(messagesEl, 'assistant', data.reply);
+        }
+        return;
+      }
+
       const data = await state.send(trimmed);
       typingEl.remove();
 
       if (data.escalate) {
-        appendEscalation(messagesEl, data.reply);
+        state.setAwaitingContact(true);
+        appendEscalation(messagesEl, data.reply, data.whatsappLink);
       } else {
         appendMessage(messagesEl, 'assistant', data.reply);
       }
@@ -82,11 +76,6 @@ export function initChatbot(shadowRoot) {
       } else {
         appendMessage(messagesEl, 'assistant', "Sorry, something went wrong. Please try again in a bit.");
       }
-    }
-
-    if (shouldWarnClientSide) {
-      // reserved: could surface escalation CTA immediately client-side
-      // without waiting on the API response, if desired later
     }
   }
 

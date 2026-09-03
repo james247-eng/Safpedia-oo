@@ -50,12 +50,18 @@ export function appendTyping(container) {
   return el;
 }
 
-export function appendEscalation(container, text) {
+export function appendEscalation(container, text, whatsappLink) {
   const wrap = document.createElement('div');
   wrap.className = 'cb-escalation';
+
+  const waButton = whatsappLink
+    ? `<a href="${whatsappLink}" target="_blank" rel="noopener" class="cb-escalation-btn cb-escalation-btn--whatsapp">${CHATBOT_CONFIG.escalationCTA}</a>`
+    : '';
+
   wrap.innerHTML = `
     <p>${text}</p>
-    <a href="/help.html" class="cb-escalation-btn">${CHATBOT_CONFIG.escalationCTA}</a>
+    ${waButton}
+    <p class="cb-escalation-hint">Or type your email or WhatsApp number below and we'll reach you.</p>
   `;
   container.appendChild(wrap);
   container.scrollTop = container.scrollHeight;
