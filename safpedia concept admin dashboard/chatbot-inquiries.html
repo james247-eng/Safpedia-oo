@@ -1,0 +1,119 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Chatbot Inquiries - SAFpedia Admin</title>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+  <link rel="icon" type="image/x-icon" href="favicon.ico">
+  <link rel="stylesheet" href="../users/css/ui-foundation.css">
+  <link rel="stylesheet" href="../users/css/student-dashboard.css">
+  <link rel="stylesheet" href="../users/css/nav-core.css">
+  <link rel="stylesheet" href="assets/css/admin.css">
+  <script type="module" src="https://unpkg.com/ionicons@7.1.0/dist/ionicons/ionicons.esm.js"></script>
+  <script nomodule src="https://unpkg.com/ionicons@7.1.0/dist/ionicons/ionicons.js"></script>
+  <link rel="apple-touch-icon" sizes="180x180" href="/favicon/apple-touch-icon.png">
+  <link rel="icon" type="image/png" sizes="32x32" href="/favicon/favicon-32x32.png">
+  <link rel="icon" type="image/png" sizes="16x16" href="/favicon/favicon-16x16.png">
+  <link rel="manifest" href="/favicon/site.webmanifest">
+</head>
+<body>
+
+  <!-- MOBILE TOP BAR -->
+  <div class="mobile-topbar">
+    <button class="sidebar-toggle-btn" id="sidebar-toggle-btn">
+      <ion-icon name="menu-outline" class="menu-icon"></ion-icon>
+      <ion-icon name="close-outline" class="close-icon"></ion-icon>
+    </button>
+    <div class="brand-logo">SAFpedia</div>
+  </div>
+
+  <div class="sidebar-overlay" id="sidebar-overlay"></div>
+
+  <div class="dashboard-layout">
+    <!-- SIDEBAR -->
+    <aside class="sidebar-panel">
+      <div class="brand-logo">SAFpedia<span class="brand-subtitle">Admin</span></div>
+      <ul class="nav-group">
+        <li><a href="dashboard.html"><div class="nav-item-btn"><ion-icon name="grid-outline"></ion-icon><span class="nav-label">Dashboard</span></div></a></li>
+        <li><a href="vendor-management.html"><div class="nav-item-btn"><ion-icon name="storefront-outline"></ion-icon><span class="nav-label">Market place</span></div></a></li>
+        <li><a href="chatbot-inquiries.html"><div class="nav-item-btn active"><ion-icon name="chatbubbles-outline"></ion-icon><span class="nav-label">Chatbot Inquiries</span></div></a></li>
+      </ul>
+    </aside>
+
+    <!-- MAIN WORKSPACE -->
+    <main class="main-workspace-view">
+
+      <header class="dashboard-header top-nav">
+        <h1 id="page-title" class="admin-page-title">Chatbot Inquiries</h1>
+        <div class="topbar-spacer"></div>
+        <div class="topbar-right" id="navbar">
+          <div class="nav-right">
+            <div class="user-menu">
+              <button type="button" class="user-avatar-btn" id="user-avatar" aria-label="Account menu" aria-expanded="false">A</button>
+              <div class="user-dropdown" id="user-dropdown" hidden>
+                <div class="user-dropdown-email" id="admin-display-email">Admin</div>
+                <a href="#" id="logout-btn" class="user-dropdown-logout">Sign Out</a>
+              </div>
+            </div>
+          </div>
+        </div>
+      </header>
+
+      <div id="alert-container"></div>
+
+      <section class="dashboard-section-card active-tab" id="inquiries-section">
+        <div class="card">
+          <div class="card-header responsive-header-block">
+            <h2 class="card-title">Support Inquiries</h2>
+            <div class="header-actions-group">
+              <span class="table-result-count" id="inquiries-count">0 inquiries</span>
+              <input type="text" class="search-box" id="inquiries-search" placeholder="Search by contact or topic...">
+              <select class="form-select" id="status-filter" style="max-width: 160px;">
+                <option value="all">All statuses</option>
+                <option value="new">New</option>
+                <option value="contacted">Contacted</option>
+                <option value="resolved">Resolved</option>
+              </select>
+            </div>
+          </div>
+          <div class="table-container">
+            <table>
+              <thead>
+                <tr>
+                  <th>Contact</th>
+                  <th>Method</th>
+                  <th>Topic</th>
+                  <th>Date</th>
+                  <th>Status</th>
+                  <th>Actions</th>
+                </tr>
+              </thead>
+              <tbody id="inquiries-body">
+                <tr><td colspan="6" class="empty-state">Loading inquiries...</td></tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </section>
+
+    </main>
+  </div>
+
+  <!-- Transcript Modal -->
+  <div class="modal" id="transcript-modal" role="dialog" aria-modal="true" aria-labelledby="transcript-title">
+    <div class="modal-content" tabindex="-1">
+      <div class="modal-header">
+        <h2 class="modal-title" id="transcript-title">Conversation Transcript</h2>
+        <button type="button" class="close-modal" id="close-transcript-modal" aria-label="Close transcript">&times;</button>
+      </div>
+      <div id="transcript-body" class="user-details-body">
+        <div class="empty-state">Loading transcript...</div>
+      </div>
+    </div>
+  </div>
+
+  <script type="module" src="assets/js/chatbot-inquiries.js"></script>
+  <script src="../users/js/nav-core.js"></script>
+</body>
+</html>
