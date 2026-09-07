@@ -667,6 +667,7 @@ async function handleGetOrders(req, res, admin, db) {
       reference: s.reference,
       productId: s.productId,
       productTitle: s.productTitle,
+      imageUrl: s.imageUrl || null,
       productType: s.productType,
       quantity: s.quantity,
       amount: s.amount,
