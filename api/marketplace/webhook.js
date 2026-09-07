@@ -400,10 +400,13 @@ async function handleChargeSuccess(data, admin, db, res, PAYSTACK_SECRET) {
         saleSummaries.push({ productTitle, productType: product.type, unit: product.unit || 'unit', quantity: qty, stockRemaining });
       }
 
+      // Calculate total units/items sold across the order
+      const totalQuantitySold = items.reduce((sum, item) => sum + (item.quantity || 1), 0);
+
       tx.set(vendorRef, {
         totalEarned: admin.firestore.FieldValue.increment(vendorAmountTotal),
         pendingPayout: admin.firestore.FieldValue.increment(vendorAmountTotal),
-        totalSales: admin.firestore.FieldValue.increment(1),
+        totalSales: admin.firestore.FieldValue.increment(totalQuantitySold),
         updatedAt: admin.firestore.Timestamp.now()
       }, { merge: true });
     });
