@@ -1,4 +1,4 @@
-// students/js/seller-dashboard.js
+// users/js/seller-dashboard.js
 
 import { auth, db } from '../../firebase-config.js';
 import '../../js/notification-center.js';
@@ -447,9 +447,24 @@ async function loadVendorProfile() {
 }
 
 function renderBalance(vendor) {
-    document.getElementById('pending-payout-value').textContent = '₦' + (vendor.pendingPayout || 0).toLocaleString();
+    document.getElementById('pending-payout-value').textContent = '₦' + (vendor.availableNow || 0).toLocaleString();
+    document.getElementById('held-payout-value').textContent = '₦' + (vendor.heldAmount || 0).toLocaleString();
     document.getElementById('awaiting-payout-value').textContent = '₦' + (vendor.awaitingPayout || 0).toLocaleString();
     document.getElementById('total-paid-value').textContent = '₦' + (vendor.totalPaidOut || 0).toLocaleString();
+
+    const heldNote = document.getElementById('held-payout-note');
+    if (!heldNote) return;
+    if (vendor.heldAmount > 0) {
+        const nextDate = vendor.nextAvailableAt?._seconds
+            ? new Date(vendor.nextAvailableAt._seconds * 1000)
+            : null;
+        heldNote.textContent = nextDate
+            ? `₦${vendor.heldAmount.toLocaleString()} from sales in the last 7 days is held to match our return policy — available from ${nextDate.toLocaleDateString()}.`
+            : `₦${vendor.heldAmount.toLocaleString()} from recent sales is held to match our return policy.`;
+        heldNote.classList.remove('hidden');
+    } else {
+        heldNote.classList.add('hidden');
+    }
 }
 
 function renderBankAccount(bankAccount) {

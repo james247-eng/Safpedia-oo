@@ -5,8 +5,42 @@ const { getAuthedUser } = require('../../lib/auth');
 const { sendEmail, sendNotification, getRecipient } = require('../utils/[action]');
 const { TIERS } = require('../../lib/vendor-subscriptions');
 
+const HOLD_PERIOD_DAYS = 7;
 
+/**
+ * Computes how much of a vendor's pendingPayout balance is still inside the
+ * platform's return-policy window and therefore not withdrawable yet.
+ * Reuses the same collectionGroup('sales') vendorUid+createdAt composite
+ * index that get-orders already requires — no new index needed.
+ */
+async function computeHeldBalance(db, admin, vendorUid) {
+  const cutoff = admin.firestore.Timestamp.fromMillis(Date.now() - HOLD_PERIOD_DAYS * 24 * 60 * 60 * 1000);
 
+  const heldSalesSnap = await db.collectionGroup('sales')
+    .where('vendorUid', '==', vendorUid)
+    .where('createdAt', '>=', cutoff)
+    .get();
+
+  let heldAmount = 0;
+  let earliestHeldCreatedAt = null;
+
+  heldSalesSnap.forEach((doc) => {
+    const sale = doc.data();
+    if (typeof sale.vendorAmount === 'number') {
+      heldAmount += sale.vendorAmount;
+      const createdAtMillis = sale.createdAt?.toMillis ? sale.createdAt.toMillis() : null;
+      if (createdAtMillis !== null && (earliestHeldCreatedAt === null || createdAtMillis < earliestHeldCreatedAt)) {
+        earliestHeldCreatedAt = createdAtMillis;
+      }
+    }
+  });
+
+  const nextAvailableAt = earliestHeldCreatedAt !== null
+    ? admin.firestore.Timestamp.fromMillis(earliestHeldCreatedAt + HOLD_PERIOD_DAYS * 24 * 60 * 60 * 1000)
+    : null;
+
+  return { heldAmount, nextAvailableAt };
+}
 
 
 const APP_URL = process.env.APP_URL || 'https://safpedia-oo.vercel.app';
@@ -165,14 +199,31 @@ async function handleRequestPayout(req, res, admin, db) {
     return res.status(400).json({ error: 'Add a bank account before requesting a payout' });
   }
 
-  const available = vendorData.pendingPayout || 0;
-  const requestAmount = typeof amount === 'number' && amount > 0 ? amount : available;
+  const pendingPayout = vendorData.pendingPayout || 0;
+  const { heldAmount, nextAvailableAt } = await computeHeldBalance(db, admin, user.uid);
+  const availableNow = Math.max(0, pendingPayout - heldAmount);
+
+  const requestAmount = typeof amount === 'number' && amount > 0 ? amount : availableNow;
 
   if (requestAmount <= 0) {
+    if (heldAmount > 0) {
+      return res.status(400).json({
+        error: `No payout available yet — ₦${heldAmount.toLocaleString('en-NG')} from recent sales is held for ${HOLD_PERIOD_DAYS} days after purchase to match our return policy.${nextAvailableAt ? ` It becomes available on ${nextAvailableAt.toDate().toLocaleDateString('en-NG')}.` : ''}`,
+        reasonCode: 'held_pending_return_window',
+        heldAmount,
+        nextAvailableAt
+      });
+    }
     return res.status(400).json({ error: 'No payout balance available' });
   }
-  if (requestAmount > available) {
-    return res.status(400).json({ error: `Requested amount exceeds available balance of ₦${available}` });
+  if (requestAmount > availableNow) {
+    return res.status(400).json({
+      error: `Requested amount exceeds your available balance of ₦${availableNow.toLocaleString('en-NG')}. ₦${heldAmount.toLocaleString('en-NG')} from recent sales is still held until ${HOLD_PERIOD_DAYS} days after purchase${nextAvailableAt ? ` (earliest release: ${nextAvailableAt.toDate().toLocaleDateString('en-NG')})` : ''}.`,
+      reasonCode: 'exceeds_available_balance',
+      availableNow,
+      heldAmount,
+      nextAvailableAt
+    });
   }
 
   const payoutRef = vendorRef.collection('vendorPayoutRequests').doc();
@@ -372,6 +423,10 @@ async function handleGetProfile(req, res, admin, db) {
         totalSales: 0
       };
 
+  const { heldAmount, nextAvailableAt } = await computeHeldBalance(db, admin, user.uid);
+  const pendingPayout = vendor.pendingPayout || 0;
+  const availableNow = Math.max(0, pendingPayout - heldAmount);
+
   const productsSnap = await db.collection('vendorProducts')
     .where('vendorUid', '==', user.uid)
     .orderBy('createdAt', 'desc')
@@ -400,7 +455,10 @@ async function handleGetProfile(req, res, admin, db) {
     vendor: {
       bankAccount: vendor.bankAccount || null,
       totalEarned: vendor.totalEarned || 0,
-      pendingPayout: vendor.pendingPayout || 0,
+      pendingPayout,
+      availableNow,
+      heldAmount,
+      nextAvailableAt,
       awaitingPayout: vendor.awaitingPayout || 0,
       totalPaidOut: vendor.totalPaidOut || 0,
       totalSales: vendor.totalSales || 0

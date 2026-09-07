@@ -186,20 +186,25 @@
             <section id="payouts-pane" class="dashboard-section-card">
                 <!-- <h2>Balance &amp; Payouts</h2> -->
 
-                <div class="balance-summary" id="balance-summary">
-                    <div class="balance-card">
-                        <span class="balance-label">Available Balance</span>
-                        <span class="balance-value" id="pending-payout-value">₦0</span>
-                    </div>
-                    <div class="balance-card">
-                        <span class="balance-label">Processing</span>
-                        <span class="balance-value" id="awaiting-payout-value">₦0</span>
-                    </div>
-                    <div class="balance-card">
-                        <span class="balance-label">Total Paid Out</span>
-                        <span class="balance-value" id="total-paid-value">₦0</span>
-                    </div>
-                </div>
+<div class="balance-summary" id="balance-summary">
+    <div class="balance-card">
+        <span class="balance-label">Available Balance</span>
+        <span class="balance-value" id="pending-payout-value">₦0</span>
+    </div>
+    <div class="balance-card">
+        <span class="balance-label">Held (Return Window)</span>
+        <span class="balance-value" id="held-payout-value">₦0</span>
+    </div>
+    <div class="balance-card">
+        <span class="balance-label">Processing</span>
+        <span class="balance-value" id="awaiting-payout-value">₦0</span>
+    </div>
+    <div class="balance-card">
+        <span class="balance-label">Total Paid Out</span>
+        <span class="balance-value" id="total-paid-value">₦0</span>
+    </div>
+</div>
+<p id="held-payout-note" class="field-hint hidden"></p>
 
                 <div class="payout-action"><div><strong>Ready to withdraw?</strong><span>Requests are reviewed before transfer.</span></div><button type="button" id="request-payout-btn" class="btn btn-primary">Request Payout</button></div>
                 <h3>Bank Account</h3>
