@@ -72,7 +72,58 @@
             <h1 id="vendor-store-title">Loading store...</h1>
             <p id="vendor-product-count"></p>
         </section>
+        <!-- CART TOGGLE (floating) -->
+<button type="button" id="cart-toggle-btn" class="btn btn-primary cart-toggle-btn">
+    <ion-icon name="cart-outline"></ion-icon>
+    <span id="cart-item-count">0</span>
+</button>
 
+<!-- CART DRAWER -->
+<div class="cart-drawer-overlay hidden" id="cart-drawer-overlay">
+    <div class="cart-drawer" id="cart-drawer">
+        <div class="cart-drawer-header">
+            <h2>Your Cart</h2>
+            <button type="button" id="cart-drawer-close" class="modal-close-btn" aria-label="Close cart">&times;</button>
+        </div>
+
+        <div id="cart-items-list" class="cart-items-list">
+            <div class="empty-state">Your cart is empty.</div>
+        </div>
+
+        <div id="cart-shipping-form-wrapper" class="cart-shipping-form-wrapper hidden">
+            <h3>Shipping Details</h3>
+            <div class="form-row">
+                <label for="cart-ship-fullname">Full Name</label>
+                <input type="text" id="cart-ship-fullname">
+            </div>
+            <div class="form-row">
+                <label for="cart-ship-phone">Phone</label>
+                <input type="text" id="cart-ship-phone">
+            </div>
+            <div class="form-row">
+                <label for="cart-ship-address">Address</label>
+                <input type="text" id="cart-ship-address">
+            </div>
+            <div class="form-row">
+                <label for="cart-ship-city">City</label>
+                <input type="text" id="cart-ship-city">
+            </div>
+            <div class="form-row">
+                <label for="cart-ship-state">State</label>
+                <input type="text" id="cart-ship-state">
+            </div>
+        </div>
+
+        <div class="cart-drawer-footer">
+            <div class="cart-subtotal-row">
+                <span>Subtotal</span>
+                <span id="cart-subtotal-value">₦0</span>
+            </div>
+            <div id="cart-status" class="cart-status hidden"></div>
+            <button type="button" id="cart-checkout-btn" class="btn btn-primary" disabled>Checkout</button>
+        </div>
+    </div>
+</div>
         <section class="products-grid-container">
             <div id="products-grid" class="products-grid">
                 <div class="loading-placeholder">Loading products...</div>

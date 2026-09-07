@@ -601,6 +601,13 @@ async function handleGetDownloadLink(req, res, admin, db) {
  *
  * Body: { productId, quantity?, shippingAddress? }
  */
+
+
+
+/*
+
+
+
 async function handleCreateTransaction(req, res, admin, db) {
   const authHeader = req.headers.authorization || req.headers.Authorization || '';
   const idToken = authHeader.replace('Bearer ', '');
@@ -714,6 +721,210 @@ async function handleCreateTransaction(req, res, admin, db) {
     reference: initJson.data.reference
   });
 }
+
+
+
+
+
+*/
+
+
+/**
+ * POST /api/marketplace/create-transaction
+ * Accepts either a cart-shaped body { items: [{productId, quantity}], shippingAddress }
+ * from the vendor storefront, OR the legacy single-item body
+ * { productId, quantity, shippingAddress } from product-details.js's Buy Now
+ * flow — both are normalized into the same items-array path below, so
+ * there's one validation path and one webhook handler for both.
+ *
+ * All items in one checkout MUST belong to the same vendor — the platform
+ * has no shared warehouse, so a mixed-vendor cart can't be fulfilled as one
+ * shipment. This is enforced server-side regardless of what the client cart
+ * claims.
+ *
+ * Runs on the SEPARATE Paystack business account from courses/affiliates.
+ *
+ * NOTE: authenticates via the raw Authorization header itself (matching the
+ * original standalone file) rather than getAuthedUser — preserved as-is.
+ */
+async function handleCreateTransaction(req, res, admin, db) {
+  const MAX_CART_ITEMS = 20;
+
+  const authHeader = req.headers.authorization || req.headers.Authorization || '';
+  const idToken = authHeader.replace('Bearer ', '');
+  if (!idToken) {
+    return res.status(401).json({ error: 'Missing authorization token' });
+  }
+
+  const decoded = await admin.auth().verifyIdToken(idToken);
+  const buyerUid = decoded.uid;
+
+  const body = req.body || {};
+  let items = body.items;
+
+  // Legacy single-item shape → normalize into items array.
+  if (!items && typeof body.productId === 'string') {
+    items = [{ productId: body.productId, quantity: body.quantity }];
+  }
+
+  const shippingAddress = body.shippingAddress;
+
+  if (!Array.isArray(items) || items.length === 0) {
+    return res.status(400).json({ error: 'items must be a non-empty array' });
+  }
+  if (items.length > MAX_CART_ITEMS) {
+    return res.status(400).json({ error: `A single checkout is limited to ${MAX_CART_ITEMS} items` });
+  }
+
+  const seenProductIds = new Set();
+  for (const item of items) {
+    if (!item || typeof item.productId !== 'string' || !item.productId) {
+      return res.status(400).json({ error: 'Each item requires a productId' });
+    }
+    if (seenProductIds.has(item.productId)) {
+      return res.status(400).json({ error: `Duplicate productId in cart: ${item.productId} — combine into a single quantity instead` });
+    }
+    seenProductIds.add(item.productId);
+    const qty = item.quantity;
+    if (qty !== undefined && (typeof qty !== 'number' || !Number.isInteger(qty) || qty < 1)) {
+      return res.status(400).json({ error: `Invalid quantity for product ${item.productId}` });
+    }
+  }
+
+  const productSnaps = await Promise.all(
+    items.map((item) => db.collection('vendorProducts').doc(item.productId).get())
+  );
+
+  let vendorUid = null;
+  let hasPhysicalItem = false;
+  const lineItems = [];
+
+  for (let i = 0; i < items.length; i++) {
+    const item = items[i];
+    const snap = productSnaps[i];
+    const qty = typeof item.quantity === 'number' ? item.quantity : 1;
+
+    if (!snap.exists) {
+      return res.status(404).json({ error: `Product not found: ${item.productId}` });
+    }
+    const product = snap.data();
+
+    if (product.isDeleted) {
+      return res.status(400).json({ error: `Product is no longer available: ${product.title || item.productId}` });
+    }
+    if (!product.isActive) {
+      return res.status(400).json({ error: `This product is no longer available: ${product.title || item.productId}` });
+    }
+
+    if (vendorUid === null) {
+      vendorUid = product.vendorUid;
+    } else if (product.vendorUid !== vendorUid) {
+      return res.status(400).json({ error: 'All items in a single checkout must be from the same vendor' });
+    }
+
+    if (typeof product.price !== 'number') {
+      return res.status(400).json({ error: `Product price must be a number in Firestore: ${item.productId}` });
+    }
+
+    if (product.type === 'physical') {
+      hasPhysicalItem = true;
+      if (product.stock === null || product.stock < qty) {
+        return res.status(400).json({ error: `Not enough stock available for: ${product.title || item.productId}` });
+      }
+    }
+
+    lineItems.push({
+      productId: item.productId,
+      vendorUid: product.vendorUid,
+      productTitle: product.title || 'Product',
+      productType: product.type,
+      price: product.price,
+      quantity: qty
+    });
+  }
+
+  if (vendorUid === buyerUid) {
+    return res.status(400).json({ error: 'You cannot purchase your own products' });
+  }
+
+  if (hasPhysicalItem) {
+    if (!shippingAddress || typeof shippingAddress !== 'object') {
+      return res.status(400).json({ error: 'shippingAddress is required — your cart includes a physical product' });
+    }
+    const required = ['fullName', 'phone', 'address', 'city', 'state'];
+    const missing = required.filter((f) => !shippingAddress[f] || typeof shippingAddress[f] !== 'string');
+    if (missing.length) {
+      return res.status(400).json({ error: `shippingAddress missing: ${missing.join(', ')}` });
+    }
+  }
+
+  let commissionRate = 0.15;
+  try {
+    const settingsSnap = await db.collection('settings').doc('marketplace').get();
+    if (settingsSnap.exists && typeof settingsSnap.data().platformCommissionRate === 'number') {
+      commissionRate = settingsSnap.data().platformCommissionRate;
+    }
+  } catch (err) {
+    console.warn('Could not load marketplace settings, using default commission rate:', err.message);
+  }
+
+  const amountNaira = lineItems.reduce((sum, line) => sum + (line.price * line.quantity), 0);
+  const amountKobo = Math.round(amountNaira * 100);
+
+  const PAYSTACK_SECRET = process.env.PAYSTACK_SECRET_KEY_MARKETPLACE;
+  if (!PAYSTACK_SECRET) {
+    return res.status(500).json({ error: 'PAYSTACK_SECRET_KEY_MARKETPLACE not configured' });
+  }
+
+  const origin = req.headers.origin || process.env.SITE_URL || 'https://techwizardsacademy.com';
+  const callbackUrl = `${origin}/marketplace-payment-success.html`;
+
+  const initRes = await fetch('https://api.paystack.co/transaction/initialize', {
+    method: 'POST',
+    headers: {
+      Authorization: `Bearer ${PAYSTACK_SECRET}`,
+      'Content-Type': 'application/json'
+    },
+    body: JSON.stringify({
+      email: decoded.email,
+      amount: amountKobo,
+      callback_url: callbackUrl,
+      metadata: {
+        orderType: 'marketplace_cart',
+        buyerUid,
+        vendorUid,
+        items: lineItems,
+        commissionRate,
+        shippingAddress: hasPhysicalItem ? shippingAddress : null
+      }
+    })
+  });
+
+  const initJson = await initRes.json();
+
+  if (!initJson.status) {
+    console.error('Paystack init failed:', initJson);
+    return res.status(502).json({ error: 'Paystack initialization failed', details: initJson });
+  }
+
+  console.log('Marketplace cart payment initialized:', {
+    reference: initJson.data.reference,
+    buyerUid,
+    vendorUid,
+    itemCount: lineItems.length
+  });
+
+  return res.status(200).json({
+    authorization_url: initJson.data.authorization_url,
+    reference: initJson.data.reference
+  });
+}
+
+
+
+
+
+
 
 async function handleInitiateSubscriptionPayment(req, res, admin, db) {
   const authHeader = req.headers.authorization || req.headers.Authorization || '';
