@@ -43,7 +43,7 @@ export async function sendBuyerOrderConfirmation({ email, name, orderRef, totalA
     return dispatchDynamicEmail({
         toEmail: email,
         toName: name,
-        subject: `Order Confirmed #${orderRef} - Safpedia Marketplace`,
+        subject: `Order #${orderRef} Confirmed - Safpedia Marketplace`,
         headline: `Thank You for Your Order!`,
         bodyContent: `Your purchase of "${itemTitle}" (Order #${orderRef}) totaling ₦${totalAmount.toLocaleString()} was successful. The vendor has been notified to process your order.`,
         actionUrl: `https://safpedia-oo.vercel.app/users/marketplace-orders.html`,
@@ -58,7 +58,7 @@ export async function sendVendorNewOrderAlert({ vendorEmail, vendorName, orderRe
         toEmail: vendorEmail,
         toName: vendorName,
         subject: `New Sale Alert! Order #${orderRef}`,
-        headline: `You Made a Sale! 🛒`,
+        headline: `You Made a Sale!`,
         bodyContent: `Great news! You received an order for ${qty}${unitLabel} of "${itemTitle}". Earnings credited to your pending balance: ₦${earnings.toLocaleString()}. Please process this order promptly.`,
         actionUrl: `https://safpedia-oo.vercel.app/users/sellers-page.html#orders-pane`,
         actionText: `Manage Order`

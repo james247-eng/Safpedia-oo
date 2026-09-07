@@ -159,7 +159,7 @@ async function handleSendVerificationEmail(req, res) {
       toEmail: email,
       toName: name || 'Valued User',
       subject: 'Verify your Safpedia account',
-      headline: 'Welcome to Safpedia! 📚',
+      headline: 'Welcome to Safpedia!',
       bodyContent: "You're almost in. Verify your email address to activate your account and unlock your dashboard, courses, and library.",
       actionUrl: link,
       actionText: 'Verify My Email'

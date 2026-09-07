@@ -1,3 +1,7 @@
+// api/paystack/webhook.js
+
+
+
 const crypto = require('crypto');
 const { getFirebaseAdmin } = require('../../lib/firebase-admin');
 const { sendEmail, sendNotification, getRecipient } = require('../utils/[action]');

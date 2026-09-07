@@ -1,3 +1,6 @@
+// users/js/affiliate-dashboard.js
+
+
 // ====================================================================
 // AFFILIATE DASHBOARD - 
 // Reads affiliate status/stats directly from Firestore (fast, no cold-start wait).

@@ -1,3 +1,5 @@
+// api/disputes/[action].js
+
 const { getFirebaseAdmin } = require('../../lib/firebase-admin');
 const { getAuthedUser } = require('../../lib/auth');
 const { sendEmail, sendNotification, getRecipient } = require('../utils/[action]');
