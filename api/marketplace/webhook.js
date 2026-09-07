@@ -16,7 +16,9 @@ module.exports.config = {
 function getRawBody(req) {
   return new Promise((resolve, reject) => {
     let data = '';
-    req.on('data', (chunk) => { data += chunk; });
+    req.on('data', (chunk) => { 
+      data += chunk; 
+    });
     req.on('end', () => resolve(data));
     req.on('error', reject);
   });
@@ -69,7 +71,11 @@ module.exports = async (req, res) => {
     const admin = getFirebaseAdmin();
     const db = admin.firestore();
 
-    if (eventType === 'transfer.success' || eventType === 'transfer.failed' || eventType === 'transfer.reversed') {
+    if (
+      eventType === 'transfer.success' || 
+      eventType === 'transfer.failed' || 
+      eventType === 'transfer.reversed'
+    ) {
       return handleTransferEvent(eventType, data, admin, db, res);
     }
 
@@ -87,181 +93,9 @@ module.exports = async (req, res) => {
 };
 
 /**
- * Handles a successful marketplace payment: verifies stock (if physical),
- * credits the vendor's balance with their cut, records the sale.
- */
-/*
-async function handleChargeSuccess(data, admin, db, res, PAYSTACK_SECRET) {
-  const metadata = data.metadata || {};
-
-  if (metadata.orderType === 'vendor_subscription') {
-    return handleSubscriptionChargeSuccess(data, metadata, admin, db, res);
-  }
-
-  if (metadata.orderType !== 'marketplace') {
-    console.log('Ignoring non-marketplace charge.success event');
-    return res.status(200).send('ok');
-  }
-
-  const { buyerUid, productId, vendorUid, quantity } = metadata;
-  const reference = data.reference;
-
-  if (!buyerUid || !productId || !vendorUid) {
-    console.error('Missing required metadata on marketplace charge:', metadata);
-    return res.status(400).send('Missing required metadata');
-  }
-
-  const qty = typeof quantity === 'number' ? quantity : 1;
-  const amountNaira = data.amount / 100; // kobo -> naira
-  const rate = 0;
-  const commissionAmount = 0;
-  const vendorAmount = amountNaira;
-
-  const productRef = db.collection('vendorProducts').doc(productId);
-  const saleRef = productRef.collection('sales').doc(reference);
-  const vendorRef = db.collection('vendors').doc(vendorUid);
-
-  let oversold = false;
-  let saleDetails = null;
-
-  try {
-    await db.runTransaction(async (tx) => {
-      const saleSnap = await tx.get(saleRef);
-      if (saleSnap.exists) {
-        // Already processed — Paystack may retry webhooks. Idempotent no-op.
-        return;
-      }
-
-      const productSnap = await tx.get(productRef);
-      if (!productSnap.exists) {
-        throw new Error(`Product ${productId} not found during fulfillment`);
-      }
-      const product = productSnap.data();
-      const productTitle = metadata.productTitle || product.title || 'Product';
-
-      let fulfillmentStatus;
-      let stockRemaining = null;
-
-      if (product.type === 'physical') {
-        if (product.stock === null || product.stock < qty) {
-          oversold = true;
-          return; // handled after the transaction — funds get refunded, nothing credited
-        }
-        tx.set(productRef, {
-          stock: admin.firestore.FieldValue.increment(-qty),
-          totalSales: admin.firestore.FieldValue.increment(qty),
-          updatedAt: admin.firestore.Timestamp.now()
-        }, { merge: true });
-        fulfillmentStatus = 'pending_shipment';
-        stockRemaining = product.stock - qty;
-      } else {
-        tx.set(productRef, {
-          totalSales: admin.firestore.FieldValue.increment(qty),
-          updatedAt: admin.firestore.Timestamp.now()
-        }, { merge: true });
-        fulfillmentStatus = 'available'; // download link generated on-demand by the buyer
-      }
-
-      tx.set(vendorRef, {
-        totalEarned: admin.firestore.FieldValue.increment(vendorAmount),
-        pendingPayout: admin.firestore.FieldValue.increment(vendorAmount),
-        totalSales: admin.firestore.FieldValue.increment(1),
-        updatedAt: admin.firestore.Timestamp.now()
-      }, { merge: true });
-
-      tx.set(saleRef, {
-        reference,
-        productId,
-        vendorUid,
-        buyerUid,
-        productTitle,
-        productType: product.type,
-        quantity: qty,
-        unit: product.unit || 'unit', // <-- SAVED TO SALE RECORD
-        amount: amountNaira,
-        commissionRate: rate,
-        commissionAmount,
-        vendorAmount,
-        fulfillmentStatus,
-        shippingAddress: product.type === 'physical' ? (metadata.shippingAddress || null) : null,
-        createdAt: admin.firestore.Timestamp.now()
-      });
-
-      saleDetails = {
-        productTitle,
-        productType: product.type,
-        unit: product.unit || 'unit',
-        stockRemaining
-      };
-    });
-  } catch (err) {
-    console.error('Error processing marketplace charge.success:', err.message);
-    return res.status(500).json({ error: err.message });
-  }
-
-  if (oversold) {
-    console.warn(`Product ${productId} oversold — refunding reference ${reference}`);
-    try {
-      await fetch('https://api.paystack.co/refund', {
-        method: 'POST',
-        headers: {
-          Authorization: `Bearer ${PAYSTACK_SECRET}`,
-          'Content-Type': 'application/json'
-        },
-        body: JSON.stringify({ transaction: reference })
-      });
-      await saleRef.set({
-        reference,
-        productId,
-        vendorUid,
-        buyerUid,
-        status: 'oversold_refunded',
-        amount: amountNaira,
-        createdAt: admin.firestore.Timestamp.now()
-      }, { merge: true });
-    } catch (refundErr) {
-      console.error('❌ AUTOMATED REFUND FAILED — manual action required:', reference, refundErr.message);
-    }
-    return res.status(200).send('ok');
-  }
-
-  if (saleDetails) {
-    await notifyMarketplaceSale({
-      admin,
-      db,
-      buyerUid,
-      vendorUid,
-      reference,
-      qty,
-      amountNaira,
-      vendorAmount,
-      ...saleDetails
-    });
-  }
-
-  console.log(`✓ Marketplace sale recorded and vendor credited: ${reference}`);
-  return res.status(200).json({ success: true, reference });
-}
-*/
-/**
- * Settles a vendorPayoutRequests doc once Paystack confirms the transfer's
- * final state.
- */
-
-
-/**
  * Handles a successful marketplace payment. Normalizes both the current
  * cart-shaped metadata (orderType: 'marketplace_cart') and the legacy
- * single-product shape (orderType: 'marketplace', from before this change)
- * into one items array, so any transaction initialized just before deploy
- * still settles correctly instead of being silently dropped.
- *
- * Writes one sale doc per item (all sharing the reference), credits the
- * vendor once with the summed total. If ANY item in the cart is oversold,
- * the ENTIRE order is refunded rather than partially fulfilled — partial
- * refunds within a single Paystack charge aren't a single API call, so
- * this keeps the failure mode simple and correct rather than partially
- * correct.
+ * single-product shape into one items array.
  */
 async function handleChargeSuccess(data, admin, db, res, PAYSTACK_SECRET) {
   const metadata = data.metadata || {};
@@ -277,8 +111,6 @@ async function handleChargeSuccess(data, admin, db, res, PAYSTACK_SECRET) {
     buyerUid = metadata.buyerUid;
     items = Array.isArray(metadata.items) ? metadata.items : null;
   } else if (metadata.orderType === 'marketplace') {
-    // Legacy single-item metadata shape — no per-item price snapshot, so
-    // unit price is derived from the live product doc during fulfillment.
     buyerUid = metadata.buyerUid;
     items = metadata.productId ? [{
       productId: metadata.productId,
@@ -319,9 +151,6 @@ async function handleChargeSuccess(data, admin, db, res, PAYSTACK_SECRET) {
 
   try {
     await db.runTransaction(async (tx) => {
-      // Idempotent no-op on webhook retry — if any sale for this
-      // reference already exists, the whole order was already processed
-      // (all sale docs commit together in one transaction).
       const existingSnaps = await Promise.all(saleRefs.map((ref) => tx.get(ref)));
       if (existingSnaps.some((snap) => snap.exists)) {
         return;
@@ -345,7 +174,7 @@ async function handleChargeSuccess(data, admin, db, res, PAYSTACK_SECRET) {
         if (product.type === 'physical' && (product.stock === null || product.stock < qty)) {
           oversold = true;
           oversoldProductTitle = item.productTitle || product.title || item.productId;
-          return; // abort — no writes made, handled after the transaction
+          return;
         }
       }
 
@@ -358,6 +187,11 @@ async function handleChargeSuccess(data, admin, db, res, PAYSTACK_SECRET) {
         const unitPrice = typeof item.price === 'number' ? item.price : product.price;
         const lineAmount = unitPrice * qty;
         const productTitle = item.productTitle || product.title || 'Product';
+
+        // Extract image URL from product snapshot
+        const imageUrl = Array.isArray(product.images) && product.images.length > 0 
+          ? product.images[0] 
+          : (product.imageUrl || product.image || null);
 
         let fulfillmentStatus;
         let stockRemaining = null;
@@ -384,6 +218,7 @@ async function handleChargeSuccess(data, admin, db, res, PAYSTACK_SECRET) {
           vendorUid,
           buyerUid,
           productTitle,
+          imageUrl,
           productType: product.type,
           quantity: qty,
           unit: product.unit || 'unit',
@@ -397,10 +232,15 @@ async function handleChargeSuccess(data, admin, db, res, PAYSTACK_SECRET) {
         });
 
         vendorAmountTotal += lineAmount;
-        saleSummaries.push({ productTitle, productType: product.type, unit: product.unit || 'unit', quantity: qty, stockRemaining });
+        saleSummaries.push({ 
+          productTitle, 
+          productType: product.type, 
+          unit: product.unit || 'unit', 
+          quantity: qty, 
+          stockRemaining 
+        });
       }
 
-      // Calculate total units/items sold across the order
       const totalQuantitySold = items.reduce((sum, item) => sum + (item.quantity || 1), 0);
 
       tx.set(vendorRef, {
@@ -420,7 +260,10 @@ async function handleChargeSuccess(data, admin, db, res, PAYSTACK_SECRET) {
     try {
       await fetch('https://api.paystack.co/refund', {
         method: 'POST',
-        headers: { Authorization: `Bearer ${PAYSTACK_SECRET}`, 'Content-Type': 'application/json' },
+        headers: { 
+          Authorization: `Bearer ${PAYSTACK_SECRET}`, 
+          'Content-Type': 'application/json' 
+        },
         body: JSON.stringify({ transaction: reference })
       });
       await saleRefs[0].set({
@@ -439,7 +282,16 @@ async function handleChargeSuccess(data, admin, db, res, PAYSTACK_SECRET) {
   }
 
   if (saleSummaries.length) {
-    await notifyMarketplaceCartSale({ admin, db, buyerUid, vendorUid, reference, totalAmountNaira, vendorAmountTotal, saleSummaries });
+    await notifyMarketplaceCartSale({ 
+      admin, 
+      db, 
+      buyerUid, 
+      vendorUid, 
+      reference, 
+      totalAmountNaira, 
+      vendorAmountTotal, 
+      saleSummaries 
+    });
   }
 
   console.log(`✓ Marketplace cart order recorded and vendor credited: ${reference} (${saleSummaries.length} item(s))`);
@@ -459,28 +311,36 @@ async function notifyMarketplaceCartSale({ admin, db, buyerUid, vendorUid, refer
 
     await Promise.all([
       sendEmail({
-        toEmail: buyer.email, toName: buyer.name,
+        toEmail: buyer.email, 
+        toName: buyer.name,
         subject: multi ? `Order confirmed: ${saleSummaries.length} items` : `Order confirmed: ${saleSummaries[0].productTitle}`,
         headline: 'Your marketplace order is confirmed',
         bodyContent: `Order ${reference} for ${itemLines} was successful. Total paid: NGN ${totalAmountNaira.toLocaleString('en-NG')}.`,
-        actionUrl: orderLink, actionText: 'View Order'
+        actionUrl: orderLink, 
+        actionText: 'View Order'
       }),
       sendNotification({
-        recipientUid: buyerUid, title: 'Order confirmed',
+        recipientUid: buyerUid, 
+        title: 'Order confirmed',
         message: multi ? `Your order of ${saleSummaries.length} items was successful.` : `Your order for ${saleSummaries[0].productTitle} was successful.`,
-        link: orderLink, type: 'order_confirmation'
+        link: orderLink, 
+        type: 'order_confirmation'
       }),
       sendEmail({
-        toEmail: vendor.email, toName: vendor.name,
+        toEmail: vendor.email, 
+        toName: vendor.name,
         subject: multi ? `New order: ${saleSummaries.length} items` : `New order: ${saleSummaries[0].productTitle}`,
         headline: 'You received a new order',
         bodyContent: `Order ${reference} includes ${itemLines}. NGN ${vendorAmountTotal.toLocaleString('en-NG')} was credited to your pending payout balance.`,
-        actionUrl: vendorOrdersLink, actionText: 'Manage Order'
+        actionUrl: vendorOrdersLink, 
+        actionText: 'Manage Order'
       }),
       sendNotification({
-        recipientUid: vendorUid, title: 'New marketplace order',
+        recipientUid: vendorUid, 
+        title: 'New marketplace order',
         message: multi ? `${saleSummaries.length} items were ordered in one checkout.` : `${itemLines} was ordered.`,
-        link: vendorOrdersLink, type: 'new_order'
+        link: vendorOrdersLink, 
+        type: 'new_order'
       })
     ]);
 
@@ -488,24 +348,28 @@ async function notifyMarketplaceCartSale({ admin, db, buyerUid, vendorUid, refer
     if (lowStockItems.length) {
       const productsLink = `${APP_URL}/users/sellers-page.html#products-pane`;
       await Promise.all(lowStockItems.flatMap((s) => [
-        sendEmail({ toEmail: vendor.email, toName: vendor.name, subject: `Low stock alert: ${s.productTitle}`, headline: 'Inventory is running low', bodyContent: `Only ${s.stockRemaining} unit(s) of "${s.productTitle}" remain in stock.`, actionUrl: productsLink, actionText: 'Update Inventory' }),
-        sendNotification({ recipientUid: vendorUid, title: 'Low stock warning', message: `${s.productTitle} has ${s.stockRemaining} unit(s) remaining.`, link: productsLink, type: 'low_stock' })
+        sendEmail({ 
+          toEmail: vendor.email, 
+          toName: vendor.name, 
+          subject: `Low stock alert: ${s.productTitle}`, 
+          headline: 'Inventory is running low', 
+          bodyContent: `Only ${s.stockRemaining} unit(s) of "${s.productTitle}" remain in stock.`, 
+          actionUrl: productsLink, 
+          actionText: 'Update Inventory' 
+        }),
+        sendNotification({ 
+          recipientUid: vendorUid, 
+          title: 'Low stock warning', 
+          message: `${s.productTitle} has ${s.stockRemaining} unit(s) remaining.`, 
+          link: productsLink, 
+          type: 'low_stock' 
+        })
       ]));
     }
   } catch (error) {
     console.error('Marketplace cart sale notifications failed (non-blocking):', error.message);
   }
 }
-
-
-
-
-
-
-
-
-
-
 
 async function handleTransferEvent(eventType, data, admin, db, res) {
   try {
@@ -542,6 +406,7 @@ async function handleTransferEvent(eventType, data, admin, db, res) {
           status: 'paid',
           paidAt: admin.firestore.Timestamp.now()
         }, { merge: true });
+
         tx.set(vendorRef, {
           awaitingPayout: admin.firestore.FieldValue.increment(-amount),
           totalPaidOut: admin.firestore.FieldValue.increment(amount),
@@ -556,6 +421,7 @@ async function handleTransferEvent(eventType, data, admin, db, res) {
           failureReason: eventType,
           updatedAt: admin.firestore.Timestamp.now()
         }, { merge: true });
+
         tx.set(vendorRef, {
           awaitingPayout: admin.firestore.FieldValue.increment(-amount),
           pendingPayout: admin.firestore.FieldValue.increment(amount),
@@ -579,123 +445,85 @@ async function handleSubscriptionChargeSuccess(data, metadata, admin, db, res) {
   const { vendorUid, subscriptionTier, billingCycle } = metadata;
   const reference = data.reference;
   const tier = TIERS[subscriptionTier];
+
   if (!vendorUid || !tier || subscriptionTier === 'safseed' || !['monthly', 'annual'].includes(billingCycle) || !reference) {
     return res.status(400).send('Invalid subscription metadata');
   }
+
   const expectedAmount = billingCycle === 'annual' ? tier.annualPrice : tier.monthlyPrice;
   const amountNaira = data.amount / 100;
-  if (amountNaira !== expectedAmount) console.warn('Subscription amount mismatch:', { reference, expectedAmount, amountNaira });
+
+  if (amountNaira !== expectedAmount) {
+    console.warn('Subscription amount mismatch:', { reference, expectedAmount, amountNaira });
+  }
+
   const paymentRef = db.collection('vendors').doc(vendorUid).collection('subscriptionPayments').doc(reference);
   const vendorRef = db.collection('vendors').doc(vendorUid);
   const now = admin.firestore.Timestamp.now();
   const days = billingCycle === 'annual' ? 365 : 30;
   const expires = admin.firestore.Timestamp.fromMillis(now.toMillis() + days * 24 * 60 * 60 * 1000);
+
   try {
     let alreadyProcessed = false;
+
     await db.runTransaction(async (tx) => {
       const existing = await tx.get(paymentRef);
-      if (existing.exists) { alreadyProcessed = true; return; }
-      tx.set(paymentRef, { reference, tier: subscriptionTier, amount: amountNaira, billingCycle, status: 'success', createdAt: now });
-      tx.set(vendorRef, { subscriptionTier, subscriptionStatus: 'active', subscriptionStartedAt: now, subscriptionExpiresAt: expires, subscriptionPaystackReference: reference, subscriptionUpdatedAt: now }, { merge: true });
+      if (existing.exists) { 
+        alreadyProcessed = true; 
+        return; 
+      }
+
+      tx.set(paymentRef, { 
+        reference, 
+        tier: subscriptionTier, 
+        amount: amountNaira, 
+        billingCycle, 
+        status: 'success', 
+        createdAt: now 
+      });
+
+      tx.set(vendorRef, { 
+        subscriptionTier, 
+        subscriptionStatus: 'active', 
+        subscriptionStartedAt: now, 
+        subscriptionExpiresAt: expires, 
+        subscriptionPaystackReference: reference, 
+        subscriptionUpdatedAt: now 
+      }, { merge: true });
     });
-    const products = await db.collection('vendorProducts').where('vendorUid', '==', vendorUid).where('subscriptionLapsed', '==', true).get();
+
+    const products = await db.collection('vendorProducts')
+      .where('vendorUid', '==', vendorUid)
+      .where('subscriptionLapsed', '==', true)
+      .get();
+
     for (let i = 0; i < products.docs.length; i += 400) {
       const batch = db.batch();
       products.docs.slice(i, i + 400).forEach((doc) => {
-        if (doc.data().adminSuspended !== true) batch.set(doc.ref, { isActive: true, subscriptionLapsed: false }, { merge: true });
+        if (doc.data().adminSuspended !== true) {
+          batch.set(doc.ref, { isActive: true, subscriptionLapsed: false }, { merge: true });
+        }
       });
       await batch.commit();
     }
+
     if (!alreadyProcessed) {
-      await notifyVendorSubscription({ admin, db, vendorUid, tierName: tier.displayName, billingCycle, amountNaira, reference, expires });
+      await notifyVendorSubscription({ 
+        admin, 
+        db, 
+        vendorUid, 
+        tierName: tier.displayName, 
+        billingCycle, 
+        amountNaira, 
+        reference, 
+        expires 
+      });
     }
+
     return res.status(200).json({ success: true, reference });
   } catch (err) {
     console.error('Subscription charge processing error:', err);
     return res.status(500).json({ error: err.message });
-  }
-}
-
-async function notifyMarketplaceSale({
-  admin,
-  db,
-  buyerUid,
-  vendorUid,
-  reference,
-  qty,
-  amountNaira,
-  vendorAmount,
-  productTitle,
-  productType,
-  unit,
-  stockRemaining
-}) {
-  try {
-    const [buyer, vendor] = await Promise.all([
-      getRecipient(admin, db, buyerUid, ['user']),
-      getRecipient(admin, db, vendorUid, ['user', 'vendors'])
-    ]);
-    const orderLink = `${APP_URL}/users/marketplace-orders.html`;
-    const vendorOrdersLink = `${APP_URL}/users/sellers-page.html#orders-pane`;
-
-    await Promise.all([
-      sendEmail({
-        toEmail: buyer.email,
-        toName: buyer.name,
-        subject: `Order confirmed: ${productTitle}`,
-        headline: 'Your marketplace order is confirmed',
-        bodyContent: `Order ${reference} for ${qty} ${unit}(s) of "${productTitle}" was successful. Total paid: NGN ${amountNaira.toLocaleString('en-NG')}.`,
-        actionUrl: orderLink,
-        actionText: 'View Order'
-      }),
-      sendNotification({
-        recipientUid: buyerUid,
-        title: 'Order confirmed',
-        message: `Your order for ${productTitle} was successful.`,
-        link: orderLink,
-        type: 'order_confirmation'
-      }),
-      sendEmail({
-        toEmail: vendor.email,
-        toName: vendor.name,
-        subject: `New order: ${productTitle}`,
-        headline: 'You received a new order',
-        bodyContent: `Order ${reference} includes ${qty} ${unit}(s) of "${productTitle}". NGN ${vendorAmount.toLocaleString('en-NG')} was credited to your pending payout balance.`,
-        actionUrl: vendorOrdersLink,
-        actionText: 'Manage Order'
-      }),
-      sendNotification({
-        recipientUid: vendorUid,
-        title: 'New marketplace order',
-        message: `${qty} ${unit}(s) of ${productTitle} was ordered.`,
-        link: vendorOrdersLink,
-        type: 'new_order'
-      })
-    ]);
-
-    if (productType === 'physical' && stockRemaining <= 2) {
-      const productsLink = `${APP_URL}/users/sellers-page.html#products-pane`;
-      await Promise.all([
-        sendEmail({
-          toEmail: vendor.email,
-          toName: vendor.name,
-          subject: `Low stock alert: ${productTitle}`,
-          headline: 'Inventory is running low',
-          bodyContent: `Only ${stockRemaining} unit(s) of "${productTitle}" remain in stock.`,
-          actionUrl: productsLink,
-          actionText: 'Update Inventory'
-        }),
-        sendNotification({
-          recipientUid: vendorUid,
-          title: 'Low stock warning',
-          message: `${productTitle} has ${stockRemaining} unit(s) remaining.`,
-          link: productsLink,
-          type: 'low_stock'
-        })
-      ]);
-    }
-  } catch (error) {
-    console.error('Marketplace sale notifications failed (non-blocking):', error.message);
   }
 }
 
@@ -737,6 +565,7 @@ async function notifyVendorSubscription({ admin, db, vendorUid, tierName, billin
     const vendor = await getRecipient(admin, db, vendorUid, ['user', 'vendors']);
     const subscriptionLink = `${APP_URL}/users/sellers-page.html#subscription-pane`;
     const expiryDate = expires.toDate().toLocaleDateString('en-NG');
+
     await Promise.all([
       sendEmail({
         toEmail: vendor.email,

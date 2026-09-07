@@ -63,10 +63,27 @@ async function loadOrders() {
         );
         const snapshot = await getDocs(q);
 
-        const orders = [];
+        const sales = [];
         snapshot.forEach((docSnap) => {
-            orders.push({ id: docSnap.id, ...docSnap.data() });
+            sales.push({ id: docSnap.id, ...docSnap.data() });
         });
+
+        // Group individual sales items by transaction reference
+        const groupedMap = new Map();
+        sales.forEach((sale) => {
+            const ref = sale.reference || sale.id;
+            if (!groupedMap.has(ref)) {
+                groupedMap.set(ref, {
+                    reference: ref,
+                    createdAt: sale.createdAt,
+                    shippingAddress: sale.shippingAddress,
+                    items: []
+                });
+            }
+            groupedMap.get(ref).items.push(sale);
+        });
+
+        const orders = Array.from(groupedMap.values());
 
         try {
             await loadDisputes();
@@ -101,33 +118,53 @@ function renderOrders(orders) {
             ? new Date(o.createdAt.seconds * 1000).toLocaleDateString()
             : '';
 
-        let actionCell;
-        if (o.productType === 'digital') {
-            actionCell = o.fulfillmentStatus === 'available'
-                ? `<button type="button" class="btn btn-sm btn-secondary download-btn" data-product-id="${escapeHtml(o.productId)}" data-reference="${escapeHtml(o.reference)}">Download</button>`
-                : `<span class="order-status-text">Status: ${escapeHtml(o.fulfillmentStatus || 'unknown')}</span>`;
-        } else {
-            const tracking = o.trackingNumber
-                ? ` (${escapeHtml(o.carrier || 'carrier')}: ${escapeHtml(o.trackingNumber)})`
-                : '';
-            actionCell = `<span class="order-status-text">${escapeHtml(o.fulfillmentStatus || 'pending_shipment')}${tracking}</span>`;
-        }
+        let totalOrderAmount = 0;
+
+        const itemsHtml = o.items.map((item) => {
+            totalOrderAmount += (item.amount || 0);
+
+            const imgMarkup = item.imageUrl
+                ? `<img src="${escapeHtml(item.imageUrl)}" alt="${escapeHtml(item.productTitle)}" style="width:40px; height:40px; object-fit:cover; border-radius:4px; margin-right:10px; display:block;">`
+                : `<div style="width:40px; height:40px; background:#f0f0f0; border-radius:4px; margin-right:10px; display:flex; align-items:center; justify-content:center; color:#888;"><ion-icon name="image-outline"></ion-icon></div>`;
+
+            let actionCell;
+            if (item.productType === 'digital') {
+                actionCell = item.fulfillmentStatus === 'available'
+                    ? `<button type="button" class="btn btn-sm btn-secondary download-btn" data-product-id="${escapeHtml(item.productId)}" data-reference="${escapeHtml(item.reference)}">Download</button>`
+                    : `<span class="order-status-text">Status: ${escapeHtml(item.fulfillmentStatus || 'unknown')}</span>`;
+            } else {
+                const tracking = item.trackingNumber
+                    ? ` (${escapeHtml(item.carrier || 'carrier')}: ${escapeHtml(item.trackingNumber)})`
+                    : '';
+                actionCell = `<span class="order-status-text">${escapeHtml(item.fulfillmentStatus || 'pending_shipment')}${tracking}</span>`;
+            }
+
+            return `
+                <div style="display:flex; align-items:center; justify-content:space-between; padding:8px 0; border-bottom:1px solid #f0f0f0;">
+                    <div style="display:flex; align-items:center;">
+                        ${imgMarkup}
+                        <div>
+                            <strong>${escapeHtml(item.productTitle)}</strong>
+                            <div style="font-size:0.85em; color:#666;">Qty: ${escapeHtml(item.quantity)} &bull; ₦${(item.amount || 0).toLocaleString()}</div>
+                        </div>
+                    </div>
+                    <div>${actionCell}</div>
+                </div>
+            `;
+        }).join('');
 
         const dispute = disputesByReference.get(o.reference);
         const disputeAction = dispute
-            ? `<button type="button" class="btn btn-sm btn-secondary view-dispute-btn" data-reference="${escapeHtml(o.reference)}" title="View dispute details">View</button>`
+            ? `<button type="button" class="btn btn-sm btn-secondary view-dispute-btn" data-reference="${escapeHtml(o.reference)}" title="View dispute details">View Dispute</button>`
             : `<button type="button" class="btn btn-sm btn-secondary dispute-btn" data-reference="${escapeHtml(o.reference)}">Report a problem</button>`;
 
         return `
             <tr>
-                <td>${escapeHtml(o.productTitle)}</td>
-                <td>${escapeHtml(o.quantity)}</td>
-                <td>₦${(o.amount || 0).toLocaleString()}</td>
-                <td>${escapeHtml(o.productType)}</td>
+                <td style="min-width: 280px;">${itemsHtml}</td>
+                <td>₦${totalOrderAmount.toLocaleString()}</td>
                 <td>${escapeHtml(date)}</td>
                 <td>
                     <div class="order-action-stack">
-                        ${actionCell}
                         ${disputeAction}
                     </div>
                 </td>
@@ -139,12 +176,10 @@ function renderOrders(orders) {
         <table class="data-table-frame">
             <thead>
                 <tr>
-                    <th>Product</th>
-                    <th>Qty</th>
-                    <th>Amount Paid</th>
-                    <th>Type</th>
+                    <th>Items Purchased</th>
+                    <th>Total Paid</th>
                     <th>Date</th>
-                    <th>Status / Action</th>
+                    <th>Action</th>
                 </tr>
             </thead>
             <tbody>${rows}</tbody>
