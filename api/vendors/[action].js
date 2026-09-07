@@ -178,6 +178,13 @@ async function handleAddBankAccount(req, res, admin, db) {
  *
  * Body: { amount? }  // defaults to full pendingPayout balance if omitted
  */
+
+
+
+
+
+
+/*
 async function handleRequestPayout(req, res, admin, db) {
   const user = await getAuthedUser(req, admin);
   const { amount } = req.body || {};
@@ -297,6 +304,171 @@ async function handleRequestPayout(req, res, admin, db) {
     status: transferJson.data.status
   });
 }
+*/
+
+
+
+async function handleRequestPayout(req, res, admin, db) {
+  const user = await getAuthedUser(req, admin);
+  const { amount } = req.body || {};
+
+  const vendorRef = db.collection('vendors').doc(user.uid);
+  const vendorSnap = await vendorRef.get();
+
+  if (!vendorSnap.exists) {
+    return res.status(403).json({ error: 'You do not have a vendor account yet' });
+  }
+
+  const vendorData = vendorSnap.data();
+
+  if (vendorData.isSuspended) {
+    return res.status(403).json({ error: 'This vendor account is suspended and cannot request payouts' });
+  }
+
+  if (!vendorData.bankAccount || !vendorData.bankAccount.recipientCode) {
+    return res.status(400).json({ error: 'Add a bank account before requesting a payout' });
+  }
+
+  // Preliminary check outside the transaction — gives a fast, friendly
+  // error for the common case. The transaction below re-checks everything
+  // against fresh data and is the actual source of truth; this is just to
+  // avoid making the vendor wait for a transaction when the answer is
+  // obviously "no" (e.g. everything is held, or balance is zero).
+  const cutoff = admin.firestore.Timestamp.fromMillis(Date.now() - HOLD_PERIOD_DAYS * 24 * 60 * 60 * 1000);
+  const { heldAmount: precheckHeld, nextAvailableAt: precheckNextAvailable } = await computeHeldBalance(db, admin, user.uid);
+  const precheckAvailable = Math.max(0, (vendorData.pendingPayout || 0) - precheckHeld);
+  const precheckRequestAmount = typeof amount === 'number' && amount > 0 ? amount : precheckAvailable;
+
+  if (precheckRequestAmount <= 0) {
+    if (precheckHeld > 0) {
+      return res.status(400).json({
+        error: `No payout available yet — ₦${precheckHeld.toLocaleString('en-NG')} from recent sales is held for ${HOLD_PERIOD_DAYS} days after purchase to match our return policy.${precheckNextAvailable ? ` It becomes available on ${precheckNextAvailable.toDate().toLocaleDateString('en-NG')}.` : ''}`,
+        reasonCode: 'held_pending_return_window',
+        heldAmount: precheckHeld,
+        nextAvailableAt: precheckNextAvailable
+      });
+    }
+    return res.status(400).json({ error: 'No payout balance available' });
+  }
+
+  const payoutRef = vendorRef.collection('vendorPayoutRequests').doc();
+  let requestAmount;
+
+  // ---- Atomic re-check + reservation ----
+  // Reads vendorRef AND the held-sales query INSIDE the transaction, so
+  // Firestore's write-conflict detection actually applies. Two concurrent
+  // requests will now genuinely race — one commits, the other is forced
+  // to retry against post-commit data and fails the balance check instead
+  // of both succeeding against stale reads.
+  try {
+    await db.runTransaction(async (tx) => {
+      const freshVendorSnap = await tx.get(vendorRef);
+      if (!freshVendorSnap.exists) {
+        throw Object.assign(new Error('Vendor account not found'), { statusCode: 403 });
+      }
+      const freshVendorData = freshVendorSnap.data();
+
+      if (freshVendorData.isSuspended) {
+        throw Object.assign(new Error('This vendor account is suspended and cannot request payouts'), { statusCode: 403 });
+      }
+
+      const freshHeldSnap = await tx.get(
+        db.collectionGroup('sales')
+          .where('vendorUid', '==', user.uid)
+          .where('createdAt', '>=', cutoff)
+      );
+      let freshHeld = 0;
+      freshHeldSnap.forEach((doc) => {
+        const sale = doc.data();
+        if (typeof sale.vendorAmount === 'number') freshHeld += sale.vendorAmount;
+      });
+
+      const freshPending = freshVendorData.pendingPayout || 0;
+      const freshAvailable = Math.max(0, freshPending - freshHeld);
+
+      requestAmount = typeof amount === 'number' && amount > 0 ? amount : freshAvailable;
+
+      if (requestAmount <= 0) {
+        throw Object.assign(new Error('No payout balance available'), { statusCode: 400 });
+      }
+      if (requestAmount > freshAvailable) {
+        throw Object.assign(new Error(
+          `Requested amount exceeds your available balance of ₦${freshAvailable.toLocaleString('en-NG')}. ₦${freshHeld.toLocaleString('en-NG')} from recent sales is still held for ${HOLD_PERIOD_DAYS} days after purchase.`
+        ), { statusCode: 400 });
+      }
+
+      tx.set(payoutRef, {
+        amount: requestAmount,
+        status: 'processing',
+        reference: payoutRef.id,
+        vendorUid: user.uid,
+        createdAt: admin.firestore.Timestamp.now()
+      });
+      tx.set(vendorRef, {
+        pendingPayout: admin.firestore.FieldValue.increment(-requestAmount),
+        awaitingPayout: admin.firestore.FieldValue.increment(requestAmount),
+        updatedAt: admin.firestore.Timestamp.now()
+      }, { merge: true });
+    });
+  } catch (err) {
+    return res.status(err.statusCode || 500).json({ error: err.message });
+  }
+
+  const PAYSTACK_SECRET = process.env.PAYSTACK_SECRET_KEY_MARKETPLACE;
+  if (!PAYSTACK_SECRET) {
+    await rollbackPayout(db, admin, vendorRef, payoutRef, requestAmount, 'PAYSTACK_SECRET_KEY_MARKETPLACE not configured');
+    return res.status(500).json({ error: 'Payout provider not configured' });
+  }
+
+  let transferJson;
+  try {
+    const transferRes = await fetch('https://api.paystack.co/transfer', {
+      method: 'POST',
+      headers: {
+        Authorization: `Bearer ${PAYSTACK_SECRET}`,
+        'Content-Type': 'application/json'
+      },
+      body: JSON.stringify({
+        source: 'balance',
+        amount: Math.round(requestAmount * 100),
+        recipient: vendorData.bankAccount.recipientCode,
+        reason: 'Vendor product sale payout',
+        reference: payoutRef.id
+      })
+    });
+    transferJson = await transferRes.json();
+  } catch (networkErr) {
+    await rollbackPayout(db, admin, vendorRef, payoutRef, requestAmount, networkErr.message);
+    return res.status(502).json({ error: 'Could not reach Paystack transfer API: ' + networkErr.message });
+  }
+
+  if (!transferJson.status) {
+    await rollbackPayout(db, admin, vendorRef, payoutRef, requestAmount, transferJson.message || 'Transfer rejected');
+    return res.status(502).json({ error: transferJson.message || 'Paystack transfer failed', details: transferJson });
+  }
+
+  await payoutRef.set({
+    transferCode: transferJson.data.transfer_code,
+    paystackStatus: transferJson.data.status,
+    updatedAt: admin.firestore.Timestamp.now()
+  }, { merge: true });
+
+  await notifyPayoutRequested({
+    admin,
+    db,
+    vendorUid: user.uid,
+    amount: requestAmount,
+    reference: payoutRef.id
+  });
+
+  return res.status(200).json({
+    success: true,
+    payoutId: payoutRef.id,
+    amount: requestAmount,
+    status: transferJson.data.status
+  });
+}
+
 
 async function rollbackPayout(db, admin, vendorRef, payoutRef, amount, reason) {
   await db.runTransaction(async (tx) => {
