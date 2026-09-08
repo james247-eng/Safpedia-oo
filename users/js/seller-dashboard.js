@@ -24,19 +24,6 @@ function escapeHtml(str) {
         .replace(/'/g, '&#039;');
 }
 
-function resolveOrderImage(order) {
-    const find = (value) => {
-        if (Array.isArray(value)) return find(value[0]);
-        if (value && typeof value === 'object') return find(value.url || value.secure_url || value.imageUrl || value.publicId);
-        if (typeof value !== 'string' || !value.trim()) return '';
-        const raw = value.trim();
-        if (/^https?:\/\//i.test(raw) || raw.startsWith('/')) return raw;
-        const cloudName = window.CLOUDINARY_CLOUD_NAME || document.documentElement.dataset.cloudinaryCloudName;
-        return cloudName ? `https://res.cloudinary.com/${encodeURIComponent(cloudName)}/image/upload/${raw}` : '';
-    };
-    return find(order?.imageUrl || order?.image || order?.productImage || order?.images) || '/images/hero.png';
-}
-
 function subscriptionDate(value) {
     if (!value) return null;
     if (typeof value === 'string' || value instanceof Date) return new Date(value);
@@ -833,8 +820,10 @@ document.getElementById('dismiss-product-limit-prompt').addEventListener('click'
 });
 
 // ====================================================================
-// ORDERS
+// ORDERS — UPDATED TO GROUP MULTI-ITEM CHECKOUTS & SHOW IMAGES
 // ====================================================================
+let ordersStore = [];
+
 async function loadOrders() {
     const container = document.getElementById('orders-list');
     try {
@@ -846,12 +835,25 @@ async function loadOrders() {
         const json = await res.json();
         if (!res.ok) throw new Error(json.error || 'Could not load orders');
 
-        renderOrders(json.orders);
+        ordersStore = json.orders || [];
+        renderOrders(ordersStore);
 
     } catch (err) {
         console.error('loadOrders error:', err);
         container.innerHTML = `<div class="error-state">Could not load orders: ${escapeHtml(err.message)}</div>`;
     }
+}
+
+function groupOrdersByReference(orders) {
+    const groups = {};
+    orders.forEach((o) => {
+        const ref = o.reference || 'unknown';
+        if (!groups[ref]) {
+            groups[ref] = [];
+        }
+        groups[ref].push(o);
+    });
+    return groups;
 }
 
 function renderOrders(orders) {
@@ -868,20 +870,40 @@ function renderOrders(orders) {
         return;
     }
 
-    const rows = orders.map((o, index) => {
-        const img = resolveOrderImage(o);
-        const date = o.createdAt && o.createdAt._seconds
-            ? new Date(o.createdAt._seconds * 1000).toLocaleDateString()
-            : '';
+    const grouped = groupOrdersByReference(orders);
+
+    const rows = Object.entries(grouped).map(([reference, items]) => {
+        const firstItem = items[0];
+        const date = firstItem.createdAt && firstItem.createdAt._seconds
+            ? new Date(firstItem.createdAt._seconds * 1000).toLocaleDateString()
+            : '—';
+
+        const totalVendorCut = items.reduce((sum, item) => sum + (item.vendorAmount || 0), 0);
+        const totalItemsCount = items.reduce((sum, item) => sum + (item.quantity || 1), 0);
+
+        const itemsSummaryHtml = items.map((item) => {
+            const img = item.imageUrl || 'images/hero.png';
+            return `
+                <div style="display: flex; align-items: center; gap: 8px; margin-bottom: 4px;">
+                    <img src="${escapeHtml(img)}" alt="${escapeHtml(item.productTitle)}" style="width: 36px; height: 36px; object-fit: cover; border-radius: 4px;">
+                    <span><strong>${escapeHtml(item.productTitle)}</strong> (x${item.quantity || 1})</span>
+                </div>
+            `;
+        }).join('');
 
         let actionCell = '—';
-        if (o.productType === 'physical') {
-            if (o.fulfillmentStatus === 'pending_shipment') {
-                actionCell = `<button class="btn btn-sm btn-secondary mark-shipped-btn" data-product-id="${escapeHtml(o.productId)}" data-reference="${escapeHtml(o.reference)}">Mark Shipped</button>`;
-            } else if (o.fulfillmentStatus === 'shipped') {
-                actionCell = `<button class="btn btn-sm btn-secondary mark-delivered-btn" data-product-id="${escapeHtml(o.productId)}" data-reference="${escapeHtml(o.reference)}">Mark Delivered</button>`;
-            } else if (o.fulfillmentStatus === 'delivered') {
+        const hasPhysical = items.some((item) => item.productType === 'physical');
+
+        if (hasPhysical) {
+            const statuses = items.map((i) => i.fulfillmentStatus);
+            if (statuses.every((s) => s === 'pending_shipment')) {
+                actionCell = `<button class="btn btn-sm btn-secondary mark-shipped-btn" data-reference="${escapeHtml(reference)}">Mark All Shipped</button>`;
+            } else if (statuses.every((s) => s === 'shipped')) {
+                actionCell = `<button class="btn btn-sm btn-secondary mark-delivered-btn" data-reference="${escapeHtml(reference)}">Mark All Delivered</button>`;
+            } else if (statuses.every((s) => s === 'delivered')) {
                 actionCell = 'Delivered';
+            } else {
+                actionCell = 'Partially Fulfilled';
             }
         } else {
             actionCell = 'Digital — auto-fulfilled';
@@ -889,13 +911,13 @@ function renderOrders(orders) {
 
         return `
             <tr>
-                <td><div class="order-product-cell"><img src="${escapeHtml(img)}" alt="${escapeHtml(o.productTitle || 'Product')}" onerror="this.onerror=null;this.src='/images/hero.png';">${escapeHtml(o.productTitle || '')}</div></td>
-                <td>${o.quantity}</td>
-                <td>₦${(o.vendorAmount || 0).toLocaleString()}</td>
-                <td>${o.productType === 'physical' ? 'Physical' : 'Digital'}</td>
+                <td>${itemsSummaryHtml}</td>
+                <td>${totalItemsCount} item(s)</td>
+                <td>₦${totalVendorCut.toLocaleString()}</td>
+                <td><code>${escapeHtml(reference)}</code></td>
                 <td>${date}</td>
                 <td>${actionCell}</td>
-                <td><button type="button" class="btn btn-sm btn-secondary view-order-details-btn" data-order-index="${index}">View Details</button></td>
+                <td><button type="button" class="btn btn-sm btn-secondary view-order-details-btn" data-reference="${escapeHtml(reference)}">View Details</button></td>
             </tr>
         `;
     }).join('');
@@ -904,10 +926,10 @@ function renderOrders(orders) {
         <table class="data-table-frame">
             <thead>
                 <tr>
-                    <th>Product</th>
-                    <th>Qty</th>
+                    <th>Items Purchased</th>
+                    <th>Total Qty</th>
                     <th>Your Cut</th>
-                    <th>Type</th>
+                    <th>Reference</th>
                     <th>Date</th>
                     <th>Status / Action</th>
                     <th>Details</th>
@@ -918,42 +940,58 @@ function renderOrders(orders) {
     `;
 
     container.querySelectorAll('.view-order-details-btn').forEach((btn) => {
-        btn.addEventListener('click', () => openOrderDetails(orders[btn.dataset.orderIndex]));
+        btn.addEventListener('click', () => openGroupedOrderDetails(btn.dataset.reference));
     });
 
     container.querySelectorAll('.mark-shipped-btn').forEach((btn) => {
-        btn.addEventListener('click', () => updateOrderStatus(btn.dataset.productId, btn.dataset.reference, 'shipped'));
+        btn.addEventListener('click', () => updateGroupOrderStatus(btn.dataset.reference, 'shipped'));
     });
     container.querySelectorAll('.mark-delivered-btn').forEach((btn) => {
-        btn.addEventListener('click', () => updateOrderStatus(btn.dataset.productId, btn.dataset.reference, 'delivered'));
+        btn.addEventListener('click', () => updateGroupOrderStatus(btn.dataset.reference, 'delivered'));
     });
 }
 
-function openOrderDetails(order) {
+function openGroupedOrderDetails(reference) {
     const modal = document.getElementById('order-detail-modal');
     const shippingPanel = document.getElementById('shipping-details-panel');
     const digitalPanel = document.getElementById('digital-details-panel');
-    const image = document.getElementById('order-detail-image');
-    if (image) { image.src = resolveOrderImage(order); image.alt = order?.productTitle || 'Product'; image.onerror = () => { image.onerror = null; image.src = '/images/hero.png'; }; }
 
-    document.getElementById('order-detail-reference').textContent = order.reference || '—';
-    document.getElementById('order-detail-product-title').textContent = order.productTitle || '—';
-    document.getElementById('order-detail-quantity').textContent = order.quantity || '—';
-    document.getElementById('order-detail-amount').textContent = `₦${(order.vendorAmount || 0).toLocaleString()}`;
-    document.getElementById('order-detail-type').textContent = order.productType === 'physical' ? 'Physical' : 'Digital';
-    document.getElementById('order-detail-status').textContent = order.fulfillmentStatus || 'Unknown';
-    document.getElementById('order-detail-date').textContent = order.createdAt && order.createdAt._seconds
-        ? new Date(order.createdAt._seconds * 1000).toLocaleDateString()
+    const items = ordersStore.filter((o) => o.reference === reference);
+    if (!items.length) return;
+
+    const firstItem = items[0];
+    const totalCut = items.reduce((sum, item) => sum + (item.vendorAmount || 0), 0);
+
+    document.getElementById('order-detail-reference').textContent = reference;
+    document.getElementById('order-detail-product-title').innerHTML = items.map((item) => {
+        const img = item.imageUrl || 'images/hero.png';
+        return `
+            <div style="display: flex; align-items: center; gap: 10px; margin-bottom: 6px;">
+                <img src="${escapeHtml(img)}" style="width: 40px; height: 40px; object-fit: cover; border-radius: 4px;">
+                <div>
+                    <div><strong>${escapeHtml(item.productTitle)}</strong></div>
+                    <small>Qty: ${item.quantity || 1} &middot; ₦${(item.vendorAmount || 0).toLocaleString()}</small>
+                </div>
+            </div>
+        `;
+    }).join('');
+
+    document.getElementById('order-detail-quantity').textContent = items.reduce((sum, item) => sum + (item.quantity || 1), 0);
+    document.getElementById('order-detail-amount').textContent = `₦${totalCut.toLocaleString()}`;
+    document.getElementById('order-detail-type').textContent = items.some((i) => i.productType === 'physical') ? 'Contains Physical Items' : 'Digital Items';
+    document.getElementById('order-detail-status').textContent = firstItem.fulfillmentStatus || 'Unknown';
+    document.getElementById('order-detail-date').textContent = firstItem.createdAt && firstItem.createdAt._seconds
+        ? new Date(firstItem.createdAt._seconds * 1000).toLocaleDateString()
         : '—';
 
-    if (order.shippingAddress) {
+    if (firstItem.shippingAddress) {
         shippingPanel.classList.remove('hidden');
         digitalPanel.classList.add('hidden');
-        document.getElementById('order-detail-fullname').textContent = order.shippingAddress.fullName || '—';
-        document.getElementById('order-detail-phone').textContent = order.shippingAddress.phone || '—';
-        document.getElementById('order-detail-address').textContent = order.shippingAddress.address || '—';
-        document.getElementById('order-detail-city').textContent = order.shippingAddress.city || '—';
-        document.getElementById('order-detail-state').textContent = order.shippingAddress.state || '—';
+        document.getElementById('order-detail-fullname').textContent = firstItem.shippingAddress.fullName || '—';
+        document.getElementById('order-detail-phone').textContent = firstItem.shippingAddress.phone || '—';
+        document.getElementById('order-detail-address').textContent = firstItem.shippingAddress.address || '—';
+        document.getElementById('order-detail-city').textContent = firstItem.shippingAddress.city || '—';
+        document.getElementById('order-detail-state').textContent = firstItem.shippingAddress.state || '—';
     } else {
         shippingPanel.classList.add('hidden');
         digitalPanel.classList.remove('hidden');
@@ -980,19 +1018,26 @@ document.getElementById('order-detail-modal')?.addEventListener('click', (event)
     }
 });
 
-async function updateOrderStatus(productId, reference, action) {
+async function updateGroupOrderStatus(reference, action) {
+    const items = ordersStore.filter((o) => o.reference === reference && o.productType === 'physical');
+    if (!items.length) return;
+
     try {
         const idToken = await currentUser.getIdToken();
-        const res = await fetch('/api/vendors/update-order-status', {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json',
-                'Authorization': `Bearer ${idToken}`
-            },
-            body: JSON.stringify({ productId, reference, action })
-        });
-        const json = await res.json();
-        if (!res.ok) throw new Error(json.error || 'Could not update order status');
+        
+        await Promise.all(items.map((item) =>
+            fetch('/api/vendors/update-order-status', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Authorization': `Bearer ${idToken}`
+                },
+                body: JSON.stringify({ productId: item.productId, reference, action })
+            }).then(async (res) => {
+                const json = await res.json();
+                if (!res.ok) throw new Error(json.error || `Failed to update ${item.productTitle}`);
+            })
+        ));
 
         loadOrders();
 
