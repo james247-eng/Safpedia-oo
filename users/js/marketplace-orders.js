@@ -26,6 +26,15 @@ const disputeStatusLabels = {
     closed: 'Closed'
 };
 
+function resolveOrderImage(item) {
+    const value = Array.isArray(item?.imageUrl) ? item.imageUrl[0] : item?.imageUrl;
+    const candidate = value && typeof value === 'object' ? (value.url || value.secure_url || value.imageUrl || value.publicId) : value;
+    if (typeof candidate === 'string' && (/^https?:\/\//i.test(candidate) || candidate.startsWith('/'))) return candidate;
+    const cloudName = window.CLOUDINARY_CLOUD_NAME || document.documentElement.dataset.cloudinaryCloudName;
+    if (cloudName && typeof candidate === 'string' && candidate) return `https://res.cloudinary.com/${encodeURIComponent(cloudName)}/image/upload/${candidate}`;
+    return '/images/hero.png';
+}
+
 // ====================================================================
 // AUTH GUARD
 // ====================================================================
@@ -123,8 +132,8 @@ function renderOrders(orders) {
         const itemsHtml = o.items.map((item) => {
             totalOrderAmount += (item.amount || 0);
 
-            const imgMarkup = item.imageUrl
-                ? `<img src="${escapeHtml(item.imageUrl)}" alt="${escapeHtml(item.productTitle)}" style="width:40px; height:40px; object-fit:cover; border-radius:4px; margin-right:10px; display:block;">`
+            const imgMarkup = resolveOrderImage(item)
+                ? `<img src="${escapeHtml(imgMarkup)}" alt="${escapeHtml(item.productTitle || 'Product')}" onerror="this.onerror=null;this.src='/images/hero.png';" style="width:40px; height:40px; object-fit:cover; border-radius:4px; margin-right:10px; display:block;">`
                 : `<div style="width:40px; height:40px; background:#f0f0f0; border-radius:4px; margin-right:10px; display:flex; align-items:center; justify-content:center; color:#888;"><ion-icon name="image-outline"></ion-icon></div>`;
 
             let actionCell;
