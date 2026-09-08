@@ -132,9 +132,8 @@ function renderOrders(orders) {
         const itemsHtml = o.items.map((item) => {
             totalOrderAmount += (item.amount || 0);
 
-            const imgMarkup = resolveOrderImage(item)
-                ? `<img src="${escapeHtml(imgMarkup)}" alt="${escapeHtml(item.productTitle || 'Product')}" onerror="this.onerror=null;this.src='/images/hero.png';" style="width:40px; height:40px; object-fit:cover; border-radius:4px; margin-right:10px; display:block;">`
-                : `<div style="width:40px; height:40px; background:#f0f0f0; border-radius:4px; margin-right:10px; display:flex; align-items:center; justify-content:center; color:#888;"><ion-icon name="image-outline"></ion-icon></div>`;
+            const imgUrl = resolveOrderImage(item);
+            const imgMarkup = `<img src="${escapeHtml(imgUrl)}" alt="${escapeHtml(item.productTitle || 'Product')}" onerror="this.onerror=null;this.src='/images/hero.png';" style="width:40px; height:40px; object-fit:cover; border-radius:4px; margin-right:10px; display:block;">`;
 
             let actionCell;
             if (item.productType === 'digital') {
