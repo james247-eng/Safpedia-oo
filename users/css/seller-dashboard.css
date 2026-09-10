@@ -19,7 +19,7 @@
 /* ---- Buttons ---- */
 img {
     display: block;
-    max-width: 100%;
+    max-width: 50px;
     height: auto;
 }
 .btn {
