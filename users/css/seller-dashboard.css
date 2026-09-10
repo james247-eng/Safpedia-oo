@@ -336,7 +336,7 @@
     background: var(--surface);
     overflow: hidden;
 }
-.card-banner img { width: 100%; height: 100%; object-fit: cover; display: block; }
+.card-banner img { width: 100%; height: 100%; object-fit: cover; display: block !important}
 
 .badge-f {
     position: absolute;

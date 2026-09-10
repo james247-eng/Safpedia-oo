@@ -1077,14 +1077,6 @@ function renderOrders(orders) {
             const vendorAmount = Number(item.vendorAmount || 0);
 
             return `
-                <div class="order-item-card">
-                    <div class="order-item-image-wrap">
-                        <img
-                            src="${escapeHtml(image)}"
-                            class="order-item-image"
-                            alt="${escapeHtml(item.productTitle || 'Product')}"
-                        >
-                    </div>
 
 <div class="order-item-mini">
     <img
