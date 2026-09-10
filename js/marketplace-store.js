@@ -107,7 +107,7 @@ function renderProductGrid(items) {
             <div class="card-details">
                 <span class="category-meta">${(item.category || 'GENERAL').toUpperCase()}</span>
                 <h3 class="product-title">${item.title}</h3>
-                <a href="vendorstore.html?vendor=${item.vendorUid}" class="product-vendor-link">by ${item.vendorFirstName || 'Vendor'}</a>
+                <a href="vendor-store.html?vendor=${item.vendorUid}" class="product-vendor-link">by ${item.vendorFirstName || 'Vendor'}</a>
                 <p class="product-snippet">${stockNote}</p>
                 <div class="card-footer-row">
                     <span class="product-cost">₦${item.price.toLocaleString()}</span>
