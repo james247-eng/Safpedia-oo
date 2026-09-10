@@ -516,8 +516,8 @@
 
 /* ----------------------------------------------------------------
    SUBSCRIPTION TAB — brought up to the same standard as the rest
-   of the dashboard (cards, pills, real tables instead of plain
-   text lines). Replaces the old flat .sub-tier-name / .sub-status /
+   of the dashboard (cards, pills, collapsible payment history).
+   Replaces the old flat .sub-tier-name / .sub-status /
    .sub-expiry paragraph styling, which is no longer emitted by
    seller-dashboard.js.
    ---------------------------------------------------------------- */
@@ -639,49 +639,343 @@
 }
 .plan-maxed-note ion-icon { color: #0f8a63; font-size: 20px; flex-shrink: 0; }
 
-/* ---- Payment history table ---- */
-.subscription-payments-table {
-    width: 100%;
-    border-collapse: collapse;
+/* ---- Collapsible order + payment cards ---- */
+.order-cards-list,
+.payment-cards-list {
+    display: grid;
+    gap: 14px;
 }
-.subscription-payments-table th,
-.subscription-payments-table td {
-    padding: 12px 14px;
-    text-align: left;
-    font-size: 13.5px;
+
+.order-card,
+.payment-card {
+    background: var(--white);
+    border: 1px solid var(--border);
+    border-radius: var(--radius-md);
+    box-shadow: var(--shadow-card);
+    overflow: hidden;
+    transition: border-color .18s ease, box-shadow .18s ease, transform .18s ease;
+}
+
+.order-card:hover,
+.payment-card:hover {
+    border-color: rgba(41, 84, 255, .28);
+    box-shadow: var(--shadow-lift);
+}
+
+.order-card[open],
+.payment-card[open] {
+    border-color: rgba(41, 84, 255, .38);
+    box-shadow: var(--shadow-card);
+}
+
+.order-card-summary,
+.payment-card-summary {
+    list-style: none;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 16px;
+    min-height: 78px;
+    padding: 16px 18px;
+}
+
+.order-card-summary::-webkit-details-marker,
+.payment-card-summary::-webkit-details-marker {
+    display: none;
+}
+
+.order-card-summary::marker,
+.payment-card-summary::marker {
+    content: "";
+}
+
+.order-card-heading,
+.payment-card-heading {
+    min-width: 0;
+    display: flex;
+    align-items: center;
+    gap: 12px;
+}
+
+.order-card-icon,
+.payment-card-icon {
+    width: 40px;
+    height: 40px;
+    flex: 0 0 40px;
+    display: grid;
+    place-items: center;
+    border-radius: 12px;
+    background: var(--blue-tint);
+    color: var(--blue);
+    font-size: 19px;
+}
+
+.order-card-heading > div,
+.payment-card-heading > div {
+    min-width: 0;
+    display: grid;
+    gap: 4px;
+}
+
+.order-card-heading strong,
+.payment-card-heading strong {
+    color: var(--ink);
+    font-size: 14px;
+    overflow: hidden;
+    text-overflow: ellipsis;
     white-space: nowrap;
 }
-.subscription-payments-table th {
-    font-size: 11px;
-    letter-spacing: 0.04em;
-    text-transform: uppercase;
+
+.order-card-heading span,
+.payment-card-heading span {
     color: var(--ink-soft);
-    border-bottom: 1px solid var(--border);
-}
-.subscription-payments-table td {
-    border-bottom: 1px solid var(--border);
-    color: var(--ink);
-}
-.subscription-payments-table tr:last-child td { border-bottom: none; }
-.subscription-payments-table code {
-    background: var(--surface);
-    padding: 3px 8px;
-    border-radius: 6px;
     font-size: 12px;
+}
+
+.order-card-summary-meta,
+.payment-card-summary-meta {
+    display: flex;
+    align-items: center;
+    justify-content: flex-end;
+    gap: 10px;
+    flex-wrap: wrap;
+}
+
+.order-card-total,
+.payment-card-summary-meta > strong {
+    color: var(--ink);
+    font-size: 14px;
+    font-weight: 800;
+    white-space: nowrap;
+}
+
+.order-card-chevron,
+.payment-card-chevron {
+    width: 30px;
+    height: 30px;
+    display: grid;
+    place-items: center;
+    border-radius: 50%;
+    background: var(--surface);
+    color: var(--ink-soft);
+    transition: transform .2s ease, background .2s ease, color .2s ease;
+}
+
+.order-card[open] .order-card-chevron,
+.payment-card[open] .payment-card-chevron {
+    transform: rotate(180deg);
+    background: var(--blue-tint);
+    color: var(--blue);
+}
+
+.order-card-body,
+.payment-card-body {
+    border-top: 1px solid var(--border);
+    padding: 18px;
+    display: grid;
+    gap: 18px;
+}
+
+.order-card-section-label {
+    display: block;
+    margin-bottom: 8px;
+    color: var(--ink-soft);
+    font-size: 11px;
+    font-weight: 800;
+    letter-spacing: .05em;
+    text-transform: uppercase;
+}
+
+.order-items-list {
+    display: grid;
+    gap: 8px;
+}
+
+.order-item-mini {
+    display: flex;
+    align-items: center;
+    gap: 11px;
+    padding: 10px;
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: var(--radius-sm);
+}
+
+.order-item-mini-image {
+    width: 42px;
+    height: 42px;
+    flex: 0 0 42px;
+    object-fit: cover;
+    border-radius: 8px;
+    background: var(--white);
+}
+
+.order-item-mini-content {
+    min-width: 0;
+    display: grid;
+    gap: 3px;
+}
+
+.order-item-mini-content strong {
+    color: var(--ink);
+    font-size: 13px;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+.order-item-mini-content span {
+    color: var(--ink-soft);
+    font-size: 12px;
+}
+
+.order-card-info-grid,
+.payment-detail-grid {
+    display: grid;
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+    gap: 10px;
+}
+
+.order-info-block,
+.payment-detail-block {
+    min-width: 0;
+    display: grid;
+    gap: 5px;
+    padding: 12px;
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: var(--radius-sm);
+}
+
+.order-info-block span,
+.payment-detail-block span,
+.payment-reference-row span {
+    color: var(--ink-soft);
+    font-size: 11px;
+    font-weight: 700;
+}
+
+.order-info-block strong,
+.payment-detail-block strong {
+    color: var(--ink);
+    font-size: 13px;
+    overflow-wrap: anywhere;
+}
+
+.order-info-block code,
+.payment-reference-row code {
+    width: fit-content;
+    max-width: 100%;
+    overflow-wrap: anywhere;
+    background: var(--white);
+    color: var(--ink);
+    padding: 4px 7px;
+    border: 1px solid var(--border);
+    border-radius: 6px;
+    font-size: 11px;
+}
+
+.order-card-footer {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 16px;
+    padding-top: 16px;
+    border-top: 1px solid var(--border);
+}
+
+.order-card-status {
+    display: grid;
+    gap: 3px;
+}
+
+.order-action-state {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    color: var(--ink-soft);
+    font-size: 12px;
+    font-weight: 700;
+}
+
+.order-action-state-success { color: #0f8a63; }
+.order-action-state-warning { color: #9a6b00; }
+.order-action-state-digital { color: var(--blue); }
+
+.order-card-footer .btn {
+    flex: 0 0 auto;
 }
 
 .payment-status-pill {
     display: inline-flex;
     align-items: center;
+    gap: 5px;
     font-size: 11.5px;
     font-weight: 700;
-    padding: 4px 10px;
+    padding: 5px 9px;
     border-radius: 999px;
     white-space: nowrap;
 }
+
+.payment-status-pill ion-icon {
+    font-size: 14px;
+}
+
 .payment-status-pill.success { background: rgba(16, 185, 129, 0.12); color: #0f8a63; }
 .payment-status-pill.failed  { background: rgba(255, 59, 92, 0.12); color: var(--red); }
 .payment-status-pill.pending { background: #fff4e0; color: #9a6b00; }
+
+.payment-reference-row {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 14px;
+    padding: 14px;
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: var(--radius-sm);
+}
+
+.payment-reference-row > div {
+    min-width: 0;
+    display: grid;
+    gap: 6px;
+}
+
+.payment-reference-row .btn.is-copied {
+    background: #e8f7f0;
+    border-color: #0f8a63;
+    color: #0f8a63;
+}
+
+.order-modal-open {
+    overflow: hidden;
+}
+
+.order-detail-image {
+    width: 72px;
+    height: 72px;
+    object-fit: cover;
+    border-radius: 8px;
+    display: block;
+}
+
+.order-detail-product {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    margin-bottom: 6px;
+}
+
+.order-detail-product-image {
+    width: 40px;
+    height: 40px;
+    object-fit: cover;
+    border-radius: 6px;
+    flex: 0 0 40px;
+    display: block;
+}
 
 @media (max-width: 700px) {
     .plan-summary-card { flex-direction: column; align-items: flex-start; }
@@ -689,3 +983,77 @@
     .tier-row-actions .btn { flex: 1 1 auto; }
 }
 
+
+
+/* ---- Responsive card layout ---- */
+@media (max-width: 700px) {
+    .order-card-summary,
+    .payment-card-summary {
+        align-items: flex-start;
+        padding: 14px;
+    }
+
+    .order-card-summary-meta,
+    .payment-card-summary-meta {
+        gap: 7px;
+    }
+
+    .payment-card-summary-meta > strong {
+        order: 0;
+    }
+
+    .payment-status-pill {
+        order: 1;
+    }
+
+    .order-card-chevron,
+    .payment-card-chevron {
+        order: 2;
+    }
+
+    .order-card-info-grid,
+    .payment-detail-grid {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+
+    .order-card-footer,
+    .payment-reference-row {
+        align-items: stretch;
+        flex-direction: column;
+    }
+
+    .order-card-footer .btn,
+    .payment-reference-row .btn {
+        width: 100%;
+    }
+}
+
+@media (max-width: 480px) {
+    .order-card-summary,
+    .payment-card-summary {
+        gap: 10px;
+    }
+
+    .order-card-icon,
+    .payment-card-icon {
+        width: 36px;
+        height: 36px;
+        flex-basis: 36px;
+    }
+
+    .order-card-heading strong,
+    .payment-card-heading strong {
+        white-space: normal;
+    }
+
+    .order-card-summary-meta,
+    .payment-card-summary-meta {
+        flex-direction: column;
+        align-items: flex-end;
+    }
+
+    .order-card-info-grid,
+    .payment-detail-grid {
+        grid-template-columns: 1fr;
+    }
+}

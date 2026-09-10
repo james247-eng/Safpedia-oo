@@ -6,10 +6,8 @@
   <title>Chatbot Inquiries - SAFpedia Admin</title>
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
   <link rel="icon" type="image/x-icon" href="favicon.ico">
-  <link rel="stylesheet" href="../users/css/ui-foundation.css">
   <link rel="stylesheet" href="../users/css/student-dashboard.css">
-  <link rel="stylesheet" href="../users/css/nav-core.css">
-  <link rel="stylesheet" href="assets/css/admin.css">
+  <link rel="stylesheet" href="assets/css/chatbot-inquiries.css">
   <script type="module" src="https://unpkg.com/ionicons@7.1.0/dist/ionicons/ionicons.esm.js"></script>
   <script nomodule src="https://unpkg.com/ionicons@7.1.0/dist/ionicons/ionicons.js"></script>
   <link rel="apple-touch-icon" sizes="180x180" href="/favicon/apple-touch-icon.png">
@@ -77,22 +75,11 @@
               </select>
             </div>
           </div>
-          <div class="table-container">
-            <table>
-              <thead>
-                <tr>
-                  <th>Contact</th>
-                  <th>Method</th>
-                  <th>Topic</th>
-                  <th>Date</th>
-                  <th>Status</th>
-                  <th>Actions</th>
-                </tr>
-              </thead>
-              <tbody id="inquiries-body">
-                <tr><td colspan="6" class="empty-state">Loading inquiries...</td></tr>
-              </tbody>
-            </table>
+          <div class="inquiries-list" id="inquiries-body">
+            <div class="cards-empty-state">
+              <ion-icon name="hourglass-outline" class="empty-icon"></ion-icon>
+              <h3>Loading inquiries...</h3>
+            </div>
           </div>
         </div>
       </section>

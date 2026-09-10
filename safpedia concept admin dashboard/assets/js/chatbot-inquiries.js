@@ -2,7 +2,7 @@
 // CHATBOT INQUIRIES - Admin page for chatbot escalations
 // SAFpedia
 // ====================================================================
-
+/*
 import { auth, db } from '../../../firebase-config.js';
 import { onAuthStateChanged, signOut } from 'https://www.gstatic.com/firebasejs/12.17.1/firebase-auth.js';
 import { collection, getDocs, updateDoc, doc, query, where, orderBy, limit, Timestamp, getDoc } from 'https://www.gstatic.com/firebasejs/12.17.1/firebase-firestore.js';
@@ -220,6 +220,346 @@ function openTranscriptModal(escalationId) {
   } else {
     body.innerHTML = inquiry.transcript.map(m => `
       <p style="margin-bottom:10px;"><strong>${m.role === 'user' ? 'User' : 'Bot'}:</strong> ${escapeHtml(m.content)}</p>
+    `).join('');
+  }
+
+  document.getElementById('transcript-modal').classList.add('active');
+}
+
+document.getElementById('close-transcript-modal').addEventListener('click', () => {
+  document.getElementById('transcript-modal').classList.remove('active');
+});
+
+// ====================================================================
+// HELPERS
+// ====================================================================
+function capitalize(str) {
+  return str ? str.charAt(0).toUpperCase() + str.slice(1) : '';
+}
+
+function escapeHtml(str) {
+  const div = document.createElement('div');
+  div.textContent = str;
+  return div.innerHTML;
+}
+
+function escapeAttr(str) {
+  return String(str).replace(/"/g, '&quot;');
+}
+
+function showAlert(message, type) {
+  const alertContainer = document.getElementById('alert-container');
+  const alert = document.createElement('div');
+  alert.className = `alert alert-${type}`;
+  alert.textContent = message;
+  alertContainer.appendChild(alert);
+
+  setTimeout(() => {
+    alert.remove();
+  }, 5000);
+}
+
+
+*/
+
+// ====================================================================
+// CHATBOT INQUIRIES - Admin page for chatbot escalations
+// SAFpedia
+// ====================================================================
+
+import { auth, db } from '../../../firebase-config.js';
+import { onAuthStateChanged, signOut } from 'https://www.gstatic.com/firebasejs/12.17.1/firebase-auth.js';
+import { collection, getDocs, updateDoc, doc, query, where, orderBy, limit, Timestamp, getDoc } from 'https://www.gstatic.com/firebasejs/12.17.1/firebase-firestore.js';
+
+let allInquiries = [];
+let currentStatusFilter = 'all';
+const expandedCards = new Set();
+
+// ====================================================================
+// AUTHENTICATION CHECK
+// ====================================================================
+onAuthStateChanged(auth, async (user) => {
+  if (!user) {
+    window.location.href = '../../sign-in.html';
+    return;
+  }
+
+  try {
+    const userDocRef = doc(db, 'user', user.uid);
+    const userDocSnap = await getDoc(userDocRef);
+
+    if (!userDocSnap.exists()) {
+      console.error('User document not found');
+      showAlert('User profile not found. Please contact support.', 'error');
+      await signOut(auth);
+      window.location.href = '../../sign-in.html';
+      return;
+    }
+
+    const userData = userDocSnap.data();
+    if (userData.role !== 'admin') {
+      console.warn('Access denied: Not an admin');
+      showAlert('Access denied. Admins only.', 'error');
+      window.location.href = '../../users/dashboard.html';
+      return;
+    }
+
+    document.getElementById('user-avatar').textContent = user.email.charAt(0).toUpperCase();
+    document.getElementById('admin-display-email').textContent = user.email;
+    loadInquiries();
+
+  } catch (error) {
+    console.error('Auth error:', error);
+    showAlert('Error verifying access. Please try again.', 'error');
+    await signOut(auth);
+    window.location.href = '../../sign-in.html';
+  }
+});
+
+document.getElementById('logout-btn').addEventListener('click', async () => {
+  try {
+    await signOut(auth);
+    window.location.href = '../../sign-in.html';
+  } catch (error) {
+    console.error('Logout error:', error);
+    showAlert('Error logging out. Please try again.', 'error');
+  }
+});
+
+// ====================================================================
+// LOAD INQUIRIES
+// ====================================================================
+async function loadInquiries() {
+  const list = document.getElementById('inquiries-body');
+  list.innerHTML = `
+    <div class="cards-empty-state">
+      <ion-icon name="hourglass-outline" class="empty-icon"></ion-icon>
+      <h3>Loading inquiries...</h3>
+    </div>
+  `;
+
+  try {
+    const inquiriesRef = collection(db, 'chatbotEscalations');
+    const q = query(inquiriesRef, orderBy('createdAt', 'desc'), limit(100));
+    const snapshot = await getDocs(q);
+
+    allInquiries = snapshot.docs.map(d => ({ id: d.id, ...d.data() }));
+    renderInquiries();
+  } catch (error) {
+    console.error('Failed to load inquiries:', error);
+    list.innerHTML = `
+      <div class="cards-empty-state is-error">
+        <ion-icon name="alert-circle-outline" class="empty-icon"></ion-icon>
+        <h3>Could not load inquiries</h3>
+        <p>Something went wrong while fetching the list. Please try again.</p>
+      </div>
+    `;
+  }
+}
+
+// ====================================================================
+// RENDER
+// ====================================================================
+function renderInquiries() {
+  const list = document.getElementById('inquiries-body');
+  const searchTerm = document.getElementById('inquiries-search').value.trim().toLowerCase();
+
+  let filtered = allInquiries;
+  if (currentStatusFilter !== 'all') {
+    filtered = filtered.filter(i => i.status === currentStatusFilter);
+  }
+  if (searchTerm) {
+    filtered = filtered.filter(i =>
+      (i.contact || '').toLowerCase().includes(searchTerm) ||
+      (i.topic || '').toLowerCase().includes(searchTerm)
+    );
+  }
+
+  document.getElementById('inquiries-count').textContent = `${filtered.length} inquir${filtered.length === 1 ? 'y' : 'ies'}`;
+
+  if (!filtered.length) {
+    list.innerHTML = `
+      <div class="cards-empty-state">
+        <ion-icon name="chatbubbles-outline" class="empty-icon"></ion-icon>
+        <h3>No inquiries match this view</h3>
+        <p>Try a different search term or status filter.</p>
+      </div>
+    `;
+    return;
+  }
+
+  list.innerHTML = filtered.map(inquiry => buildCard(inquiry)).join('');
+}
+
+function buildCard(inquiry) {
+  const isWhatsapp = inquiry.contactMethod === 'whatsapp';
+  const date = inquiry.createdAt?.toDate ? inquiry.createdAt.toDate().toLocaleString() : '—';
+  const contact = inquiry.contact || '—';
+  const topic = inquiry.topic || 'General inquiry';
+  const isExpanded = expandedCards.has(inquiry.id);
+
+  const contactBtn = isWhatsapp
+    ? `<button type="button" class="btn btn-whatsapp btn-sm whatsapp-btn" data-contact="${escapeAttr(inquiry.contact || '')}"><ion-icon name="logo-whatsapp"></ion-icon>Message on WhatsApp</button>`
+    : `<button type="button" class="btn btn-secondary btn-sm email-btn" data-contact="${escapeAttr(inquiry.contact || '')}" data-topic="${escapeAttr(topic)}"><ion-icon name="mail-outline"></ion-icon>Send Email</button>`;
+
+  let statusAction = '';
+  if (inquiry.status === 'new') {
+    statusAction = `<button type="button" class="btn btn-primary btn-sm mark-contacted-btn" data-id="${inquiry.id}">Mark Contacted</button>`;
+  } else if (inquiry.status === 'contacted') {
+    statusAction = `<button type="button" class="btn btn-primary btn-sm mark-resolved-btn" data-id="${inquiry.id}">Mark Resolved</button>`;
+  }
+
+  return `
+    <div class="inquiry-card${isExpanded ? ' expanded' : ''}" data-id="${inquiry.id}">
+      <button type="button" class="inquiry-card-header" data-toggle-id="${inquiry.id}" aria-expanded="${isExpanded}" aria-controls="inquiry-body-${inquiry.id}">
+        <span class="inquiry-avatar">${escapeHtml((contact.charAt(0) || '?').toUpperCase())}</span>
+        <span class="inquiry-main">
+          <span class="inquiry-contact-name">${escapeHtml(contact)}</span>
+          <span class="inquiry-topic-preview">${escapeHtml(topic)}</span>
+        </span>
+        <span class="inquiry-meta">
+          <span class="badge badge-method ${isWhatsapp ? 'whatsapp' : 'email'}">${isWhatsapp ? 'WhatsApp' : 'Email'}</span>
+          <span class="badge badge-status ${inquiry.status}">${capitalize(inquiry.status)}</span>
+          <span class="inquiry-date">${date}</span>
+        </span>
+        <ion-icon name="chevron-down-outline" class="inquiry-chevron"></ion-icon>
+      </button>
+      <div class="inquiry-card-collapse">
+        <div class="inquiry-card-body" id="inquiry-body-${inquiry.id}">
+          <div class="inquiry-detail-grid">
+            <div class="inquiry-detail-item">
+              <label>Contact</label>
+              <span>${escapeHtml(contact)}</span>
+            </div>
+            <div class="inquiry-detail-item">
+              <label>Topic</label>
+              <span>${escapeHtml(topic)}</span>
+            </div>
+            <div class="inquiry-detail-item">
+              <label>Received</label>
+              <span>${date}</span>
+            </div>
+          </div>
+          <div class="inquiry-actions">
+            ${contactBtn}
+            <button type="button" class="btn btn-secondary btn-sm view-transcript-btn" data-id="${inquiry.id}"><ion-icon name="document-text-outline"></ion-icon>View Transcript</button>
+            ${statusAction}
+          </div>
+        </div>
+      </div>
+    </div>
+  `;
+}
+
+// ====================================================================
+// FILTERS
+// ====================================================================
+document.getElementById('status-filter').addEventListener('change', (e) => {
+  currentStatusFilter = e.target.value;
+  renderInquiries();
+});
+
+document.getElementById('inquiries-search').addEventListener('input', () => {
+  renderInquiries();
+});
+
+// ====================================================================
+// ROW ACTIONS (event delegation)
+// ====================================================================
+document.getElementById('inquiries-body').addEventListener('click', async (e) => {
+  const toggleHeader = e.target.closest('.inquiry-card-header');
+  const whatsappBtn = e.target.closest('.whatsapp-btn');
+  const emailBtn = e.target.closest('.email-btn');
+  const viewBtn = e.target.closest('.view-transcript-btn');
+  const contactedBtn = e.target.closest('.mark-contacted-btn');
+  const resolvedBtn = e.target.closest('.mark-resolved-btn');
+
+  if (toggleHeader) {
+    const id = toggleHeader.dataset.toggleId;
+    const card = toggleHeader.closest('.inquiry-card');
+    const nowExpanded = !expandedCards.has(id);
+
+    if (nowExpanded) {
+      expandedCards.add(id);
+    } else {
+      expandedCards.delete(id);
+    }
+    card.classList.toggle('expanded', nowExpanded);
+    toggleHeader.setAttribute('aria-expanded', String(nowExpanded));
+    return;
+  }
+
+  if (whatsappBtn) {
+    const digits = whatsappBtn.dataset.contact.replace(/\D/g, '');
+    window.open(`https://wa.me/${digits}`, '_blank', 'noopener');
+    return;
+  }
+
+  if (emailBtn) {
+    const subject = encodeURIComponent(`Re: your Safpedia inquiry`);
+    window.location.href = `mailto:${emailBtn.dataset.contact}?subject=${subject}`;
+    return;
+  }
+
+  if (viewBtn) {
+    openTranscriptModal(viewBtn.dataset.id);
+    return;
+  }
+
+  if (contactedBtn) {
+    await updateStatus(contactedBtn.dataset.id, 'contacted');
+    return;
+  }
+
+  if (resolvedBtn) {
+    await updateStatus(resolvedBtn.dataset.id, 'resolved');
+    return;
+  }
+});
+
+// ====================================================================
+// STATUS UPDATE
+// ====================================================================
+async function updateStatus(escalationId, status) {
+  try {
+    const ref = doc(db, 'chatbotEscalations', escalationId);
+    const update = { status };
+    if (status === 'contacted') update.contactedAt = Timestamp.now();
+    if (status === 'resolved') update.resolvedAt = Timestamp.now();
+
+    await updateDoc(ref, update);
+
+    const inquiry = allInquiries.find(i => i.id === escalationId);
+    if (inquiry) Object.assign(inquiry, update);
+    renderInquiries();
+    showAlert(`Marked as ${status}.`, 'success');
+  } catch (error) {
+    console.error('Failed to update status:', error);
+    showAlert('Could not update status. Try again.', 'error');
+  }
+}
+
+// ====================================================================
+// TRANSCRIPT MODAL
+// ====================================================================
+function openTranscriptModal(escalationId) {
+  const inquiry = allInquiries.find(i => i.id === escalationId);
+  const body = document.getElementById('transcript-body');
+
+  if (!inquiry || !Array.isArray(inquiry.transcript) || !inquiry.transcript.length) {
+    body.innerHTML = `
+      <div class="cards-empty-state">
+        <ion-icon name="document-text-outline" class="empty-icon"></ion-icon>
+        <h3>No transcript recorded</h3>
+        <p>This inquiry has no saved conversation history.</p>
+      </div>
+    `;
+  } else {
+    body.innerHTML = inquiry.transcript.map(m => `
+      <div class="transcript-message ${m.role === 'user' ? 'user' : 'bot'}">
+        <span class="transcript-role">${m.role === 'user' ? 'User' : 'Bot'}</span>
+        <span>${escapeHtml(m.content)}</span>
+      </div>
     `).join('');
   }
 

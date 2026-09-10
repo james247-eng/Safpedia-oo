@@ -345,59 +345,160 @@ function buildTierChoices(currentTierKey, label = 'Upgrade') {
 
 function renderSubscriptionPayments(payments) {
     const container = document.getElementById('subscription-payments-list');
+    if (!container) return;
 
-    if (!payments.length) {
-        container.innerHTML = '<div class="empty-state">No subscription payments yet.</div>';
+    if (!payments || !payments.length) {
+        container.innerHTML = `
+            <div class="empty-state">
+                No subscription payment history available.
+            </div>
+        `;
         return;
     }
 
-    const statusClass = (status) => {
-        if (status === 'success') return 'success';
-        if (status === 'failed') return 'failed';
-        return 'pending';
-    };
+    const cards = payments.map((payment, index) => {
+        const status = String(payment.status || 'unknown').toLowerCase();
+        const statusLabel = status.charAt(0).toUpperCase() + status.slice(1);
 
-    const rows = payments.map((payment) => {
-        const tier = tierConfig[payment.tier];
-        const ref = payment.reference || payment.id;
+        const createdAt = formatSubscriptionDate(
+            payment.createdAt ||
+            payment.paidAt ||
+            payment.date
+        );
+
+        const planName =
+            payment.planName ||
+            payment.plan ||
+            payment.tierName ||
+            'Subscription';
+
+        const amount = payment.amount ?? payment.price ?? 0;
+
+        const reference =
+            payment.reference ||
+            payment.paymentReference ||
+            payment.transactionReference ||
+            'N/A';
+
+        const billingCycle =
+            payment.billingCycle ||
+            payment.interval ||
+            payment.cycle ||
+            '—';
+
+        const statusIcon =
+            status === 'completed' || status === 'successful' || status === 'success'
+                ? 'checkmark-circle-outline'
+                : status === 'pending'
+                    ? 'time-outline'
+                    : status === 'failed'
+                        ? 'close-circle-outline'
+                        : 'information-circle-outline';
+
         return `
-            <tr>
-                <td>${escapeHtml(tier?.displayName || payment.tier || 'Subscription')}</td>
-                <td>${naira(payment.amount)}</td>
-                <td>${escapeHtml(payment.billingCycle || 'monthly')}</td>
-                <td><span class="payment-status-pill ${statusClass(payment.status)}">${escapeHtml(payment.status || 'unknown')}</span></td>
-                <td>${formatSubscriptionDate(payment.createdAt)}</td>
-                <td><code>${escapeHtml(ref)}</code></td>
-                <td><button type="button" class="btn btn-secondary btn-sm copy-reference-btn" data-reference="${escapeHtml(ref)}">Copy</button></td>
-            </tr>
+            <details class="payment-card" ${index === 0 ? 'open' : ''}>
+                <summary class="payment-card-summary">
+                    <div class="payment-card-summary-main">
+                        <span class="payment-card-icon">
+                            <ion-icon name="card-outline"></ion-icon>
+                        </span>
+
+                        <div class="payment-card-heading">
+                            <strong>${escapeHtml(planName)}</strong>
+                            <span>${escapeHtml(createdAt)}</span>
+                        </div>
+                    </div>
+
+                    <div class="payment-card-summary-meta">
+                        <strong class="payment-card-amount">
+                            ${naira(amount)}
+                        </strong>
+
+                        <span class="payment-status payment-status-${escapeHtml(status)}">
+                            <ion-icon name="${statusIcon}"></ion-icon>
+                            ${escapeHtml(statusLabel)}
+                        </span>
+
+                        <span class="payment-card-chevron">
+                            <ion-icon name="chevron-down-outline"></ion-icon>
+                        </span>
+                    </div>
+                </summary>
+
+                <div class="payment-card-body">
+                    <div class="payment-info-grid">
+                        <div class="payment-info-block">
+                            <span>Plan</span>
+                            <strong>${escapeHtml(planName)}</strong>
+                        </div>
+
+                        <div class="payment-info-block">
+                            <span>Amount</span>
+                            <strong>${naira(amount)}</strong>
+                        </div>
+
+                        <div class="payment-info-block">
+                            <span>Billing cycle</span>
+                            <strong>${escapeHtml(billingCycle)}</strong>
+                        </div>
+
+                        <div class="payment-info-block">
+                            <span>Date</span>
+                            <strong>${escapeHtml(createdAt)}</strong>
+                        </div>
+                    </div>
+
+                    <div class="payment-reference-row">
+                        <div>
+                            <span>Payment reference</span>
+                            <code>${escapeHtml(reference)}</code>
+                        </div>
+
+                        <button
+                            type="button"
+                            class="btn btn-secondary btn-sm copy-payment-reference-btn"
+                            data-reference="${escapeHtml(reference)}"
+                        >
+                            <ion-icon name="copy-outline"></ion-icon>
+                            Copy Reference
+                        </button>
+                    </div>
+                </div>
+            </details>
         `;
     }).join('');
 
     container.innerHTML = `
-        <table class="subscription-payments-table">
-            <thead>
-                <tr>
-                    <th>Plan</th>
-                    <th>Amount</th>
-                    <th>Cycle</th>
-                    <th>Status</th>
-                    <th>Date</th>
-                    <th>Reference</th>
-                    <th></th>
-                </tr>
-            </thead>
-            <tbody>${rows}</tbody>
-        </table>
+        <div class="payment-cards-list">
+            ${cards}
+        </div>
     `;
 
-    container.querySelectorAll('.copy-reference-btn').forEach((btn) => {
-        btn.addEventListener('click', async () => {
+    container.querySelectorAll('.copy-payment-reference-btn').forEach((button) => {
+        button.addEventListener('click', async () => {
+            const reference = button.dataset.reference;
+
+            if (!reference || reference === 'N/A') return;
+
             try {
-                await navigator.clipboard.writeText(btn.dataset.reference);
-                btn.textContent = 'Copied';
-                setTimeout(() => { btn.textContent = 'Copy'; }, 1500);
-            } catch {
-                btn.textContent = 'Copy failed';
+                await navigator.clipboard.writeText(reference);
+
+                const originalHtml = button.innerHTML;
+
+                button.innerHTML = `
+                    <ion-icon name="checkmark-outline"></ion-icon>
+                    Copied
+                `;
+
+                button.classList.add('is-copied');
+
+                setTimeout(() => {
+                    button.innerHTML = originalHtml;
+                    button.classList.remove('is-copied');
+                }, 1800);
+
+            } catch (err) {
+                console.error('Could not copy payment reference:', err);
             }
         });
     });
@@ -868,95 +969,264 @@ function groupOrdersByReference(orders) {
 function renderOrders(orders) {
     const container = document.getElementById('orders-list');
 
-    if (!orders || orders.length === 0) {
+    if (!container) return;
+
+    if (!orders || !orders.length) {
         container.innerHTML = `
-          <div class="empty-state-block">
-            <div class="empty-icon"><ion-icon name="receipt-outline"></ion-icon></div>
-            <h3>No orders yet</h3>
-            <p>Orders from buyers will show up here as soon as your first sale comes in.</p>
-          </div>
+            <div class="empty-state">
+                No orders found.
+            </div>
         `;
         return;
     }
 
-    const grouped = groupOrdersByReference(orders);
+    const groupedOrders = {};
 
-    const rows = Object.entries(grouped).map(([reference, items]) => {
+    orders.forEach((order) => {
+        const reference = order.reference || order.orderReference || order.id;
+
+        if (!groupedOrders[reference]) {
+            groupedOrders[reference] = [];
+        }
+
+        groupedOrders[reference].push(order);
+    });
+
+    const cards = Object.entries(groupedOrders).map(([reference, items], index) => {
         const firstItem = items[0];
+
+        const totalItemsCount = items.reduce(
+            (sum, item) => sum + Number(item.quantity || 1),
+            0
+        );
+
+        const totalVendorCut = items.reduce(
+            (sum, item) => sum + Number(item.vendorAmount || 0),
+            0
+        );
+
         const date = firstItem.createdAt && firstItem.createdAt._seconds
             ? new Date(firstItem.createdAt._seconds * 1000).toLocaleDateString()
             : '—';
 
-        const totalVendorCut = items.reduce((sum, item) => sum + (item.vendorAmount || 0), 0);
-        const totalItemsCount = items.reduce((sum, item) => sum + (item.quantity || 1), 0);
+        const status = String(
+            firstItem.fulfillmentStatus ||
+            firstItem.status ||
+            'unknown'
+        ).toLowerCase();
 
-        const itemsSummaryHtml = items.map((item) => {
-            const img = resolveOrderImage(item);
+        const statusLabel =
+            status.charAt(0).toUpperCase() + status.slice(1);
+
+        const statusIcon =
+            status === 'delivered'
+                ? 'checkmark-circle-outline'
+                : status === 'shipped'
+                    ? 'cube-outline'
+                    : status === 'cancelled'
+                        ? 'close-circle-outline'
+                        : 'time-outline';
+
+        const actionHtml =
+            items.some((item) => item.productType === 'physical') &&
+            status !== 'delivered' &&
+            status !== 'cancelled'
+                ? `
+                    <div class="order-action-buttons">
+                        ${
+                            status !== 'shipped'
+                                ? `
+                                    <button
+                                        type="button"
+                                        class="btn btn-primary btn-sm mark-shipped-btn"
+                                        data-reference="${escapeHtml(reference)}"
+                                    >
+                                        <ion-icon name="cube-outline"></ion-icon>
+                                        Mark All Shipped
+                                    </button>
+                                `
+                                : ''
+                        }
+
+                        ${
+                            status === 'shipped'
+                                ? `
+                                    <button
+                                        type="button"
+                                        class="btn btn-success btn-sm mark-delivered-btn"
+                                        data-reference="${escapeHtml(reference)}"
+                                    >
+                                        <ion-icon name="checkmark-circle-outline"></ion-icon>
+                                        Mark All Delivered
+                                    </button>
+                                `
+                                : ''
+                        }
+                    </div>
+                `
+                : `
+                    <span class="order-status-pill order-status-${escapeHtml(status)}">
+                        <ion-icon name="${statusIcon}"></ion-icon>
+                        ${escapeHtml(statusLabel)}
+                    </span>
+                `;
+
+        const itemMarkup = items.map((item) => {
+            const image = resolveOrderImage(item);
+            const quantity = Number(item.quantity || 1);
+            const vendorAmount = Number(item.vendorAmount || 0);
+
             return `
-                <div style="display: flex; align-items: center; gap: 8px; margin-bottom: 4px;">
-                    <img src="${escapeHtml(img)}" alt="${escapeHtml(item.productTitle)}" style="width: 36px; height: 36px; object-fit: cover; border-radius: 4px;">
-                    <span><strong>${escapeHtml(item.productTitle)}</strong> (x${item.quantity || 1})</span>
+                <div class="order-item-card">
+                    <div class="order-item-image-wrap">
+                        <img
+                            src="${escapeHtml(image)}"
+                            class="order-item-image"
+                            alt="${escapeHtml(item.productTitle || 'Product')}"
+                        >
+                    </div>
+
+                    <div class="order-item-content">
+                        <strong>
+                            ${escapeHtml(item.productTitle || 'Marketplace Item')}
+                        </strong>
+
+                        <span>
+                            ${quantity} × ₦${Number(
+                                item.price || item.amount || 0
+                            ).toLocaleString()}
+                        </span>
+
+                        <small>
+                            Your cut:
+                            ₦${vendorAmount.toLocaleString()}
+                        </small>
+                    </div>
                 </div>
             `;
         }).join('');
 
-        let actionCell = '—';
-        const hasPhysical = items.some((item) => item.productType === 'physical');
-
-        if (hasPhysical) {
-            const statuses = items.map((i) => i.fulfillmentStatus);
-            if (statuses.every((s) => s === 'pending_shipment')) {
-                actionCell = `<button class="btn btn-sm btn-secondary mark-shipped-btn" data-reference="${escapeHtml(reference)}">Mark All Shipped</button>`;
-            } else if (statuses.every((s) => s === 'shipped')) {
-                actionCell = `<button class="btn btn-sm btn-secondary mark-delivered-btn" data-reference="${escapeHtml(reference)}">Mark All Delivered</button>`;
-            } else if (statuses.every((s) => s === 'delivered')) {
-                actionCell = 'Delivered';
-            } else {
-                actionCell = 'Partially Fulfilled';
-            }
-        } else {
-            actionCell = 'Digital — auto-fulfilled';
-        }
-
         return `
-            <tr>
-                <td>${itemsSummaryHtml}</td>
-                <td>${totalItemsCount} item(s)</td>
-                <td>₦${totalVendorCut.toLocaleString()}</td>
-                <td><code>${escapeHtml(reference)}</code></td>
-                <td>${date}</td>
-                <td>${actionCell}</td>
-                <td><button type="button" class="btn btn-sm btn-secondary view-order-details-btn" data-reference="${escapeHtml(reference)}">View Details</button></td>
-            </tr>
+            <details class="order-card" ${index === 0 ? 'open' : ''}>
+                <summary class="order-card-summary">
+                    <div class="order-card-summary-main">
+                        <span class="order-card-icon">
+                            <ion-icon name="cube-outline"></ion-icon>
+                        </span>
+
+                        <div class="order-card-heading">
+                            <strong>
+                                Order #${escapeHtml(reference)}
+                            </strong>
+
+                            <span>
+                                ${totalItemsCount} item(s)
+                            </span>
+                        </div>
+                    </div>
+
+                    <div class="order-card-summary-meta">
+                        <strong class="order-card-total">
+                            ₦${totalVendorCut.toLocaleString()}
+                        </strong>
+
+                        <span class="order-status-pill order-status-${escapeHtml(status)}">
+                            <ion-icon name="${statusIcon}"></ion-icon>
+                            ${escapeHtml(statusLabel)}
+                        </span>
+
+                        <span class="order-card-date">
+                            ${escapeHtml(date)}
+                        </span>
+
+                        <span class="order-card-chevron">
+                            <ion-icon name="chevron-down-outline"></ion-icon>
+                        </span>
+                    </div>
+                </summary>
+
+                <div class="order-card-body">
+                    <div class="order-items-list">
+                        ${itemMarkup}
+                    </div>
+
+                    <div class="order-info-grid">
+                        <div class="order-info-block">
+                            <span>Quantity</span>
+                            <strong>
+                                ${totalItemsCount} item(s)
+                            </strong>
+                        </div>
+
+                        <div class="order-info-block">
+                            <span>Your cut</span>
+                            <strong>
+                                ₦${totalVendorCut.toLocaleString()}
+                            </strong>
+                        </div>
+
+                        <div class="order-info-block">
+                            <span>Reference</span>
+                            <code>${escapeHtml(reference)}</code>
+                        </div>
+
+                        <div class="order-info-block">
+                            <span>Date</span>
+                            <strong>${escapeHtml(date)}</strong>
+                        </div>
+                    </div>
+
+                    <div class="order-card-footer">
+                        <div class="order-card-status">
+                            <span class="order-card-section-label">
+                                Status / action
+                            </span>
+
+                            ${actionHtml}
+                        </div>
+
+                        <button
+                            type="button"
+                            class="btn btn-secondary btn-sm view-order-details-btn"
+                            data-reference="${escapeHtml(reference)}"
+                        >
+                            <ion-icon name="eye-outline"></ion-icon>
+                            View Details
+                        </button>
+                    </div>
+                </div>
+            </details>
         `;
     }).join('');
 
     container.innerHTML = `
-        <table class="data-table-frame">
-            <thead>
-                <tr>
-                    <th>Items Purchased</th>
-                    <th>Total Qty</th>
-                    <th>Your Cut</th>
-                    <th>Reference</th>
-                    <th>Date</th>
-                    <th>Status / Action</th>
-                    <th>Details</th>
-                </tr>
-            </thead>
-            <tbody>${rows}</tbody>
-        </table>
+        <div class="order-cards-list">
+            ${cards}
+        </div>
     `;
 
-    container.querySelectorAll('.view-order-details-btn').forEach((btn) => {
-        btn.addEventListener('click', () => openGroupedOrderDetails(btn.dataset.reference));
+    container.querySelectorAll('.view-order-details-btn').forEach((button) => {
+        button.addEventListener('click', () => {
+            openGroupedOrderDetails(button.dataset.reference);
+        });
     });
 
-    container.querySelectorAll('.mark-shipped-btn').forEach((btn) => {
-        btn.addEventListener('click', () => updateGroupOrderStatus(btn.dataset.reference, 'shipped'));
+    container.querySelectorAll('.mark-shipped-btn').forEach((button) => {
+        button.addEventListener('click', () => {
+            updateGroupOrderStatus(
+                button.dataset.reference,
+                'shipped'
+            );
+        });
     });
-    container.querySelectorAll('.mark-delivered-btn').forEach((btn) => {
-        btn.addEventListener('click', () => updateGroupOrderStatus(btn.dataset.reference, 'delivered'));
+
+    container.querySelectorAll('.mark-delivered-btn').forEach((button) => {
+        button.addEventListener('click', () => {
+            updateGroupOrderStatus(
+                button.dataset.reference,
+                'delivered'
+            );
+        });
     });
 }
 

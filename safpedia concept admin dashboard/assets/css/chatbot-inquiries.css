@@ -1,0 +1,460 @@
+/* ====================================================================
+   CHATBOT INQUIRIES — page-specific styles
+   SAFpedia Admin
+
+   This file only handles what student-dashboard.css does not already
+   cover for this page: the container card, the search/filter header,
+   collapsible inquiry cards, badges, alerts, and the transcript modal.
+   It relies on the CSS variables (--blue, --ink, --radius-*, etc.)
+   already defined in student-dashboard.css, which stays untouched.
+   ==================================================================== */
+
+/* ---------- SECTION CARD (wraps the whole inquiries panel) ---------- */
+.card {
+  background: var(--white);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-lg);
+  box-shadow: var(--shadow-card);
+  padding: 24px;
+}
+
+.card-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 16px;
+  margin-bottom: 22px;
+}
+
+.card-title {
+  font-family: 'Space Grotesk', sans-serif;
+  font-size: 20px;
+  font-weight: 700;
+  color: var(--ink);
+}
+
+.header-actions-group {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  flex-wrap: wrap;
+}
+
+.table-result-count {
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--ink-soft);
+  white-space: nowrap;
+}
+
+.search-box {
+  padding: 10px 14px;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  background: var(--surface);
+  font-family: inherit;
+  font-size: 14px;
+  color: var(--ink);
+  min-width: 220px;
+  outline: none;
+  transition: border-color .15s ease, box-shadow .15s ease, background .15s ease;
+}
+
+.search-box:focus {
+  border-color: var(--blue);
+  background: var(--white);
+  box-shadow: 0 0 0 3px rgba(41, 84, 255, 0.12);
+}
+
+.form-select {
+  padding: 10px 14px;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  background: var(--surface);
+  font-family: inherit;
+  font-size: 14px;
+  color: var(--ink);
+  cursor: pointer;
+  outline: none;
+  transition: border-color .15s ease, background .15s ease;
+}
+
+.form-select:focus { border-color: var(--blue); background: var(--white); }
+
+@media (max-width: 640px) {
+  .card { padding: 18px; }
+  .card-header { align-items: stretch; }
+  .header-actions-group { width: 100%; }
+  .search-box { flex: 1; min-width: 0; }
+}
+
+/* ---------- INQUIRY CARD LIST ---------- */
+.inquiries-list {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+}
+
+.inquiry-card {
+  background: var(--white);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-md);
+  box-shadow: var(--shadow-card);
+  overflow: hidden;
+  transition: box-shadow .2s ease, border-color .2s ease;
+}
+
+.inquiry-card.expanded { border-color: rgba(41, 84, 255, 0.35); }
+
+/* ----- Header (always visible, acts as the collapse toggle) ----- */
+.inquiry-card-header {
+  width: 100%;
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  padding: 16px 20px;
+  background: none;
+  border: none;
+  font: inherit;
+  text-align: left;
+  cursor: pointer;
+  color: inherit;
+  transition: background .15s ease;
+}
+
+.inquiry-card-header:hover { background: var(--surface); }
+
+.inquiry-avatar {
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  background: var(--blue-tint);
+  color: var(--blue-dark);
+  font-family: 'Space Grotesk', sans-serif;
+  font-weight: 700;
+  font-size: 15px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+
+.inquiry-main {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+}
+
+.inquiry-contact-name {
+  font-weight: 700;
+  font-size: 15px;
+  color: var(--ink);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.inquiry-topic-preview {
+  font-size: 13px;
+  color: var(--ink-soft);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.inquiry-meta {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  flex-wrap: wrap;
+  flex-shrink: 0;
+}
+
+.inquiry-date {
+  font-size: 12px;
+  color: var(--ink-soft);
+  white-space: nowrap;
+}
+
+.inquiry-chevron {
+  font-size: 20px;
+  color: var(--ink-soft);
+  flex-shrink: 0;
+  transition: transform .25s ease, color .25s ease;
+}
+
+.inquiry-card.expanded .inquiry-chevron {
+  transform: rotate(180deg);
+  color: var(--blue);
+}
+
+/* ----- Collapsible body (pure-CSS grid-rows animation) ----- */
+.inquiry-card-collapse {
+  display: grid;
+  grid-template-rows: 0fr;
+  transition: grid-template-rows .3s ease;
+}
+
+.inquiry-card.expanded .inquiry-card-collapse {
+  grid-template-rows: 1fr;
+}
+
+.inquiry-card-body {
+  overflow: hidden;
+  min-height: 0;
+}
+
+.inquiry-detail-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
+  gap: 14px;
+  padding: 18px 20px 4px;
+  border-top: 1px solid var(--border);
+}
+
+.inquiry-detail-item label {
+  display: block;
+  font-size: 11px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: .04em;
+  color: var(--ink-soft);
+  margin-bottom: 4px;
+}
+
+.inquiry-detail-item span {
+  font-size: 14px;
+  color: var(--ink);
+  word-break: break-word;
+}
+
+.inquiry-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+  padding: 16px 20px 20px;
+}
+
+/* ---------- BADGES ---------- */
+.badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 4px 10px;
+  border-radius: 999px;
+  font-size: 11px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: .03em;
+  white-space: nowrap;
+}
+
+.badge-method.whatsapp { background: #E7F9EF; color: #0F9D58; }
+.badge-method.email { background: var(--blue-tint); color: var(--blue-dark); }
+
+.badge-status.new { background: #FFF4E0; color: #B8720A; }
+.badge-status.contacted { background: var(--blue-tint); color: var(--blue-dark); }
+.badge-status.resolved { background: #E7F9EF; color: #0F9D58; }
+
+/* ---------- BUTTON VARIANTS (extend .btn from student-dashboard.css) ---------- */
+.btn-sm {
+  padding: 8px 14px;
+  font-size: 13px;
+}
+
+.btn-whatsapp {
+  background: #25D366;
+  color: var(--white);
+  border: none;
+}
+
+.btn-whatsapp:hover {
+  background: #1DA851;
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(37, 211, 102, 0.3);
+}
+
+/* ---------- EMPTY / LOADING / ERROR STATE (reuses shared visual language) ---------- */
+.cards-empty-state {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+  gap: 10px;
+  padding: 56px 24px;
+  border: 1px dashed var(--border);
+  border-radius: var(--radius-md);
+  background: var(--white);
+}
+
+.cards-empty-state.is-error {
+  border-style: solid;
+  border-color: rgba(255, 59, 92, 0.25);
+  background: var(--red-tint);
+}
+
+.cards-empty-state .empty-icon {
+  font-size: 32px;
+  color: var(--blue);
+  background: var(--blue-tint);
+  width: 64px;
+  height: 64px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.cards-empty-state.is-error .empty-icon {
+  color: var(--red);
+  background: var(--white);
+}
+
+.cards-empty-state h3 {
+  font-family: 'Space Grotesk', sans-serif;
+  font-size: 16px;
+  color: var(--ink);
+}
+
+.cards-empty-state p {
+  font-size: 14px;
+  color: var(--ink-soft);
+  max-width: 320px;
+}
+
+/* ---------- ALERTS ---------- */
+.alert {
+  padding: 14px 18px;
+  border-radius: var(--radius-sm);
+  font-size: 14px;
+  font-weight: 600;
+  margin-bottom: 16px;
+  animation: alert-slide-in .25s ease;
+}
+
+.alert-success {
+  background: #E7F9EF;
+  color: #0F9D58;
+  border: 1px solid rgba(15, 157, 88, 0.25);
+}
+
+.alert-error {
+  background: var(--red-tint);
+  color: var(--red);
+  border: 1px solid rgba(255, 59, 92, 0.25);
+}
+
+@keyframes alert-slide-in {
+  from { opacity: 0; transform: translateY(-8px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+/* ---------- TRANSCRIPT MODAL ---------- */
+.modal {
+  display: none;
+  position: fixed;
+  inset: 0;
+  background: rgba(11, 17, 32, 0.5);
+  z-index: 200;
+  align-items: center;
+  justify-content: center;
+  padding: 20px;
+}
+
+.modal.active { display: flex; }
+
+.modal-content {
+  background: var(--white);
+  border-radius: var(--radius-lg);
+  width: 100%;
+  max-width: 600px;
+  max-height: 80vh;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  box-shadow: 0 20px 60px rgba(11, 17, 32, 0.25);
+}
+
+.modal-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 20px 24px;
+  border-bottom: 1px solid var(--border);
+  flex-shrink: 0;
+}
+
+.modal-title {
+  font-family: 'Space Grotesk', sans-serif;
+  font-size: 18px;
+  font-weight: 700;
+  color: var(--ink);
+}
+
+.close-modal {
+  background: none;
+  border: none;
+  font-size: 22px;
+  line-height: 1;
+  color: var(--ink-soft);
+  cursor: pointer;
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: background .15s ease, color .15s ease;
+}
+
+.close-modal:hover { background: var(--surface); color: var(--ink); }
+
+.user-details-body {
+  padding: 20px 24px;
+  overflow-y: auto;
+}
+
+.transcript-message {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  max-width: 80%;
+  margin-bottom: 14px;
+  padding: 10px 14px;
+  border-radius: var(--radius-sm);
+  font-size: 14px;
+  line-height: 1.5;
+}
+
+.transcript-message .transcript-role {
+  font-size: 11px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: .03em;
+  opacity: .7;
+}
+
+.transcript-message.user {
+  align-self: flex-end;
+  background: var(--blue);
+  color: var(--white);
+  border-bottom-right-radius: 4px;
+}
+
+.transcript-message.bot {
+  align-self: flex-start;
+  background: var(--surface);
+  color: var(--ink);
+  border-bottom-left-radius: 4px;
+}
+
+/* ---------- MOBILE TUNING ---------- */
+@media (max-width: 640px) {
+  .inquiry-card-header { flex-wrap: wrap; }
+  .inquiry-meta { width: 100%; padding-left: 54px; justify-content: flex-start; }
+  .inquiry-actions { flex-direction: column; }
+  .inquiry-actions .btn { width: 100%; justify-content: center; }
+}
