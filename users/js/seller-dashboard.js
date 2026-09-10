@@ -1082,7 +1082,7 @@ function renderOrders(orders) {
     <img
         src="${escapeHtml(image)}"
         alt="${escapeHtml(item.productTitle || 'Marketplace Item')}"
-        class="order-item-mini-image"
+        class="order-item-mini-image" width="48" height="48"
     >
 
     <div class="order-item-mini-content">
