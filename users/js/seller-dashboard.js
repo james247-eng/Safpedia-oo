@@ -24,6 +24,15 @@ function escapeHtml(str) {
         .replace(/'/g, '&#039;');
 }
 
+function resolveOrderImage(item) {
+    const value = Array.isArray(item?.imageUrl) ? item.imageUrl[0] : item?.imageUrl;
+    const candidate = value && typeof value === 'object' ? (value.url || value.secure_url || value.imageUrl || value.publicId) : value;
+    if (typeof candidate === 'string' && (/^https?:\/\//i.test(candidate) || candidate.startsWith('/'))) return candidate;
+    const cloudName = window.CLOUDINARY_CLOUD_NAME || document.documentElement.dataset.cloudinaryCloudName;
+    if (cloudName && typeof candidate === 'string' && candidate) return `https://res.cloudinary.com/${encodeURIComponent(cloudName)}/image/upload/${candidate}`;
+    return 'images/hero.png';
+}
+
 function subscriptionDate(value) {
     if (!value) return null;
     if (typeof value === 'string' || value instanceof Date) return new Date(value);
@@ -882,7 +891,7 @@ function renderOrders(orders) {
         const totalItemsCount = items.reduce((sum, item) => sum + (item.quantity || 1), 0);
 
         const itemsSummaryHtml = items.map((item) => {
-            const img = item.imageUrl || 'images/hero.png';
+            const img = resolveOrderImage(item);
             return `
                 <div style="display: flex; align-items: center; gap: 8px; margin-bottom: 4px;">
                     <img src="${escapeHtml(img)}" alt="${escapeHtml(item.productTitle)}" style="width: 36px; height: 36px; object-fit: cover; border-radius: 4px;">
@@ -964,7 +973,7 @@ function openGroupedOrderDetails(reference) {
 
     document.getElementById('order-detail-reference').textContent = reference;
     document.getElementById('order-detail-product-title').innerHTML = items.map((item) => {
-        const img = item.imageUrl || 'images/hero.png';
+        const img = resolveOrderImage(item);
         return `
             <div style="display: flex; align-items: center; gap: 10px; margin-bottom: 6px;">
                 <img src="${escapeHtml(img)}" style="width: 40px; height: 40px; object-fit: cover; border-radius: 4px;">
