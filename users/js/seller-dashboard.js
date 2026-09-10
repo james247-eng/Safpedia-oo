@@ -1086,22 +1086,23 @@ function renderOrders(orders) {
                         >
                     </div>
 
-                    <div class="order-item-content">
-                        <strong>
-                            ${escapeHtml(item.productTitle || 'Marketplace Item')}
-                        </strong>
+<div class="order-item-mini">
+    <img
+        src="${escapeHtml(image)}"
+        alt="${escapeHtml(item.productTitle || 'Marketplace Item')}"
+        class="order-item-mini-image"
+    >
 
-                        <span>
-                            ${quantity} × ₦${Number(
-                                item.price || item.amount || 0
-                            ).toLocaleString()}
-                        </span>
+    <div class="order-item-mini-content">
+        <strong>
+            ${escapeHtml(item.productTitle || 'Marketplace Item')}
+        </strong>
 
-                        <small>
-                            Your cut:
-                            ₦${vendorAmount.toLocaleString()}
-                        </small>
-                    </div>
+        <span>
+            Qty ${quantity} · ₦${vendorAmount.toLocaleString()}
+        </span>
+    </div>
+</div>
                 </div>
             `;
         }).join('');
